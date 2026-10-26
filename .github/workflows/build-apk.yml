@@ -17,6 +17,9 @@ jobs:
           java-version: "17"
 
       - uses: android-actions/setup-android@v3
+        with:
+             # the default list asks for the old "tools" package, which no longer exists
+          packages: "platform-tools platforms;android-34 build-tools;34.0.0"
 
       - name: Build APK
         run: |
