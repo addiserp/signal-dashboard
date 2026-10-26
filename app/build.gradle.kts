@@ -10,8 +10,8 @@ android {
         applicationId = "com.signals.dashboard"
         minSdk = 24
         targetSdk = 34
-        versionCode = 7
-        versionName = "7.0"
+        versionCode = 8
+        versionName = "8.0"
     }
 
     buildTypes {

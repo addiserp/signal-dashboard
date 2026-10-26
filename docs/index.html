@@ -13,7 +13,7 @@
 <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="Signals">
-<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<script defer src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <style>
   :root{
     --bg:#0e1117; --panel:#161b24; --panel2:#1b2130; --line:#262d3a; --text:#e6e9ef; --muted:#8a93a6;
@@ -42,9 +42,19 @@
   .tape{height:46px;border-top:1px solid var(--line)}
 
   /* symbol switcher (phones only) */
-  .symtabs{display:none}
+  .symtabs{display:flex;gap:6px;padding:8px var(--gutter);border-top:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+  .symtabs::-webkit-scrollbar{display:none}
+  .symtabs button{flex:0 0 auto;min-height:36px;border-radius:999px;font-weight:600;color:var(--muted)}
+  .symtabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
 
-  main{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,600px),1fr));gap:16px;padding:var(--gutter)}
+  main{display:block;padding:var(--gutter)}
+  main .card{display:none}
+  main .card.on{display:flex}
+  @media (min-width:1000px){
+    main .card.on{display:grid;grid-template-columns:minmax(380px,1fr) minmax(0,1.7fr);grid-template-rows:auto auto 1fr}
+    main .card.on .card-head{grid-column:1 / -1}
+    main .card.on .chart{grid-column:2;grid-row:2 / span 2;height:auto;min-height:720px;border-left:1px solid var(--line)}
+  }
   .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
   .card-head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
   .card-head .sym{font-weight:600;font-size:15px}
@@ -325,7 +335,7 @@
 </dialog>
 
 <script>
-const DEFAULTS = ["BITSTAMP:BTCUSD","BITSTAMP:ETHUSD","OANDA:XAUUSD","NASDAQ:SPCX","BINANCE:ZECUSDT","BINANCE:HYPEUSDT","BINANCE:NEARUSDT"];
+const DEFAULTS = ["BINANCE:BTCUSDT","BINANCE:ETHUSDT","OANDA:XAUUSD","NASDAQ:SPCX","BINANCE:ZECUSDT","BINANCE:HYPEUSDT","BINANCE:NEARUSDT"];
 const REFRESH_SEC = 60;
 const TF_ORDER = ["1m","5m","15m","30m","1h","4h","1D"];
 const CHART_TF = {"1m":"1","5m":"5","15m":"15","30m":"30","1h":"60","4h":"240","1D":"D"};
@@ -366,6 +376,13 @@ if (DATA_VER < 5) {   // v5 added ZEC, HYPE, NEAR: append them to a saved list
 let interval = load("tvdash.interval", "30m");
 let preset   = load("tvdash.preset", "momentum");
 let moverTab = load("tvdash.mover", "crypto");
+if (DATA_VER < 8) {   // v8: BTC/ETH use the Binance USDT pairs and BTCUSDT opens first
+  symbols = symbols.map((x) => x === "BITSTAMP:BTCUSD" ? "BINANCE:BTCUSDT" : x === "BITSTAMP:ETHUSD" ? "BINANCE:ETHUSDT" : x);
+  const b = symbols.indexOf("BINANCE:BTCUSDT");
+  if (b > 0) { symbols.splice(b, 1); symbols.unshift("BINANCE:BTCUSDT"); }
+  save("tvdash.symbols", symbols);
+  save("tvdash.active", 0);
+}
 let active   = Math.min(load("tvdash.active", 0), symbols.length - 1);
 document.getElementById("interval").value = interval;
 document.getElementById("preset").value = preset;
@@ -398,7 +415,7 @@ function mtfFrames(){
 }
 
 // On phones only the selected symbol is loaded, to save data and battery
-function visibleIdx(){ return isMobile() ? [active] : symbols.map((_,i)=>i); }
+function visibleIdx(){ return [active]; }   // only the selected symbol is ever loaded
 
 function taWidget(el, sym, tf, mode){
   embed(el, "embed-widget-technical-analysis.js", {
@@ -408,12 +425,27 @@ function taWidget(el, sym, tf, mode){
   });
 }
 
+const seen = new Set();      // cards whose timeframe-check gauges have been scrolled into view
+const lazyObs = "IntersectionObserver" in window ? new IntersectionObserver((entries) => {
+  entries.forEach((en) => {
+    if (!en.isIntersecting) return;
+    const i = +en.target.dataset.i;
+    lazyObs.unobserve(en.target);
+    seen.add(i);
+    renderMtf(i);
+  });
+}, { rootMargin: "200px" }) : null;
+
+function renderMtf(i){
+  mtfFrames().forEach((tf,k)=> taWidget(document.getElementById(`osc${i}_${k}`), symbols[i], tf, "single"));
+}
+
 function renderTA(i){
-  const sym = symbols[i];
   // Main timeframe: three gauges, Oscillators | Summary | Moving Averages
-  taWidget(document.getElementById("ta"+i), sym, interval, "multiple");
-  // Lower and higher timeframe gauges for confirmation
-  mtfFrames().forEach((tf,k)=> taWidget(document.getElementById(`osc${i}_${k}`), sym, tf, "single"));
+  taWidget(document.getElementById("ta"+i), symbols[i], interval, "multiple");
+  // Lower and higher timeframe gauges: only once they are on screen
+  if (!lazyObs || seen.has(i)) renderMtf(i);
+  else { const box = document.getElementById("mtf"+i); if (box) lazyObs.observe(box); }
 }
 
 function renderChart(i){
@@ -449,7 +481,8 @@ function selectSymbol(i){
 
 function buildGrid(){
   const frames = mtfFrames();
-  loaded.clear();
+  loaded.clear(); seen.clear();
+  if (lazyObs) lazyObs.disconnect();
   buildSymTabs();
   document.getElementById("grid").innerHTML = symbols.map((s,i)=>{
     const [ex, tk] = s.includes(":") ? s.split(":") : ["", s];
@@ -461,7 +494,7 @@ function buildGrid(){
       </div>
       ${frames.length ? `<div class="sub">
         <div class="sub-title"><span>Timeframe check</span><span class="hint">does the bigger picture agree?</span></div>
-        <div class="mtf" style="grid-template-columns:repeat(${frames.length},1fr)">
+        <div class="mtf" id="mtf${i}" data-i="${i}" style="grid-template-columns:repeat(${frames.length},1fr)">
           ${frames.map((tf,k)=>`<div class="cell"><div class="lbl">${tf}</div><div class="w" id="osc${i}_${k}"></div></div>`).join("")}
         </div>
       </div>` : ""}
@@ -479,8 +512,17 @@ function renderTape(){
   });
 }
 
+let moverShown = false;
+const moverObs = "IntersectionObserver" in window ? new IntersectionObserver((entries) => {
+  if (entries.some((en) => en.isIntersecting)) { moverObs.disconnect(); moverShown = true; renderMover(); }
+}, { rootMargin: "150px" }) : null;
+function lazyMover(){
+  if (moverShown || !moverObs) { renderMover(); return; }
+  moverObs.observe(document.getElementById("mover"));
+}
 function renderMover(){
   const el = document.getElementById("mover");
+  moverShown = true;
   document.querySelectorAll("#moverTabs button").forEach(b=>b.classList.toggle("on", b.dataset.tab===moverTab));
   const common = {width:"100%", height:"100%", colorTheme:"dark", isTransparent:true, locale:"en"};
   if (moverTab === "crypto") {
@@ -557,7 +599,7 @@ grid.addEventListener("touchend", e => {
 }, {passive:true});
 
 // rebuild when crossing between phone and desktop layouts (rotation, resize)
-mq.addEventListener("change", () => { renderTape(); if (view === "signals") { buildGrid(); renderMover(); } else renderActive(); });
+mq.addEventListener("change", () => { renderTape(); if (view === "signals") { buildGrid(); if (moverShown) renderMover(); } else renderActive(); });
 
 const dlg = document.getElementById("editDlg");
 function fillInputs(list, tl){
@@ -1030,17 +1072,29 @@ async function tlFetch(s, interval) {
   throw lastErr || new Error("no data");
 }
 
+const TL_CACHE = {};   // symbol -> timeframe -> {data, at}
+const TL_MAX_AGE = { "1M": 1800e3, "1w": 900e3, "1d": 300e3, "4h": 120e3, "1h": 50e3, "15m": 50e3 };
 async function tlLoad() {
   if (tlBusy) return;
   tlBusy = true;
   const s = tlSyms[tlActive];
   const msg = document.getElementById("bsMsg");
+  const store = TL_CACHE[s.market + ":" + s.sym] = TL_CACHE[s.market + ":" + s.sym] || {};
+  // show what we already have right away when switching back to a symbol
+  if (!tlData && TrendEngine.ORDER.some((k) => store[k])) {
+    tlData = {}; TrendEngine.ORDER.forEach((k) => { if (store[k]) tlData[k] = store[k].data; });
+    tlRes = TrendEngine.analyze(tlData); renderActive();
+  }
   try {
-    const parts = await Promise.allSettled(TrendEngine.ORDER.map((k) => tlFetch(s, k)));
+    const now = Date.now();
+    const parts = await Promise.allSettled(TrendEngine.ORDER.map((k) =>
+      store[k] && now - store[k].at < TL_MAX_AGE[k] ? Promise.resolve(store[k].data)
+        : tlFetch(s, k).then((d) => { store[k] = { data: d, at: Date.now() }; return d; })));
     const data = {};
     const failed = [];
     TrendEngine.ORDER.forEach((k, i) => {
       if (parts[i].status === "fulfilled" && parts[i].value.length) data[k] = parts[i].value;
+      else if (store[k]) data[k] = store[k].data;
       else failed.push(k);
     });
     if (!Object.keys(data).length) throw parts.find((p) => p.status === "rejected")?.reason || new Error("no data");
@@ -1155,7 +1209,7 @@ function setView(v) {
   document.getElementById("signalsView").hidden = v !== "signals";
   document.getElementById("symtabs").style.display = v === "signals" ? "" : "none";
   if (v === "bos") { tlBuildChips(); if (!tlData) tlLoad(); else renderActive(); }
-  else { buildGrid(); renderMover(); }
+  else { buildGrid(); lazyMover(); }
   left = REFRESH_SEC;
 }
 // Smart Money Concepts add-ons for the Structure tab
@@ -1393,7 +1447,8 @@ let bsChart = null, bsCandles = null, bsVolume = null, bsSeries = [], bsPriceLin
 const BS_COL = { "BOS1": "#22c55e", "BOS-1": "#ef4444", "CHoCH1": "#2dd4bf", "CHoCH-1": "#fb923c" };
 
 function bsEnsureChart() {
-  if (bsChart) return;
+  if (bsChart) return true;
+  if (!window.LightweightCharts) return false;   // library still loading
   const el = document.getElementById("bsChart");
   bsChart = LightweightCharts.createChart(el, {
     autoSize: true,
@@ -1425,7 +1480,7 @@ function bsWhen(t) {
 
 function bsRender() {
   if (!tlData) return;
-  bsEnsureChart();
+  if (bsEnsureChart() === false) { window.addEventListener("load", () => bsRender(), { once: true }); return; }
   document.getElementById("bsLoading").hidden = true;
   bsRes = StructureEngine.analyze(tlData, TrendEngine.ORDER);
   const s = tlSyms[tlActive];
@@ -1730,8 +1785,8 @@ function bsCards(ov, vol, price, tfLabel, R) {
 
 document.querySelectorAll("#views button").forEach((b) => b.onclick = () => setView(b.dataset.view));
 
-renderTape();
-if (view !== "signals") setView(view); else { buildGrid(); renderMover(); }
+setTimeout(renderTape, 2500);   // macro ticker after the main widgets
+if (view !== "signals") setView(view); else { buildGrid(); lazyMover(); }
 
 /* ---- installable app (PWA) ---- */
 (function () {
@@ -1750,6 +1805,7 @@ if (view !== "signals") setView(view); else { buildGrid(); renderMover(); }
   };
   window.addEventListener("appinstalled", () => { btn.hidden = true; });
 })();
+
 </script>
 </body>
 </html>
