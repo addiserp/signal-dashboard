@@ -1,0 +1,1755 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e1117">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Signal Dashboard</title>
+<meta name="description" content="Technical signals, top-down trend rays, BOS/CHoCH, order blocks, liquidity and Fibonacci for crypto, gold and stocks.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Signals">
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+  :root{
+    --bg:#0e1117; --panel:#161b24; --panel2:#1b2130; --line:#262d3a; --text:#e6e9ef; --muted:#8a93a6;
+    --accent:#4c8dff; --osc:#f5a524;
+    --gutter:16px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    padding-bottom:env(safe-area-inset-bottom)}
+  header{position:sticky;top:0;z-index:5;background:rgba(14,17,23,.97);border-bottom:1px solid var(--line);
+    backdrop-filter:blur(6px);padding-top:env(safe-area-inset-top)}
+  .bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:10px var(--gutter)}
+  .brand{display:flex;align-items:center;gap:10px;min-width:0}
+  h1{font-size:16px;margin:0;font-weight:600;white-space:nowrap}
+  h1 span{color:var(--muted);font-weight:400}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .pill{padding:6px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .pill b{color:var(--text);font-weight:600}
+  button,select{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit;cursor:pointer;min-height:36px}
+  button:hover,select:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  label.chk{display:flex;gap:6px;align-items:center;color:var(--muted);cursor:pointer}
+  .menuBtn{display:none}
+  .quick{display:none}
+  .tape{height:46px;border-top:1px solid var(--line)}
+
+  /* symbol switcher (phones only) */
+  .symtabs{display:none}
+
+  main{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,600px),1fr));gap:16px;padding:var(--gutter)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+  .card-head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
+  .card-head .sym{font-weight:600;font-size:15px}
+  .card-head .src{color:var(--muted);font-size:12px}
+
+  .sub{border-bottom:1px solid var(--line)}
+  .sub-title{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 14px 0;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  .sub-title .tag{color:var(--osc);font-weight:700}
+  .osc{background:linear-gradient(180deg,rgba(245,165,36,.07),transparent 60%);border-left:3px solid var(--osc)}
+  .mtf{display:grid}
+  .mtf .cell{border-right:1px solid var(--line);min-width:0}
+  .mtf .cell:last-child{border-right:0}
+  .mtf .lbl{padding:6px 10px 0;font-size:11px;color:var(--muted)}
+  .mtf .w{height:280px}
+  .full .w{height:430px}
+  .chart{height:560px}
+
+  section.movers{margin:0 var(--gutter) 24px;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .tabs{display:flex;gap:4px;padding:8px;border-bottom:1px solid var(--line);background:var(--panel2);overflow-x:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{border:0;background:transparent;color:var(--muted);white-space:nowrap;flex:0 0 auto}
+  .tabs button.on{background:var(--panel);color:var(--text);border:1px solid var(--line)}
+  .tabs h2{margin:0 8px 0 4px;font-size:14px;align-self:center;white-space:nowrap}
+  .mover{height:560px}
+  .tradingview-widget-container,.tradingview-widget-container__widget{width:100%;height:100%}
+
+  dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:20px;width:min(460px,92vw)}
+  dialog::backdrop{background:rgba(0,0,0,.6)}
+  dialog h2{margin:0 0 6px;font-size:16px}
+  dialog p{margin:0 0 14px;color:var(--muted);font-size:13px}
+  dialog input{width:100%;margin:4px 0 12px;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:16px}
+  .row{display:flex;gap:8px;justify-content:flex-end}
+
+  /* view switch */
+  .views{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+  .views button{border:0;background:transparent;color:var(--muted);min-height:32px;padding:4px 12px;font-weight:600}
+  .views button.on{background:var(--accent);color:#fff}
+  [hidden]{display:none !important}
+  .views .sm{display:none}
+  details.layers{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+  details.layers summary{cursor:pointer;padding:9px 14px;font-weight:600;color:var(--muted);list-style:none}
+  details.layers summary::before{content:"▸ ";}
+  details.layers[open] summary::before{content:"▾ ";}
+  .layer-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px 18px;padding:2px 14px 12px}
+  .layer-grid label{margin:4px 0}
+  .lg-h{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:2px}
+  .layer-grid select{min-height:30px;padding:2px 6px}
+
+  /* ---------- trend-line view ---------- */
+  #trendView,#bosView{padding:var(--gutter);display:grid;gap:12px}
+  .tv-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chips button{flex:0 0 auto;border-radius:999px;font-weight:600;color:var(--muted)}
+  .chips button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .tfchips button.on{background:var(--text);border-color:var(--text);color:var(--bg)}
+  .tv-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .tv-top{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
+  .tv-top .big{font-size:18px;font-weight:700}
+  .tv-top .muted{color:var(--muted);font-size:12px}
+  .badge{display:inline-block;white-space:nowrap;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid var(--line)}
+  .bull{color:#22c55e;border-color:rgba(34,197,94,.45);background:rgba(34,197,94,.08)}
+  .bear{color:#ef4444;border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.08)}
+  .neutral{color:var(--muted)}
+  #tlChart,#bsChart{height:560px;position:relative}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;padding:8px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+  .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+  .tv-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px}
+  table.tt{width:100%;border-collapse:collapse;font-size:13px}
+  table.tt th{text-align:left;font-weight:600;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:8px 10px;border-bottom:1px solid var(--line)}
+  table.tt td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;font-variant-numeric:tabular-nums}
+  table.tt tr:last-child td{border-bottom:0}
+  table.tt tr.sel td{background:rgba(76,141,255,.08)}
+  table.tt tbody tr{cursor:pointer}
+  .card-title{padding:10px 14px;border-bottom:1px solid var(--line);font-weight:600;display:flex;justify-content:space-between;gap:8px}
+  .card-title small{color:var(--muted);font-weight:400}
+  .msg{padding:10px 14px;color:var(--muted);font-size:12px}
+  .msg.err{color:#ef4444}
+  .toggles{display:flex;gap:12px;flex-wrap:wrap}
+  .tf-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  .loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);background:rgba(22,27,36,.6);z-index:3}
+
+  /* ---------- phones ---------- */
+  @media (max-width:760px){
+    :root{--gutter:12px}
+    .bar{position:relative;flex-wrap:nowrap;gap:8px;padding:8px var(--gutter)}
+    h1{font-size:15px}
+    h1 span{display:none}
+    .quick{display:flex;gap:6px;align-items:center}
+    .quick .pill{padding:4px 8px;font-size:12px}
+    .menuBtn{display:inline-flex;align-items:center;justify-content:center;min-width:40px;min-height:40px;font-size:18px}
+    .controls{display:none;position:absolute;left:0;right:0;top:100%;padding:12px var(--gutter) 14px;
+      background:var(--panel2);border-bottom:1px solid var(--line);box-shadow:0 10px 24px rgba(0,0,0,.4);
+      display:none;grid-template-columns:1fr 1fr;gap:10px}
+    header.open .controls{display:grid}
+    .controls select,.controls button{width:100%;min-height:44px;font-size:15px}
+    .controls .pill.desk{display:none}
+    .controls label.chk{grid-column:1 / -1;min-height:36px}
+    .tape{height:42px}
+
+    .symtabs{display:flex;gap:6px;padding:8px var(--gutter);border-top:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+    .symtabs::-webkit-scrollbar{display:none}
+    .symtabs button{flex:1 0 auto;min-height:40px;border-radius:999px;font-weight:600;color:var(--muted)}
+    .symtabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+    main{display:block;padding:var(--gutter)}
+    .card{display:none;border-radius:10px}
+    .card.on{display:flex}
+    .sub-title{font-size:11px;padding:8px 12px 0}
+    .sub-title .hint{display:none}
+    .full .w{height:760px}     /* three gauges stack vertically on narrow screens */
+    .mtf .w{height:300px}
+    .chart{height:440px}
+    section.movers{margin:0 var(--gutter) 16px;border-radius:10px}
+    .tabs h2{display:none}
+    .mover{height:480px}
+  }
+  @media (max-width:760px){
+    .brand h1{display:none}
+    .views button{padding:4px 9px;font-size:13px}
+    .views .lg{display:none}
+    .views .sm{display:inline}
+    #bsChart{height:430px}
+    #trendView,#bosView{padding:var(--gutter);gap:10px}
+    #tlChart{height:430px}
+    .tv-grid{grid-template-columns:1fr}
+    table.tt{font-size:12px}
+    table.tt th,table.tt td{padding:7px 8px}
+    .hide-sm{display:none}
+  }
+  @media (max-width:760px) and (orientation:landscape){
+    #tlChart,#bsChart{height:300px}
+    .full .w{height:420px}
+    .chart{height:320px}
+  }
+</style>
+</head>
+<body>
+<header id="hdr">
+  <div class="bar">
+    <div class="brand">
+      <h1>Technical Summary <span>· TradingView data</span></h1>
+      <div class="views" id="views">
+        <button data-view="signals" class="on">Signals</button>
+        <button data-view="bos"><span class="lg">Chart analysis</span><span class="sm">Analysis</span></button>
+      </div>
+    </div>
+    <div class="quick">
+      <span class="pill"><b id="countdownM">60</b>s</span>
+      <button class="primary menuBtn" id="refreshM" title="Refresh now" aria-label="Refresh now">↻</button>
+      <button class="menuBtn" id="menuBtn" title="Settings" aria-label="Settings" aria-expanded="false">☰</button>
+    </div>
+    <div class="controls" id="controls">
+      <select id="interval" title="Main timeframe">
+        <option value="1m">1m</option><option value="5m">5m</option><option value="15m">15m</option>
+        <option value="30m" selected>30m</option><option value="1h">1h</option><option value="4h">4h</option><option value="1D">1D</option>
+      </select>
+      <select id="preset" title="Chart indicators">
+        <option value="momentum">Chart: RSI + MACD</option>
+        <option value="trend">Chart: EMA + VWAP</option>
+        <option value="volatility">Chart: Bollinger + Stoch RSI</option>
+        <option value="none">Chart: volume only</option>
+      </select>
+      <span class="pill desk">Next refresh <b id="countdown">60</b>s</span>
+      <span class="pill">Updated <b id="updated">—</b></span>
+      <label class="chk"><input type="checkbox" id="reloadCharts"> Reload charts too</label>
+      <button id="refreshNow" class="primary">Refresh now</button>
+      <button id="editBtn">Symbols</button>
+      <button id="installBtn" hidden>⬇ Install app</button>
+    </div>
+  </div>
+  <div class="symtabs" id="symtabs"></div>
+  <div class="tape" id="tape"></div>
+</header>
+
+<div id="bosView" hidden>
+  <div class="tv-row">
+    <div class="chips" id="bsSyms"></div>
+  </div>
+  <div class="tv-row">
+    <div class="chips tfchips" id="bsTfs"></div>
+  </div>
+  <details class="layers" id="bsLayers">
+    <summary>Layers</summary>
+    <div class="layer-grid">
+      <div><div class="lg-h">Trend lines</div>
+        <label class="chk"><input type="checkbox" id="bsRays" checked> Trend rays</label>
+        <label class="chk"><input type="checkbox" id="bsHtf" checked> Higher-TF rays</label></div>
+      <div><div class="lg-h">Structure</div>
+        <label class="chk"><input type="checkbox" id="bsCh" checked> CHoCH</label>
+        <label class="chk"><input type="checkbox" id="bsSw" checked> Swing labels</label>
+        <label class="chk"><input type="checkbox" id="bsOb" checked> Order blocks</label></div>
+      <div><div class="lg-h">Liquidity &amp; gaps</div>
+        <label class="chk"><input type="checkbox" id="bsLiq" checked> HTF liquidity</label>
+        <label class="chk"><input type="checkbox" id="bsFvg"> FVG</label></div>
+      <div><div class="lg-h">Volume &amp; Fib</div>
+        <label class="chk"><input type="checkbox" id="bsVol" checked> Volume</label>
+        <label class="chk"><input type="checkbox" id="bsVp"> Volume profile</label>
+        <label class="chk">Fib <select id="bsFibMode"><option value="bos">BOS leg</option><option value="auto">Auto swing</option><option value="off">Off</option></select></label></div>
+    </div>
+  </details>
+
+  <section class="tv-card">
+    <div class="tv-top">
+      <div><div class="muted">Symbol</div><div class="big" id="bsName">—</div></div>
+      <div><div class="muted">Price</div><div class="big" id="bsPrice">—</div></div>
+      <div><div class="muted">Bias (1M→15m)</div><div id="bsBias"><span class="badge neutral">—</span></div></div>
+      <div style="flex:1;min-width:200px"><div class="muted" id="bsTfLbl">Structure</div><div id="bsTf"><span class="badge neutral">—</span></div></div>
+      <div style="flex:1;min-width:200px"><div class="muted">Trend rays</div><div id="bsRaySetup"><span class="badge neutral">—</span></div></div>
+    </div>
+    <div id="bsChart"><div class="loading" id="bsLoading">Loading candles…</div></div>
+    <div class="legend" id="bsLegend"></div>
+    <div class="msg" id="bsMsg"></div>
+  </section>
+
+  <div class="tv-grid">
+    <section class="tv-card">
+      <div class="card-title">Top-down: structure &amp; trend rays <small>tap a row to open that timeframe</small></div>
+      <div style="overflow-x:auto">
+        <table class="tt">
+          <thead><tr><th>TF</th><th>Structure</th><th>Last break</th><th>Up ray</th><th>Down ray</th><th class="hide-sm">Bull break above</th><th class="hide-sm">Bear break below</th></tr></thead>
+          <tbody id="bsTable"></tbody>
+        </table>
+      </div>
+    </section>
+    <section class="tv-card">
+      <div class="card-title">Break levels <small id="bsInfo"></small></div>
+      <table class="tt"><tbody id="bsLevels"></tbody></table>
+    </section>
+  </div>
+  <div class="tv-grid">
+    <section class="tv-card">
+      <div class="card-title">HTF liquidity <small>PDH/PDL · PWH/PWL · PMH/PML · equal highs/lows · untaken 4H/1D swings</small></div>
+      <div style="overflow-x:auto"><table class="tt"><tbody id="bsLiqTable"></tbody></table></div>
+    </section>
+    <section class="tv-card">
+      <div class="card-title">Confluence checklist</div>
+      <div id="bsConf"></div>
+    </section>
+  </div>
+  <div class="tv-grid">
+    <section class="tv-card">
+      <div class="card-title">Order blocks &amp; FVG <small>nearest open zones</small></div>
+      <div style="overflow-x:auto"><table class="tt"><tbody id="bsObTable"></tbody></table></div>
+    </section>
+    <section class="tv-card">
+      <div class="card-title">Fibonacci on the BOS leg &amp; volume <small id="bsFibInfo"></small></div>
+      <table class="tt"><tbody id="bsFibTable"></tbody></table>
+    </section>
+  </div>
+  <div class="msg"><b>Trend rays</b> follow the top-down method (1M → 15m): the first down ray starts at the highest high, the first up ray at the lowest low, price may not cut through a ray, and each new ray starts at the previous one's last touch. Thick rays belong to the selected timeframe. "At line" = possible bounce entry, "Broken" = a candle closed through it (exit).<br><br><b>Order blocks</b> (blue = bullish demand, purple = bearish supply) are the last opposite candle before the move that broke structure; "fresh" = price hasn't come back yet, "tested" = it has. A zone is removed once a candle closes through it.<br><br>How to read the rest: swing highs/lows are confirmed pivots. <b>BOS</b> (break of structure) = a candle <i>closes</i> beyond the last swing in the trend's direction — the trend continues (uptrend: close above the last swing high; downtrend: close below the last swing low). <b>CHoCH</b> (change of character) = the first close beyond a swing <i>against</i> the trend — an early reversal warning. Dashed lines are the levels that would print the next break. Higher-timeframe structure is stronger; a BOS that agrees with the 4H/1D bias is the higher-probability one.<br><br><b>Fibonacci</b> is drawn on the leg that printed the last break: after a bullish BOS, buyers look for price to pull back into <i>discount</i> (below 50%), ideally the <b>OTE</b> zone 61.8–78.6%; after a bearish BOS, sellers look for <i>premium</i>. <b>Liquidity</b>: stops rest above old highs (buy-side, blue) and below old lows (sell-side, pink) — equal highs/lows are the strongest pools. A <b>sweep</b> (yellow) is a wick through a level that closes back inside, often before a move the other way. <b>Yellow volume bars</b> = 2× normal volume. <b>POC</b> = price with the most volume in the last 200 candles. <b>FVG</b> = an imbalance gap that price often returns to fill. Not financial advice.</div>
+</div>
+
+<div id="signalsView">
+<main id="grid"></main>
+
+<section class="movers">
+  <div class="tabs" id="moverTabs">
+    <h2>Market movers</h2>
+    <button data-tab="crypto" class="on">Crypto heatmap</button>
+    <button data-tab="stocks">US stock movers</button>
+    <button data-tab="calendar">Economic calendar</button>
+    <button data-tab="news">Top stories</button>
+  </div>
+  <div class="mover" id="mover"></div>
+</section>
+</div>
+
+<dialog id="editDlg">
+  <h2>Symbols</h2>
+  <p>Use TradingView's EXCHANGE:SYMBOL format, e.g. BINANCE:BTCUSDT, OANDA:XAUUSD, NASDAQ:SPCX. Pick the same feed you use on TradingView so the signals match.</p>
+  <div id="inputs"></div>
+  <div class="row">
+    <button id="resetBtn">Reset</button>
+    <button id="cancelBtn">Cancel</button>
+    <button id="saveBtn" class="primary">Save</button>
+  </div>
+</dialog>
+
+<script>
+const DEFAULTS = ["BITSTAMP:BTCUSD","BITSTAMP:ETHUSD","OANDA:XAUUSD","NASDAQ:SPCX","BINANCE:ZECUSDT","BINANCE:HYPEUSDT","BINANCE:NEARUSDT"];
+const REFRESH_SEC = 60;
+const TF_ORDER = ["1m","5m","15m","30m","1h","4h","1D"];
+const CHART_TF = {"1m":"1","5m":"5","15m":"15","30m":"30","1h":"60","4h":"240","1D":"D"};
+const mq = window.matchMedia("(max-width:760px)");
+const isMobile = () => mq.matches;
+
+// Indicator overlays for the candle chart (volume is always on)
+const PRESETS = {
+  momentum:   ["RSI@tv-basicstudies","MACD@tv-basicstudies"],
+  trend:      ["MAExp@tv-basicstudies","VWAP@tv-basicstudies"],
+  volatility: ["BB@tv-basicstudies","StochasticRSI@tv-basicstudies"],
+  none:       []
+};
+
+// Macro drivers that move BTC, ETH, gold and US tech
+const TAPE = [
+  {proName:"TVC:DXY", title:"Dollar index"},
+  {proName:"TVC:US10Y", title:"US 10Y yield"},
+  {proName:"TVC:VIX", title:"VIX"},
+  {proName:"FOREXCOM:SPXUSD", title:"S&P 500"},
+  {proName:"FOREXCOM:NSXUSD", title:"Nasdaq 100"},
+  {proName:"CRYPTOCAP:BTC.D", title:"BTC dominance"},
+  {proName:"CRYPTOCAP:USDT.D", title:"USDT dominance"},
+  {proName:"CRYPTOCAP:TOTAL", title:"Crypto market cap"},
+  {proName:"TVC:SILVER", title:"Silver"},
+  {proName:"TVC:USOIL", title:"WTI oil"}
+];
+
+function load(key, fallback){ try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } }
+function save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+
+let symbols  = load("tvdash.symbols", DEFAULTS);
+const DATA_VER = load("tvdash.ver", 4);
+if (DATA_VER < 5) {   // v5 added ZEC, HYPE, NEAR: append them to a saved list
+  for (const d of ["BINANCE:ZECUSDT","BINANCE:HYPEUSDT","BINANCE:NEARUSDT"]) if (!symbols.includes(d)) symbols.push(d);
+  save("tvdash.symbols", symbols);
+}
+let interval = load("tvdash.interval", "30m");
+let preset   = load("tvdash.preset", "momentum");
+let moverTab = load("tvdash.mover", "crypto");
+let active   = Math.min(load("tvdash.active", 0), symbols.length - 1);
+document.getElementById("interval").value = interval;
+document.getElementById("preset").value = preset;
+
+function embed(container, file, config){
+  if(!container) return;
+  container.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.className = "tradingview-widget-container";
+  const inner = document.createElement("div");
+  inner.className = "tradingview-widget-container__widget";
+  wrap.appendChild(inner);
+  const s = document.createElement("script");
+  s.type = "text/javascript";
+  s.async = true;
+  s.src = "https://s3.tradingview.com/external-embedding/" + file;
+  s.innerHTML = JSON.stringify(config);
+  wrap.appendChild(s);
+  container.appendChild(wrap);
+}
+
+// Timeframe check: one step lower and two steps higher than the main timeframe (30m -> 15m and 4h)
+function mtfFrames(){
+  const i = TF_ORDER.indexOf(interval);
+  const out = [];
+  if (i > 0) out.push(TF_ORDER[i-1]);
+  if (i + 2 < TF_ORDER.length) out.push(TF_ORDER[i+2]);
+  else if (i + 1 < TF_ORDER.length) out.push(TF_ORDER[i+1]);
+  return out;
+}
+
+// On phones only the selected symbol is loaded, to save data and battery
+function visibleIdx(){ return isMobile() ? [active] : symbols.map((_,i)=>i); }
+
+function taWidget(el, sym, tf, mode){
+  embed(el, "embed-widget-technical-analysis.js", {
+    interval: tf, width:"100%", height:"100%", isTransparent:true,
+    symbol: sym, showIntervalTabs:false, displayMode: mode,
+    locale:"en", colorTheme:"dark"
+  });
+}
+
+function renderTA(i){
+  const sym = symbols[i];
+  // Main timeframe: three gauges, Oscillators | Summary | Moving Averages
+  taWidget(document.getElementById("ta"+i), sym, interval, "multiple");
+  // Lower and higher timeframe gauges for confirmation
+  mtfFrames().forEach((tf,k)=> taWidget(document.getElementById(`osc${i}_${k}`), sym, tf, "single"));
+}
+
+function renderChart(i){
+  embed(document.getElementById("chart"+i), "embed-widget-advanced-chart.js", {
+    autosize:true, symbol:symbols[i], interval:CHART_TF[interval] || "30",
+    timezone:"Africa/Nairobi", theme:"dark", style:"1", locale:"en",
+    hide_volume:false, hide_side_toolbar:true, hide_top_toolbar:isMobile(),
+    hide_legend:false, allow_symbol_change:false, save_image:false, withdateranges:false,
+    studies: PRESETS[preset] || [],
+    backgroundColor:"rgba(22,27,36,1)", gridColor:"rgba(38,45,58,0.6)",
+    support_host:"https://www.tradingview.com"
+  });
+}
+
+const loaded = new Set();   // cards whose widgets are already on screen
+function renderCard(i){ renderTA(i); renderChart(i); loaded.add(i); }
+
+function buildSymTabs(){
+  document.getElementById("symtabs").innerHTML = symbols.map((s,i)=>{
+    const tk = s.includes(":") ? s.split(":")[1] : s;
+    return `<button data-i="${i}" class="${i===active?"on":""}">${tk}</button>`;
+  }).join("");
+  document.querySelectorAll("#symtabs button").forEach(b => b.onclick = () => selectSymbol(+b.dataset.i));
+}
+
+function selectSymbol(i){
+  active = i; save("tvdash.active", active);
+  document.querySelectorAll("#symtabs button").forEach(b => b.classList.toggle("on", +b.dataset.i === i));
+  document.querySelectorAll(".card").forEach(c => c.classList.toggle("on", +c.dataset.i === i));
+  if (!loaded.has(i)) renderCard(i); else renderTA(i);   // fresh signals when you switch
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function buildGrid(){
+  const frames = mtfFrames();
+  loaded.clear();
+  buildSymTabs();
+  document.getElementById("grid").innerHTML = symbols.map((s,i)=>{
+    const [ex, tk] = s.includes(":") ? s.split(":") : ["", s];
+    return `<section class="card ${i===active?"on":""}" data-i="${i}">
+      <div class="card-head"><span class="sym">${tk}</span><span class="src">${ex || "auto"} · ${interval}</span></div>
+      <div class="sub full osc">
+        <div class="sub-title"><span><span class="tag">Oscillators</span> · Summary · Moving averages</span><span>${interval}</span></div>
+        <div class="w" id="ta${i}"></div>
+      </div>
+      ${frames.length ? `<div class="sub">
+        <div class="sub-title"><span>Timeframe check</span><span class="hint">does the bigger picture agree?</span></div>
+        <div class="mtf" style="grid-template-columns:repeat(${frames.length},1fr)">
+          ${frames.map((tf,k)=>`<div class="cell"><div class="lbl">${tf}</div><div class="w" id="osc${i}_${k}"></div></div>`).join("")}
+        </div>
+      </div>` : ""}
+      <div class="chart" id="chart${i}"></div>
+    </section>`;
+  }).join("");
+  visibleIdx().forEach(renderCard);
+  stamp();
+}
+
+function renderTape(){
+  embed(document.getElementById("tape"), "embed-widget-ticker-tape.js", {
+    symbols: TAPE, showSymbolLogo:true, isTransparent:true,
+    displayMode: isMobile() ? "compact" : "adaptive", colorTheme:"dark", locale:"en"
+  });
+}
+
+function renderMover(){
+  const el = document.getElementById("mover");
+  document.querySelectorAll("#moverTabs button").forEach(b=>b.classList.toggle("on", b.dataset.tab===moverTab));
+  const common = {width:"100%", height:"100%", colorTheme:"dark", isTransparent:true, locale:"en"};
+  if (moverTab === "crypto") {
+    embed(el, "embed-widget-crypto-coins-heatmap.js", {...common,
+      dataSource:"Crypto", blockSize:"market_cap_calc", blockColor:"24h_close_change|5",
+      symbolUrl:"", hasTopBar:!isMobile(), isDataSetEnabled:false, isZoomEnabled:true, hasSymbolTooltip:true, isMonoSize:false});
+  } else if (moverTab === "stocks") {
+    embed(el, "embed-widget-hotlists.js", {...common,
+      exchange:"US", dateRange:"1D", showChart:!isMobile(), showSymbolLogo:true, showFloatingTooltip:false,
+      plotLineColorGrowing:"rgba(41,98,255,1)", plotLineColorFalling:"rgba(41,98,255,1)",
+      gridLineColor:"rgba(240,243,250,0)", scaleFontColor:"rgba(209,212,220,1)",
+      belowLineFillColorGrowing:"rgba(41,98,255,0.12)", belowLineFillColorFalling:"rgba(41,98,255,0.12)",
+      belowLineFillColorGrowingBottom:"rgba(41,98,255,0)", belowLineFillColorFallingBottom:"rgba(41,98,255,0)",
+      symbolActiveColor:"rgba(41,98,255,0.12)"});
+  } else if (moverTab === "calendar") {
+    embed(el, "embed-widget-events.js", {...common, importanceFilter:"0,1", countryFilter:"us,eu,cn,jp,gb"});
+  } else {
+    embed(el, "embed-widget-timeline.js", {...common, feedMode:"all_symbols", displayMode: isMobile() ? "compact" : "regular"});
+  }
+}
+
+function stamp(){
+  document.getElementById("updated").textContent =
+    new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+}
+
+let left = REFRESH_SEC;
+function refresh(){
+  if (view !== "signals") { tlLoad(); stamp(); left = REFRESH_SEC; return; }
+  visibleIdx().forEach(i=>{
+    renderTA(i);
+    if (document.getElementById("reloadCharts").checked) renderChart(i);
+  });
+  stamp();
+  left = REFRESH_SEC;
+}
+
+setInterval(()=>{
+  if (document.hidden) return;          // pause while the tab or phone screen is off
+  left--;
+  if (left <= 0) refresh();
+  document.getElementById("countdown").textContent = left;
+  document.getElementById("countdownM").textContent = left;
+}, 1000);
+
+// catch up immediately when you come back to the tab
+document.addEventListener("visibilitychange", () => { if (!document.hidden && left < REFRESH_SEC - 5) refresh(); });
+
+// ----- controls -----
+const hdr = document.getElementById("hdr");
+const menuBtn = document.getElementById("menuBtn");
+function closeMenu(){ hdr.classList.remove("open"); menuBtn.setAttribute("aria-expanded","false"); }
+menuBtn.onclick = () => { const o = hdr.classList.toggle("open"); menuBtn.setAttribute("aria-expanded", String(o)); };
+document.addEventListener("click", e => { if (!hdr.contains(e.target)) closeMenu(); });
+
+document.getElementById("refreshNow").onclick = () => { refresh(); closeMenu(); };
+document.getElementById("refreshM").onclick = refresh;
+document.getElementById("interval").onchange = e => { interval = e.target.value; save("tvdash.interval", interval); buildGrid(); left = REFRESH_SEC; closeMenu(); };
+document.getElementById("preset").onchange = e => { preset = e.target.value; save("tvdash.preset", preset); [...loaded].forEach(renderChart); closeMenu(); };
+document.querySelectorAll("#moverTabs button").forEach(b => b.onclick = () => { moverTab = b.dataset.tab; save("tvdash.mover", moverTab); renderMover(); });
+
+// swipe left/right on the card area to change symbol (phones)
+let tx = null, ty = null;
+const grid = document.getElementById("grid");
+grid.addEventListener("touchstart", e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, {passive:true});
+grid.addEventListener("touchend", e => {
+  if (tx === null || !isMobile()) return;
+  const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+  tx = ty = null;
+  if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 2) {
+    const n = symbols.length;
+    selectSymbol((active + (dx < 0 ? 1 : -1) + n) % n);
+  }
+}, {passive:true});
+
+// rebuild when crossing between phone and desktop layouts (rotation, resize)
+mq.addEventListener("change", () => { renderTape(); if (view === "signals") { buildGrid(); renderMover(); } else renderActive(); });
+
+const dlg = document.getElementById("editDlg");
+function fillInputs(list, tl){
+  document.getElementById("inputs").innerHTML =
+    `<div class="neutral" style="font-size:12px;margin-bottom:4px">Signals (TradingView)</div>` +
+    list.map((s,i)=>`<input id="sym${i}" value="${s}" spellcheck="false" autocapitalize="characters" autocomplete="off">`).join("") +
+    `<div class="neutral" style="font-size:12px;margin:6px 0 4px">Trend lines (Binance): spot:SYMBOL or futures:SYMBOL</div>` +
+    tl.map((s,i)=>`<input id="tl${i}" value="${s.market}:${s.sym}" spellcheck="false" autocapitalize="none" autocomplete="off">`).join("");
+}
+document.getElementById("editBtn").onclick = () => { closeMenu(); fillInputs(symbols, tlSyms); dlg.showModal(); };
+document.getElementById("cancelBtn").onclick = () => dlg.close();
+document.getElementById("resetBtn").onclick = () => fillInputs(DEFAULTS, TL_DEFAULTS);
+document.getElementById("saveBtn").onclick = () => {
+  symbols = symbols.map((s,i)=> (document.getElementById("sym"+i).value.trim().toUpperCase() || s));
+  save("tvdash.symbols", symbols);
+  tlSyms = tlSyms.map((s,i)=>{
+    const raw = document.getElementById("tl"+i).value.trim();
+    const m = raw.match(/^(spot|futures)\s*:\s*([A-Za-z0-9]+)$/i);
+    if (!m) return s;
+    const sym = m[2].toUpperCase(), market = m[1].toLowerCase();
+    const name = sym === s.sym ? s.name : sym.replace(/USDT$|USDC$/, "") + "USD";
+    return { name, market, sym };
+  });
+  save("tvdash.tlSyms", tlSyms);
+  dlg.close();
+  tlRes = null; tlData = null;
+  if (view !== "signals") setView(view); else buildGrid();
+  left = REFRESH_SEC;
+};
+
+/* ---- trend-line engine ---- */
+// Top-down trend-line engine (rules from the "ray tool" top-down method)
+//  - first down line starts at the highest high, first up line at the lowest low
+//  - price may not cut through a line
+//  - each new line starts where the previous one last touched (previous B = new A)
+//  - work down timeframes: 1M -> 1W -> 1D -> 4H -> 1H -> 15m, refining points on each
+// Candles: {t: unix seconds (open time), o, h, l, c}
+(function (root) {
+  "use strict";
+
+  const TF = {
+    "1M":  { sec: 30.44 * 86400, tail: 1, piv: 1, label: "1 month" },
+    "1w":  { sec: 7 * 86400,     tail: 1, piv: 2, label: "1 week" },
+    "1d":  { sec: 86400,         tail: 2, piv: 3, label: "1 day" },
+    "4h":  { sec: 4 * 3600,      tail: 3, piv: 3, label: "4 hours" },
+    "1h":  { sec: 3600,          tail: 3, piv: 3, label: "1 hour" },
+    "15m": { sec: 900,           tail: 3, piv: 3, label: "15 min" },
+  };
+  const ORDER = ["1M", "1w", "1d", "4h", "1h", "15m"];
+  const FIB = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
+  const MAX_NEW_LINES = 4;   // new lines per side per timeframe
+  const MAX_EPS_ATR = 0.75;  // a line may be "close enough" by at most this much
+
+  function atr(c, n = 14) {
+    if (c.length < 2) return c.length ? c[0].h - c[0].l : 0;
+    let s = 0, k = 0;
+    for (let i = Math.max(1, c.length - n); i < c.length; i++) {
+      s += Math.max(c[i].h - c[i].l, Math.abs(c[i].h - c[i - 1].c), Math.abs(c[i].l - c[i - 1].c));
+      k++;
+    }
+    return s / k;
+  }
+
+  // Price of the line through A and B at time t
+  function lineAt(L, t) { return L.p1 + (L.p2 - L.p1) * (t - L.t1) / (L.t2 - L.t1); }
+
+  // Convex hull walk from index a to index e (inclusive).
+  // side "down": upper hull of highs (no high above the lines)
+  // side "up":   lower hull of lows  (no low below the lines)
+  function hullChain(c, a, e, side) {
+    const val = side === "down" ? (k) => c[k].h : (k) => c[k].l;
+    const st = [];
+    for (let k = a; k <= e; k++) {
+      while (st.length >= 2) {
+        const i = st[st.length - 2], j = st[st.length - 1];
+        const cross = (c[j].t - c[i].t) * (val(k) - val(i)) - (val(j) - val(i)) * (c[k].t - c[i].t);
+        // upper hull: pop when k is on/above line i-j (cross >= 0); lower hull: pop when on/below
+        if (side === "down" ? cross >= 0 : cross <= 0) st.pop(); else break;
+      }
+      st.push(k);
+    }
+    return st;
+  }
+
+  // Simplify a hull chain: drop vertices that sit less than eps (vertical) from the chord.
+  // Lines are allowed to be "close enough" by eps, as in the video.
+  function simplify(c, chain, side, eps) {
+    if (chain.length <= 2) return chain.slice();
+    const val = side === "down" ? (k) => c[k].h : (k) => c[k].l;
+    const keep = new Array(chain.length).fill(false);
+    keep[0] = keep[chain.length - 1] = true;
+    const stack = [[0, chain.length - 1]];
+    while (stack.length) {
+      const [s, e] = stack.pop();
+      if (e - s < 2) continue;
+      const A = chain[s], B = chain[e];
+      let best = -1, bd = -1;
+      for (let m = s + 1; m < e; m++) {
+        const k = chain[m];
+        const y = val(A) + (val(B) - val(A)) * (c[k].t - c[A].t) / (c[B].t - c[A].t);
+        const d = Math.abs(val(k) - y);
+        if (d > bd) { bd = d; best = m; }
+      }
+      if (bd > eps) { keep[best] = true; stack.push([s, best], [best, e]); }
+    }
+    return chain.filter((_, m) => keep[m]);
+  }
+
+  // Build new lines on one timeframe starting from candle index a
+  function linesFrom(c, a, side, tfKey) {
+    const cfg = TF[tfKey];
+    const e = c.length - 1 - cfg.tail;                 // last candle used to fit lines
+    const minAfter = cfg.tail >= 2 ? 2 : 1;            // a touch point needs candles after it
+    if (e - a < 2) return [];
+    const val = side === "down" ? (k) => c[k].h : (k) => c[k].l;
+    // price already went beyond the starting point: restart from the new extreme
+    let restarted = false;
+    const m0 = extremeIndex(c, a, e, side);
+    if (m0 !== a && (side === "down" ? c[m0].h > c[a].h : c[m0].l < c[a].l)) { a = m0; restarted = true; }
+    if (e - a < 2) return [];
+    let chain = hullChain(c, a, e, side);
+    // a touch point needs confirmed candles after it
+    while (chain.length > 2 && chain[chain.length - 1] > e - minAfter) chain.pop();
+    if (chain.length < 2) return [];
+    let eps = atr(c) * 0.25;
+    let s = simplify(c, chain, side, eps);
+    const epsMax = atr(c) * MAX_EPS_ATR;
+    for (let g = 0; g < 12; g++) {
+      // drop trailing vertices that are too close to the end to be confirmed
+      while (s.length > 2 && s[s.length - 1] > e - minAfter) s.pop();
+      if (s.length - 1 <= MAX_NEW_LINES || eps >= epsMax) break;
+      eps = Math.min(eps * 1.6, epsMax);
+      s = simplify(c, chain, side, eps);
+    }
+    while (s.length > 2 && s[s.length - 1] > e - minAfter) s.pop();
+    let cut = false;
+    // too many lines: keep the most recent ones (they matter most for entries)
+    if (s.length - 1 > MAX_NEW_LINES) { s = s.slice(s.length - 1 - MAX_NEW_LINES); cut = true; }
+    const out = [];
+    for (let m = 0; m + 1 < s.length; m++) {
+      const i = s[m], j = s[m + 1];
+      if (c[j].t === c[i].t) continue;
+      out.push({ side, tf: tfKey, t1: c[i].t, p1: val(i), t2: c[j].t, p2: val(j), ia: i, ib: j });
+    }
+    if ((cut || restarted) && out.length) out[0].cut = true;
+    return out;
+  }
+
+  // Find the candle on this timeframe that holds a higher-timeframe extreme
+  function refine(c, t, durSec, side, price) {
+    let best = -1;
+    for (let k = 0; k < c.length; k++) {
+      if (c[k].t < t - 1) continue;
+      if (c[k].t >= t + durSec - 1) break;
+      if (best < 0) best = k;
+      else if (side === "down" ? c[k].h > c[best].h : c[k].l < c[best].l) best = k;
+    }
+    if (best < 0) return -1;
+    // the refined candle should be (close to) the same extreme
+    const v = side === "down" ? c[best].h : c[best].l;
+    if (Math.abs(v - price) > Math.abs(price) * 0.02) return -1;
+    return best;
+  }
+
+  function extremeIndex(c, from, to, side) {
+    let b = from;
+    for (let k = from; k <= to; k++) if (side === "down" ? c[k].h > c[b].h : c[k].l < c[b].l) b = k;
+    return b;
+  }
+
+  // Swing structure: higher highs / higher lows etc.
+  function structure(c, p) {
+    const H = [], Lo = [];
+    for (let i = p; i < c.length - p; i++) {
+      let hi = true, lo = true;
+      for (let k = i - p; k <= i + p; k++) {
+        if (k === i) continue;
+        if (c[k].h >= c[i].h) hi = false;
+        if (c[k].l <= c[i].l) lo = false;
+      }
+      if (hi) H.push(i);
+      if (lo) Lo.push(i);
+    }
+    let trend = "Sideways";
+    if (H.length >= 2 && Lo.length >= 2) {
+      const hh = c[H[H.length - 1]].h > c[H[H.length - 2]].h;
+      const hl = c[Lo[Lo.length - 1]].l > c[Lo[Lo.length - 2]].l;
+      if (hh && hl) trend = "Up";
+      else if (!hh && !hl) trend = "Down";
+    }
+    return { trend, highs: H, lows: Lo };
+  }
+
+  function lineStatus(c, L, tfKey, a) {
+    if (!L) return null;
+    const cfg = TF[tfKey];
+    const n = c.length;
+    const last = c[n - 1];
+    const v = lineAt(L, last.t);
+    const up = L.side === "up";
+    let status = "Respecting";
+    // closed candles after the fitted range: a close on the wrong side = violated
+    for (let k = Math.max(0, n - 1 - cfg.tail); k < n - 1; k++) {
+      const lv = lineAt(L, c[k].t);
+      if (up ? c[k].c < lv : c[k].c > lv) status = "Broken";
+    }
+    if (status !== "Broken") {
+      const lvNow = v;
+      if (up ? last.c < lvNow : last.c > lvNow) status = "Breaking";
+      else if (up ? last.l <= lvNow : last.h >= lvNow) status = "Testing";
+      else if (Math.abs(last.c - lvNow) <= a * 0.6) status = "At line";
+    }
+    // touch count: candles that came within 0.15 ATR of the line after point A
+    let touches = 0, lastTouch = -10;
+    for (let k = 0; k < n; k++) {
+      if (c[k].t < L.t1) continue;
+      const lv = lineAt(L, c[k].t);
+      const d = up ? c[k].l - lv : lv - c[k].h;
+      if (Math.abs(d) <= a * 0.15 && k - lastTouch > 1) { touches++; lastTouch = k; }
+    }
+    return { status, value: v, distATR: (last.c - v) / a, touches };
+  }
+
+  // Auto Fibonacci: the latest swing inside a look-back window (like TradingView's Auto Fib)
+  // upswing (low then high): levels measured back down from the high; downswing: up from the low
+  function fibFor(c, tfKey) {
+    if (c.length < 5) return null;
+    const W = tfKey === "1M" || tfKey === "1w" ? c.length : Math.min(c.length, 200);
+    const s0 = c.length - W;
+    let hi = s0, lo = s0;
+    for (let k = s0; k < c.length; k++) { if (c[k].h > c[hi].h) hi = k; if (c[k].l < c[lo].l) lo = k; }
+    const dir = lo < hi ? "up" : "down";
+    const a = dir === "up" ? lo : hi, b = dir === "up" ? hi : lo;
+    const from = dir === "up" ? c[a].l : c[a].h;
+    const to = dir === "up" ? c[b].h : c[b].l;
+    const levels = FIB.map((r) => ({ r, price: to - (to - from) * r }));
+    const price = c[c.length - 1].c;
+    const retr = (to - price) / (to - from || 1);
+    return { dir, t1: c[a].t, t2: c[b].t, from, to, levels, retrace: retr };
+  }
+
+  // Main: data = { "1M": candles, "1w": candles, ... } (any subset, in ORDER)
+  function analyze(data) {
+    const result = { tfs: {} };
+    let prev = { up: [], down: [] };       // full chains so far (lines)
+    let prevTf = null;
+    for (const tf of ORDER) {
+      const c = data[tf];
+      if (!c || c.length < 5) continue;
+      const a = atr(c);
+      const tfRes = { lines: [], structure: structure(c, TF[tf].piv), atr: a, start: {} };
+      for (const side of ["down", "up"]) {
+        const chain = prev[side];
+        let carried = [], startIdx = -1, linked = true;
+        if (!prevTf) {
+          startIdx = extremeIndex(c, 0, c.length - 1 - TF[tf].tail, side);
+        } else {
+          // vertices of the higher-timeframe chain (A of first line, then each B)
+          const verts = [];
+          chain.forEach((L, m) => {
+            if (m === 0) verts.push({ t: L.t1, p: L.p1, dur: L.durA, line: m });
+            verts.push({ t: L.t2, p: L.p2, dur: L.durB, line: m + 1 });
+          });
+          let picked = null;
+          for (const v of verts) {
+            if (v.t < c[0].t) continue;
+            const k = refine(c, v.t, v.dur, side, v.p);
+            if (k >= 0 && k < c.length - 1 - TF[tf].tail - 2) { picked = { v, k }; break; }
+          }
+          if (picked) {
+            carried = chain.slice(0, picked.v.line);
+            startIdx = picked.k;
+          } else {
+            carried = chain.slice();
+            // last higher-TF touch is older than this chart: start from this chart's extreme
+            const lastT = chain.length ? chain[chain.length - 1].t2 : -Infinity;
+            let from = 0;
+            while (from < c.length && c[from].t <= lastT) from++;
+            if (from < c.length - 1 - TF[tf].tail - 2) {
+              startIdx = extremeIndex(c, from, c.length - 1 - TF[tf].tail, side);
+              linked = chain.length === 0;
+              // only valid if it doesn't sit beyond the last carried ray
+              const Lc = carried[carried.length - 1];
+              if (Lc) {
+                const v = side === "down" ? c[startIdx].h : c[startIdx].l;
+                const lv = lineAt(Lc, c[startIdx].t);
+                if (side === "down" ? v > lv : v < lv) startIdx = -1;
+              }
+            }
+          }
+        }
+        let fresh = startIdx >= 0 ? linesFrom(c, startIdx, side, tf) : [];
+        fresh.forEach((L) => { L.durA = TF[tf].sec; L.durB = TF[tf].sec; L.linked = linked && !L.cut; });
+        // nothing new on this timeframe: keep every higher-timeframe line
+        const full = fresh.length ? carried.concat(fresh) : chain.slice();
+        prev[side] = full;
+        tfRes.start[side] = startIdx;
+        tfRes.lines.push(...full);
+        const active = full[full.length - 1] || null;
+        tfRes[side === "up" ? "upLine" : "downLine"] = active;
+        tfRes[side === "up" ? "upStatus" : "downStatus"] = lineStatus(c, active, tf, a);
+      }
+      tfRes.fib = fibFor(c, tf);
+      tfRes.setup = setupText(tfRes, c);
+      result.tfs[tf] = tfRes;
+      prevTf = tf;
+    }
+    result.overall = overall(result);
+    return result;
+  }
+
+  function setupText(r, c) {
+    const t = r.structure.trend, u = r.upStatus, d = r.downStatus;
+    if (u && (u.status === "Broken" || u.status === "Breaking")) return { tone: "bear", text: "Up line violated — trend-line exit / no longs" };
+    if (d && (d.status === "Broken" || d.status === "Breaking")) return { tone: "bull", text: "Down line violated — downtrend weakening" };
+    if (u && (u.status === "At line" || u.status === "Testing") && t !== "Down") return { tone: "bull", text: "Price at up action line — bounce setup (buy zone)" };
+    if (d && (d.status === "At line" || d.status === "Testing") && t !== "Up") return { tone: "bear", text: "Price at down action line — bounce setup (sell zone)" };
+    return { tone: "neutral", text: "Between lines — wait for price to reach a line" };
+  }
+
+  function overall(res) {
+    const votes = { Up: 0, Down: 0, Sideways: 0 };
+    const w = { "1M": 3, "1w": 3, "1d": 2, "4h": 2, "1h": 1, "15m": 1 };
+    for (const [tf, r] of Object.entries(res.tfs)) votes[r.structure.trend] += w[tf] || 1;
+    const best = Object.entries(votes).sort((x, y) => y[1] - x[1])[0][0];
+    return { trend: best, votes };
+  }
+
+  const api = { analyze, lineAt, TF, ORDER, FIB, atr, hullChain, simplify };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.TrendEngine = api;
+})(typeof window !== "undefined" ? window : globalThis);
+
+// Market structure engine (Smart Money Concepts)
+//  - swing highs / lows from pivots (left/right strength per timeframe)
+//  - BOS   = a candle CLOSES beyond the last swing in the direction of the trend (continuation)
+//  - CHoCH = the first close beyond a swing against the trend (change of character)
+(function (root) {
+  "use strict";
+  const PIV = { "1M": 2, "1w": 2, "1d": 3, "4h": 4, "1h": 5, "15m": 5 };
+
+  function analyzeTf(c, tf) {
+    const p = PIV[tf] || 3;
+    const n = c.length;
+    const swings = [];          // {i, type:'H'|'L', price, label:'HH'|'LH'|'HL'|'LL'}
+    const events = [];          // {kind:'BOS'|'CHoCH', dir:1|-1, level, from, at}
+    let lastH = null, lastL = null;   // latest confirmed swing high / low (may be broken)
+    let prevH = null, prevL = null;
+    let trend = 0;
+
+    for (let k = 0; k < n; k++) {
+      // a pivot at i = k - p is confirmed once p candles have closed after it
+      const i = k - p;
+      if (i >= p) {
+        let hi = true, lo = true;
+        for (let j = i - p; j <= i + p; j++) {
+          if (j === i) continue;
+          if (c[j].h >= c[i].h) hi = false;
+          if (c[j].l <= c[i].l) lo = false;
+        }
+        if (hi) {
+          const label = prevH ? (c[i].h > prevH.price ? "HH" : "LH") : "H";
+          lastH = { i, price: c[i].h, broken: false };
+          prevH = lastH;
+          swings.push({ i, t: c[i].t, type: "H", price: c[i].h, label });
+        }
+        if (lo) {
+          const label = prevL ? (c[i].l > prevL.price ? "HL" : "LL") : "L";
+          lastL = { i, price: c[i].l, broken: false };
+          prevL = lastL;
+          swings.push({ i, t: c[i].t, type: "L", price: c[i].l, label });
+        }
+      }
+      // breaks are confirmed by the candle close (the forming candle counts as "pending")
+      const closed = k < n - 1;
+      if (lastH && !lastH.broken && c[k].c > lastH.price && k > lastH.i) {
+        if (closed) {
+          events.push({ kind: trend === -1 ? "CHoCH" : "BOS", dir: 1, level: lastH.price, from: lastH.i, at: k, tFrom: c[lastH.i].t, tAt: c[k].t });
+          lastH.broken = true; trend = 1;
+        }
+      }
+      if (lastL && !lastL.broken && c[k].c < lastL.price && k > lastL.i) {
+        if (closed) {
+          events.push({ kind: trend === 1 ? "CHoCH" : "BOS", dir: -1, level: lastL.price, from: lastL.i, at: k, tFrom: c[lastL.i].t, tAt: c[k].t });
+          lastL.broken = true; trend = -1;
+        }
+      }
+    }
+
+    const last = c[n - 1];
+    const ev = events[events.length - 1] || null;
+    // the levels that would print the next break
+    const nextUp = lastH && !lastH.broken ? lastH.price : null;   // close above = bullish break
+    const nextDn = lastL && !lastL.broken ? lastL.price : null;   // close below = bearish break
+    let pending = null;   // forming candle already beyond a level (not closed yet)
+    if (nextUp != null && last.c > nextUp) pending = { dir: 1, kind: trend === -1 ? "CHoCH" : "BOS", level: nextUp };
+    if (nextDn != null && last.c < nextDn) pending = { dir: -1, kind: trend === 1 ? "CHoCH" : "BOS", level: nextDn };
+
+    return {
+      trend, swings, events, last: ev, nextUp, nextDn, pending,
+      barsSince: ev ? n - 1 - ev.at : null,
+      bosCount: events.filter((e) => e.kind === "BOS" && e.dir === trend).length,
+      hUnbroken: lastH && !lastH.broken ? lastH : null,
+      lUnbroken: lastL && !lastL.broken ? lastL : null,
+    };
+  }
+
+  function analyze(data, order) {
+    const tfs = {};
+    for (const tf of order) if (data[tf] && data[tf].length >= 12) tfs[tf] = analyzeTf(data[tf], tf);
+    const w = { "1M": 3, "1w": 3, "1d": 2, "4h": 2, "1h": 1, "15m": 1 };
+    let score = 0, tot = 0;
+    for (const [tf, r] of Object.entries(tfs)) { score += r.trend * (w[tf] || 1); tot += w[tf] || 1; }
+    const bias = tot ? score / tot : 0;
+    return { tfs, bias, biasText: bias > 0.33 ? "Bullish" : bias < -0.33 ? "Bearish" : "Mixed" };
+  }
+
+  const api = { analyze, analyzeTf, PIV };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.StructureEngine = api;
+})(typeof window !== "undefined" ? window : globalThis);
+
+// ================= Trend-line view =================
+const TL_DEFAULTS = [
+  { name: "BTCUSD",  market: "spot",    sym: "BTCUSDT" },
+  { name: "ETHUSD",  market: "spot",    sym: "ETHUSDT" },
+  { name: "XAUUSD",  market: "futures", sym: "XAUUSDT" },
+  { name: "SPCXUSD", market: "futures", sym: "SPCXUSDT" },
+  { name: "ZECUSDT",  market: "spot",    sym: "ZECUSDT" },
+  { name: "HYPEUSDT", market: "futures", sym: "HYPEUSDT" },
+  { name: "NEARUSDT", market: "spot",    sym: "NEARUSDT" },
+];
+const TL_TFS = [
+  { key: "1M", label: "1M" }, { key: "1w", label: "1W" }, { key: "1d", label: "1D" },
+  { key: "4h", label: "4H" }, { key: "1h", label: "1H" }, { key: "15m", label: "15m" },
+];
+const TL_COLORS = { "1M": "#e879f9", "1w": "#a78bfa", "1d": "#60a5fa", "4h": "#22d3ee", "1h": "#34d399", "15m": "#f472b6" };
+const TL_FIB_COLORS = { 0: "#94a3b8", 0.236: "#64748b", 0.382: "#38bdf8", 0.5: "#e2e8f0", 0.618: "#f59e0b", 0.786: "#fb923c", 1: "#94a3b8" };
+
+let tlSyms = load("tvdash.tlSyms", TL_DEFAULTS);
+if (DATA_VER < 5) {
+  for (const d of TL_DEFAULTS.slice(4)) if (!tlSyms.some((x) => x.sym === d.sym)) tlSyms.push(d);
+  save("tvdash.tlSyms", tlSyms);
+  save("tvdash.ver", 5);
+}
+let tlActive = Math.min(load("tvdash.tlActive", 0), tlSyms.length - 1);
+let tlTf = load("tvdash.tlTf", "15m");
+let tlData = null, tlRes = null, tlBusy = false, tlChart = null, tlSeries = [], tlCandles = null, tlVolume = null, tlLastKey = "";
+let view = load("tvdash.view", "signals");
+if (view === "trend") view = "bos";
+
+function tlUrls(s, interval) {
+  const q = `symbol=${encodeURIComponent(s.sym)}&interval=${interval}&limit=1000`;
+  return s.market === "futures"
+    ? [`https://fapi.binance.com/fapi/v1/klines?${q}`]
+    : [`https://data-api.binance.vision/api/v3/klines?${q}`, `https://api.binance.com/api/v3/klines?${q}`];
+}
+
+async function tlFetch(s, interval) {
+  let lastErr;
+  for (const url of tlUrls(s, interval)) {
+    try {
+      const r = await fetch(url, { cache: "no-store" });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const j = await r.json();
+      if (!Array.isArray(j)) throw new Error(j && j.msg ? j.msg : "bad data");
+      return j.map((k) => ({ t: Math.floor(k[0] / 1000), o: +k[1], h: +k[2], l: +k[3], c: +k[4], v: +k[5] }));
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error("no data");
+}
+
+async function tlLoad() {
+  if (tlBusy) return;
+  tlBusy = true;
+  const s = tlSyms[tlActive];
+  const msg = document.getElementById("bsMsg");
+  try {
+    const parts = await Promise.allSettled(TrendEngine.ORDER.map((k) => tlFetch(s, k)));
+    const data = {};
+    const failed = [];
+    TrendEngine.ORDER.forEach((k, i) => {
+      if (parts[i].status === "fulfilled" && parts[i].value.length) data[k] = parts[i].value;
+      else failed.push(k);
+    });
+    if (!Object.keys(data).length) throw parts.find((p) => p.status === "rejected")?.reason || new Error("no data");
+    tlData = data;
+    tlRes = TrendEngine.analyze(data);
+    msg.className = "msg";
+    msg.textContent = `Binance ${s.market === "futures" ? "USDT futures" : "spot"} · ${s.sym} · updated ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`
+      + (failed.length ? ` · no data for ${failed.join(", ")}` : "");
+    renderActive();
+  } catch (e) {
+    msg.className = "msg err";
+    msg.textContent = `Couldn't load ${s.sym} from Binance (${e.message}). Check your connection, or edit the symbol under Symbols. Binance can be blocked in some countries or networks.`;
+    document.getElementById("bsLoading").textContent = "No data";
+  } finally {
+    tlBusy = false;
+  }
+}
+
+function tlEnsureChart() {
+  if (tlChart) return;
+  const el = document.getElementById("tlChart");
+  tlChart = LightweightCharts.createChart(el, {
+    autoSize: true,
+    layout: { background: { type: "solid", color: "#161b24" }, textColor: "#8a93a6", fontSize: 11 },
+    grid: { vertLines: { color: "rgba(38,45,58,.6)" }, horzLines: { color: "rgba(38,45,58,.6)" } },
+    rightPriceScale: { borderColor: "#262d3a", scaleMargins: { top: 0.08, bottom: 0.2 } },
+    timeScale: { borderColor: "#262d3a", timeVisible: true, secondsVisible: false, rightOffset: 6 },
+    crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+    localization: { timeFormatter: (t) => new Date(t * 1000).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) },
+  });
+  tlCandles = tlChart.addCandlestickSeries({
+    upColor: "#22c55e", downColor: "#ef4444", borderVisible: false, wickUpColor: "#22c55e", wickDownColor: "#ef4444",
+  });
+  tlVolume = tlChart.addHistogramSeries({ priceScaleId: "vol", priceFormat: { type: "volume" }, lastValueVisible: false, priceLineVisible: false });
+  tlChart.priceScale("vol").applyOptions({ scaleMargins: { top: 0.84, bottom: 0 }, visible: false });
+}
+
+function tlFmt(p) {
+  if (p == null || !isFinite(p)) return "—";
+  const a = Math.abs(p);
+  return p.toLocaleString(undefined, { minimumFractionDigits: a >= 1000 ? 1 : 2, maximumFractionDigits: a >= 1000 ? 1 : a >= 1 ? 2 : 5 });
+}
+
+function tlFuture(lastT, tf, n) {
+  const out = [];
+  if (tf === "1M") {
+    const d = new Date(lastT * 1000);
+    for (let i = 1; i <= n; i++) out.push(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + i, 1) / 1000);
+  } else {
+    const sec = { "1w": 604800, "1d": 86400, "4h": 14400, "1h": 3600, "15m": 900 }[tf];
+    for (let i = 1; i <= n; i++) out.push(lastT + i * sec);
+  }
+  return out;
+}
+
+function tlStatusBadge(st, side) {
+  if (!st) return `<span class="neutral">none</span>`;
+  const map = {
+    "Respecting": "neutral", "At line": side === "up" ? "bull" : "bear", "Testing": side === "up" ? "bull" : "bear",
+    "Breaking": side === "up" ? "bear" : "bull", "Broken": side === "up" ? "bear" : "bull",
+  };
+  return `<span class="badge ${map[st.status] || "neutral"}">${st.status}</span>`;
+}
+
+function tlTrendBadge(t) {
+  const cls = t === "Up" ? "bull" : t === "Down" ? "bear" : "neutral";
+  return `<span class="badge ${cls}">${t === "Up" ? "▲ Up" : t === "Down" ? "▼ Down" : "◆ Sideways"}</span>`;
+}
+
+function tlFibZone(f, price) {
+  if (!f) return "—";
+  const r = f.retrace;
+  if (r < 0) return "beyond 0 (new extreme)";
+  if (r > 1) return "beyond 100% (reversal)";
+  const lv = TrendEngine.FIB;
+  for (let i = 0; i + 1 < lv.length; i++) if (r >= lv[i] && r <= lv[i + 1]) return `${(lv[i] * 100).toFixed(1)}–${(lv[i + 1] * 100).toFixed(1)}%`;
+  return `${(r * 100).toFixed(0)}%`;
+}
+
+function tlBuildChips() {
+  for (const pre of ["bs"]) {
+    document.getElementById(pre + "Syms").innerHTML = tlSyms.map((s, i) => `<button data-i="${i}" class="${i === tlActive ? "on" : ""}">${s.name}</button>`).join("");
+    document.querySelectorAll(`#${pre}Syms button`).forEach((b) => b.onclick = () => {
+      tlActive = +b.dataset.i; save("tvdash.tlActive", tlActive);
+      tlBuildChips(); tlRes = null; tlData = null;
+      for (const id of ["bsLoading"]) {
+        document.getElementById(id).hidden = false;
+        document.getElementById(id).textContent = "Loading candles…";
+      }
+      tlLoad();
+    });
+    document.getElementById(pre + "Tfs").innerHTML = TL_TFS.map((x) => `<button data-tf="${x.key}" class="${x.key === tlTf ? "on" : ""}">${x.label}</button>`).join("");
+    document.querySelectorAll(`#${pre}Tfs button`).forEach((b) => b.onclick = () => tlSelectTf(b.dataset.tf));
+  }
+}
+
+function renderActive() {
+  if (view === "bos") bsRender();
+}
+
+function tlSelectTf(tf) {
+  tlTf = tf; save("tvdash.tlTf", tlTf);
+  document.querySelectorAll("#tlTfs button, #bsTfs button").forEach((b) => b.classList.toggle("on", b.dataset.tf === tf));
+  renderActive();
+}
+
+function setView(v) {
+  if (v === "trend") v = "bos";   // Trend lines and Structure are now one tab
+  view = v; save("tvdash.view", v);
+  document.querySelectorAll("#views button").forEach((b) => b.classList.toggle("on", b.dataset.view === v));
+  document.getElementById("bosView").hidden = v !== "bos";
+  document.getElementById("signalsView").hidden = v !== "signals";
+  document.getElementById("symtabs").style.display = v === "signals" ? "" : "none";
+  if (v === "bos") { tlBuildChips(); if (!tlData) tlLoad(); else renderActive(); }
+  else { buildGrid(); renderMover(); }
+  left = REFRESH_SEC;
+}
+// Smart Money Concepts add-ons for the Structure tab
+//  - Fibonacci on the leg that printed the last BOS/CHoCH (premium / discount / OTE)
+//  - HTF liquidity: previous day/week/month highs & lows, equal highs/lows, untaken swing highs/lows, sweeps
+//  - Volume: relative volume spikes, volume profile (POC / value area)
+//  - Fair Value Gaps (3-candle imbalances) that are still open
+(function (root) {
+  "use strict";
+  const FIBS = [0, 0.236, 0.382, 0.5, 0.618, 0.705, 0.786, 1];
+
+  function atr(c, n = 14) {
+    let s = 0, k = 0;
+    for (let i = Math.max(1, c.length - n); i < c.length; i++) {
+      s += Math.max(c[i].h - c[i].l, Math.abs(c[i].h - c[i - 1].c), Math.abs(c[i].l - c[i - 1].c)); k++;
+    }
+    return k ? s / k : (c[0] ? c[0].h - c[0].l : 0);
+  }
+
+  // Fib on the impulse leg behind the latest break
+  // bullish: from the pullback low before the break up to the highest high since -> 0 at the high, 1 at the low
+  function bosFib(c, R) {
+    const e = R.last;
+    if (!e) return null;
+    const n = c.length;
+    let a, b;
+    if (e.dir > 0) {
+      a = e.from + 1; for (let k = e.from + 1; k <= e.at; k++) if (c[k].l < c[a].l) a = k;
+      b = e.at;       for (let k = e.at; k < n; k++) if (c[k].h > c[b].h) b = k;
+    } else {
+      a = e.from + 1; for (let k = e.from + 1; k <= e.at; k++) if (c[k].h > c[a].h) a = k;
+      b = e.at;       for (let k = e.at; k < n; k++) if (c[k].l < c[b].l) b = k;
+    }
+    if (a > n - 1) return null;
+    const lo = e.dir > 0 ? c[a].l : c[b].l, hi = e.dir > 0 ? c[b].h : c[a].h;
+    const range = hi - lo;
+    if (!(range > 0)) return null;
+    // levels are measured from the end of the leg back toward its start (retracement)
+    const end = e.dir > 0 ? hi : lo, start = e.dir > 0 ? lo : hi;
+    const levels = FIBS.map((r) => ({ r, price: end - (end - start) * r }));
+    const price = c[n - 1].c;
+    const retr = (end - price) / (end - start);
+    const eq = (hi + lo) / 2;
+    const zone = price > eq ? "Premium" : "Discount";
+    const ote = retr >= 0.618 && retr <= 0.786;
+    return { dir: e.dir, kind: e.kind, tStart: c[a].t, tEnd: c[b].t, start, end, hi, lo, levels, retrace: retr, eq, zone, ote,
+      // a bullish leg wants price back in discount to buy, a bearish leg wants premium to sell
+      good: e.dir > 0 ? price < eq : price > eq };
+  }
+
+  // Liquidity levels from higher timeframes
+  function liquidity(data, struct, tf, price) {
+    const out = [];
+    const add = (o) => { if (o.price != null && isFinite(o.price)) out.push(o); };
+    const cur = data[tf];
+    // which candles count as "since the level formed" -> use the selected timeframe
+    const since = (t, test) => {
+      if (!cur) return false;
+      for (let k = cur.length - 1; k >= 0 && cur[k].t >= t; k--) if (test(cur[k])) return true;
+      return false;
+    };
+    for (const [key, H, L, tfk] of [["Day", "PDH", "PDL", "1d"], ["Week", "PWH", "PWL", "1w"], ["Month", "PMH", "PML", "1M"]]) {
+      const d = data[tfk];
+      if (!d || d.length < 2) continue;
+      const p = d[d.length - 2], now = d[d.length - 1];
+      add({ price: p.h, side: "buy", tag: H, name: `Previous ${key} High`, swept: now.h > p.h, htf: tfk });
+      add({ price: p.l, side: "sell", tag: L, name: `Previous ${key} Low`, swept: now.l < p.l, htf: tfk });
+    }
+    // equal highs / lows and untaken swing points on 4H and 1D
+    for (const tfk of ["1d", "4h"]) {
+      const d = data[tfk], S = struct.tfs[tfk];
+      if (!d || !S) continue;
+      const a = atr(d);
+      const tol = Math.max(a * 0.1, d[d.length - 1].c * 0.0007);
+      for (const type of ["H", "L"]) {
+        const sw = S.swings.filter((w) => w.type === type).slice(-30);
+        const taken = (w) => {
+          for (let k = w.i + 1; k < d.length; k++) if (type === "H" ? d[k].h > w.price : d[k].l < w.price) return true;
+          return false;
+        };
+        const open = sw.filter((w) => !taken(w));
+        // equal highs/lows: two untaken swings within tolerance
+        const used = new Set();
+        for (let x = 0; x < open.length; x++) for (let y = x + 1; y < open.length; y++) {
+          if (used.has(x) || used.has(y)) continue;
+          if (Math.abs(open[x].price - open[y].price) <= tol) {
+            used.add(x); used.add(y);
+            const pr = type === "H" ? Math.max(open[x].price, open[y].price) : Math.min(open[x].price, open[y].price);
+            add({ price: pr, side: type === "H" ? "buy" : "sell", tag: `${type === "H" ? "EQH" : "EQL"} ${tfk.toUpperCase()}`, name: `Equal ${type === "H" ? "highs" : "lows"} (${tfk.toUpperCase()})`, swept: false, htf: tfk, t: open[y].t, strong: true });
+          }
+        }
+        // the nearest untaken swing high above / low below price
+        const cand = open.filter((w, i) => !used.has(i) && (type === "H" ? w.price > price : w.price < price))
+          .sort((p, q) => Math.abs(p.price - price) - Math.abs(q.price - price)).slice(0, 2);
+        cand.forEach((w) => add({ price: w.price, side: type === "H" ? "buy" : "sell", tag: `${type === "H" ? "BSL" : "SSL"} ${tfk.toUpperCase()}`, name: `${type === "H" ? "Buy-side" : "Sell-side"} liquidity (${tfk.toUpperCase()} swing ${type === "H" ? "high" : "low"})`, swept: false, htf: tfk, t: w.t }));
+      }
+    }
+    // de-duplicate levels that sit on top of each other
+    out.sort((p, q) => p.price - q.price);
+    const ded = [];
+    for (const o of out) {
+      const prev = ded[ded.length - 1];
+      if (prev && Math.abs(prev.price - o.price) / o.price < 0.0008 && prev.side === o.side) { prev.tag += " · " + o.tag; prev.strong = prev.strong || o.strong; continue; }
+      ded.push({ ...o });
+    }
+    ded.forEach((o) => { o.dist = (o.price - price) / price * 100; });
+    return ded;
+  }
+
+  // Liquidity sweep: a recent candle wicked through a level but closed back on the other side
+  function sweeps(c, levels, look = 6) {
+    const out = [];
+    for (let k = Math.max(0, c.length - look); k < c.length; k++) {
+      for (const L of levels) {
+        if (L.side === "buy" && c[k].h > L.price && c[k].c < L.price && c[k].o < L.price) out.push({ at: k, t: c[k].t, dir: -1, level: L });
+        if (L.side === "sell" && c[k].l < L.price && c[k].c > L.price && c[k].o > L.price) out.push({ at: k, t: c[k].t, dir: 1, level: L });
+      }
+    }
+    return out;
+  }
+
+  // Relative volume and a simple volume profile of the last `n` candles
+  function volume(c, n = 200, bins = 48) {
+    const m = c.length;
+    const rv = c.map((x, i) => {
+      const s0 = Math.max(0, i - 20); let s = 0, k = 0;
+      for (let j = s0; j < i; j++) { s += c[j].v; k++; }
+      return k ? x.v / (s / k || 1) : 1;
+    });
+    const s0 = Math.max(0, m - n);
+    let lo = Infinity, hi = -Infinity;
+    for (let i = s0; i < m; i++) { lo = Math.min(lo, c[i].l); hi = Math.max(hi, c[i].h); }
+    const step = (hi - lo) / bins || 1;
+    const hist = new Array(bins).fill(0);
+    for (let i = s0; i < m; i++) {
+      // spread each candle's volume across the price range it traded
+      const a = Math.max(0, Math.floor((c[i].l - lo) / step)), b = Math.min(bins - 1, Math.floor((c[i].h - lo) / step));
+      const share = c[i].v / (b - a + 1);
+      for (let j = a; j <= b; j++) hist[j] += share;
+    }
+    let poc = 0; for (let j = 1; j < bins; j++) if (hist[j] > hist[poc]) poc = j;
+    const total = hist.reduce((x, y) => x + y, 0);
+    let va = hist[poc], L = poc, H = poc;
+    while (va < total * 0.7 && (L > 0 || H < bins - 1)) {
+      const dn = L > 0 ? hist[L - 1] : -1, up = H < bins - 1 ? hist[H + 1] : -1;
+      if (up >= dn) { H++; va += hist[H]; } else { L--; va += hist[L]; }
+    }
+    const mid = (j) => lo + (j + 0.5) * step;
+    return { rv, rvNow: rv[m - 1], rvPrev: rv[m - 2], poc: mid(poc), vah: lo + (H + 1) * step, val: lo + L * step, hist, lo, step, from: c[s0].t };
+  }
+
+  // Fair Value Gaps still open (not fully filled)
+  function fvgs(c, maxAge = 300) {
+    const a = atr(c);
+    const out = [];
+    const s0 = Math.max(2, c.length - maxAge);
+    for (let i = s0; i < c.length; i++) {
+      const p2 = c[i - 2], x = c[i];
+      let g = null;
+      if (x.l > p2.h && x.l - p2.h >= a * 0.15) g = { dir: 1, top: x.l, bot: p2.h, i, t: c[i - 1].t };
+      if (x.h < p2.l && p2.l - x.h >= a * 0.15) g = { dir: -1, top: p2.l, bot: x.h, i, t: c[i - 1].t };
+      if (!g) continue;
+      // fill check on later candles; track how deep price came back into the gap
+      let filled = false, deepest = g.dir > 0 ? g.top : g.bot;
+      for (let k = i + 1; k < c.length; k++) {
+        if (g.dir > 0) { deepest = Math.min(deepest, c[k].l); if (c[k].l <= g.bot) { filled = true; break; } }
+        else { deepest = Math.max(deepest, c[k].h); if (c[k].h >= g.top) { filled = true; break; } }
+      }
+      if (filled) continue;
+      // keep the unfilled part only
+      if (g.dir > 0) g.top = Math.min(g.top, deepest); else g.bot = Math.max(g.bot, deepest);
+      if (g.top - g.bot > 0) out.push(g);
+    }
+    return out;
+  }
+
+
+  // Order blocks: the last opposite candle before the impulse that printed a BOS/CHoCH
+  // bullish OB = last down-close candle at the low of the move that broke a swing high (zone = its high..low)
+  // kept while no candle has closed through it; "tested" once price came back into the zone
+  function orderBlocks(c, R, maxAge = 500) {
+    const out = [], seen = new Set();
+    for (const e of R.events) {
+      if (e.at < c.length - maxAge) continue;
+      let a = e.from;
+      for (let k = e.from; k <= e.at; k++) if (e.dir > 0 ? c[k].l < c[a].l : c[k].h > c[a].h) a = k;
+      let ob = -1;
+      for (let k = a; k >= Math.max(0, a - 10); k--) {
+        if (e.dir > 0 ? c[k].c < c[k].o : c[k].c > c[k].o) { ob = k; break; }
+      }
+      if (ob < 0) ob = a;
+      if (seen.has(ob)) continue;
+      seen.add(ob);
+      const top = c[ob].h, bot = c[ob].l;
+      let broken = false, tested = false;
+      for (let k = e.at + 1; k < c.length; k++) {
+        if (e.dir > 0) { if (c[k].c < bot) { broken = true; break; } if (c[k].l <= top) tested = true; }
+        else { if (c[k].c > top) { broken = true; break; } if (c[k].h >= bot) tested = true; }
+      }
+      if (broken) continue;
+      out.push({ dir: e.dir, top, bot, i: ob, t: c[ob].t, kind: e.kind, tested, at: e.at });
+    }
+    return out;
+  }
+
+  // Confluence checklist for the selected timeframe
+  function confluence(R, fib, sw, fv, bias, price, obs, ray) {
+    if (!R.last) return null;
+    const up = R.trend > 0;
+    const items = [];
+    items.push({ ok: Math.sign(bias) === Math.sign(R.trend) && Math.abs(bias) > 0.33, text: `Higher-timeframe bias is ${up ? "bullish" : "bearish"}` });
+    items.push({ ok: R.last.kind === "BOS" && R.last.dir === R.trend, text: `Latest break is a BOS ${up ? "up" : "down"} (trend continuation)` });
+    items.push({ ok: !!(fib && fib.good), text: `Price is in ${up ? "discount (below 50%)" : "premium (above 50%)"} of the BOS leg` });
+    items.push({ ok: !!(fib && fib.ote), text: "Price is in the OTE zone (61.8%–78.6%)" });
+    items.push({ ok: sw.some((s) => s.dir === R.trend), text: `Recent ${up ? "sell-side" : "buy-side"} liquidity sweep` });
+    items.push({ ok: fv.some((g) => g.dir === R.trend && (up ? g.top < price * 1.0 + 1e-9 : g.bot > price - 1e-9) && Math.abs((up ? g.top : g.bot) - price) / price < 0.03), text: `Open ${up ? "bullish" : "bearish"} FVG nearby (${up ? "below" : "above"} price)` });
+    const near = (z) => price <= z.top * 1.003 && price >= z.bot * 0.997;
+    items.push({ ok: (obs || []).some((z) => z.dir === R.trend && near(z)), text: `Price is at a ${up ? "bullish" : "bearish"} order block` });
+    if (ray) {
+      const st = up ? ray.upStatus : ray.downStatus;
+      const against = up ? ray.downStatus : ray.upStatus;
+      items.push({ ok: !!(st && (st.status === "At line" || st.status === "Testing")), text: `Price is at the ${up ? "up" : "down"} trend ray (bounce zone)` });
+      void against;
+    }
+    return { dir: R.trend, items, score: items.filter((x) => x.ok).length, total: items.length };
+  }
+
+  const api = { bosFib, liquidity, sweeps, volume, fvgs, orderBlocks, confluence, FIBS };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.SMC = api;
+})(typeof window !== "undefined" ? window : globalThis);
+
+// ================= Structure (BOS / CHoCH) view =================
+let bsChart = null, bsCandles = null, bsVolume = null, bsSeries = [], bsPriceLines = [], bsRes = null, bsLastKey = "";
+const BS_COL = { "BOS1": "#22c55e", "BOS-1": "#ef4444", "CHoCH1": "#2dd4bf", "CHoCH-1": "#fb923c" };
+
+function bsEnsureChart() {
+  if (bsChart) return;
+  const el = document.getElementById("bsChart");
+  bsChart = LightweightCharts.createChart(el, {
+    autoSize: true,
+    layout: { background: { type: "solid", color: "#161b24" }, textColor: "#8a93a6", fontSize: 11 },
+    grid: { vertLines: { color: "rgba(38,45,58,.6)" }, horzLines: { color: "rgba(38,45,58,.6)" } },
+    rightPriceScale: { borderColor: "#262d3a", scaleMargins: { top: 0.08, bottom: 0.2 } },
+    timeScale: { borderColor: "#262d3a", timeVisible: true, secondsVisible: false, rightOffset: 6 },
+    crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+    localization: { timeFormatter: (t) => new Date(t * 1000).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) },
+  });
+  bsCandles = bsChart.addCandlestickSeries({
+    upColor: "#22c55e", downColor: "#ef4444", borderVisible: false, wickUpColor: "#22c55e", wickDownColor: "#ef4444",
+  });
+  bsVolume = bsChart.addHistogramSeries({ priceScaleId: "vol", priceFormat: { type: "volume" }, lastValueVisible: false, priceLineVisible: false });
+  bsChart.priceScale("vol").applyOptions({ scaleMargins: { top: 0.84, bottom: 0 }, visible: false });
+}
+
+function bsBiasBadge(t) {
+  const cls = t > 0 ? "bull" : t < 0 ? "bear" : "neutral";
+  return `<span class="badge ${cls}">${t > 0 ? "▲ Bullish" : t < 0 ? "▼ Bearish" : "◆ No structure yet"}</span>`;
+}
+function bsEventText(e) {
+  if (!e) return "—";
+  return `${e.kind} ${e.dir > 0 ? "↑" : "↓"}`;
+}
+function bsWhen(t) {
+  return new Date(t * 1000).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+function bsRender() {
+  if (!tlData) return;
+  bsEnsureChart();
+  document.getElementById("bsLoading").hidden = true;
+  bsRes = StructureEngine.analyze(tlData, TrendEngine.ORDER);
+  const s = tlSyms[tlActive];
+  let tf = tlTf;
+  if (!bsRes.tfs[tf]) tf = TrendEngine.ORDER.filter((k) => bsRes.tfs[k]).pop();
+  if (!tf) return;
+  const c = tlData[tf], R = bsRes.tfs[tf];
+  const showSw = document.getElementById("bsSw").checked;
+  const showCh = document.getElementById("bsCh").checked;
+  const showVol = document.getElementById("bsVol").checked;
+  const key = `${tlActive}|${tf}`;
+  const keepRange = key === bsLastKey ? bsChart.timeScale().getVisibleLogicalRange() : null;
+
+  const fut = tlFuture(c[c.length - 1].t, tf, Math.max(3, Math.min(10, Math.round(c.length / 12))));
+  bsCandles.setData(c.map((x) => ({ time: x.t, open: x.o, high: x.h, low: x.l, close: x.c })).concat(fut.map((t) => ({ time: t }))));
+  const vol = SMC.volume(c);
+  // relative volume: candles with 2x+ their 20-candle average volume are highlighted in yellow
+  bsVolume.setData(showVol ? c.map((x, i) => ({ time: x.t, value: x.v, color: vol.rv[i] >= 2 ? "rgba(250,204,21,.85)" : x.c >= x.o ? "rgba(34,197,94,.3)" : "rgba(239,68,68,.3)" })) : []);
+
+  bsSeries.forEach((se) => bsChart.removeSeries(se));
+  bsSeries = [];
+  bsPriceLines.forEach((pl) => bsCandles.removePriceLine(pl));
+  bsPriceLines = [];
+  const markers = [];
+
+  // top-down trend rays (from the Trend-line engine)
+  const ray = tlRes && tlRes.tfs[tf];
+  if (document.getElementById("bsRays").checked && ray) {
+    const showHtf = document.getElementById("bsHtf").checked;
+    const endT = fut[fut.length - 1];
+    const firstAt = (t) => { for (const x of c) if (x.t >= t) return x.t; return null; };
+    for (const L of ray.lines) {
+      const own = L.tf === tf;
+      if (!own && !showHtf) continue;
+      const t0 = firstAt(Math.max(L.t1, c[0].t));
+      if (t0 == null) continue;
+      const se = bsChart.addLineSeries({ color: TL_COLORS[L.tf], lineWidth: own ? 2 : 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, autoscaleInfoProvider: () => null });
+      se.setData([{ time: t0, value: TrendEngine.lineAt(L, t0) }, { time: endT, value: TrendEngine.lineAt(L, endT) }]);
+      bsSeries.push(se);
+    }
+  }
+
+  // BOS / CHoCH lines: from the swing that was broken to the candle that closed through it
+  const evs = R.events.filter((e) => e.at >= c.length - 500 && (showCh || e.kind === "BOS")).slice(-45);
+  evs.forEach((e, idx) => {
+    const col = BS_COL[e.kind + e.dir];
+    const isLast = idx === evs.length - 1;
+    const se = bsChart.addLineSeries({
+      color: col, lineWidth: isLast ? 2 : 1, lineStyle: e.kind === "BOS" ? 0 : 2,
+      priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, autoscaleInfoProvider: () => null,
+    });
+    se.setData([{ time: c[e.from].t, value: e.level }, { time: c[e.at].t, value: e.level }]);
+    bsSeries.push(se);
+    markers.push({ time: c[e.at].t, position: e.dir > 0 ? "aboveBar" : "belowBar", color: col, shape: e.dir > 0 ? "arrowUp" : "arrowDown", text: e.kind });
+  });
+
+  if (showSw) {
+    R.swings.filter((w) => w.i >= c.length - 500).slice(-40).forEach((w) => {
+      const good = w.label === "HH" || w.label === "HL";
+      markers.push({ time: w.t, position: w.type === "H" ? "aboveBar" : "belowBar", color: good ? "#86efac" : w.label === "H" || w.label === "L" ? "#8a93a6" : "#fca5a5", shape: "circle", size: 0.4, text: w.label });
+    });
+  }
+  const ov = bsOverlays(c, R, tf, fut[fut.length - 1], markers, vol, ray);
+  bsCandles.setMarkers(markers.sort((a, b) => a.time - b.time));
+
+  // the levels that would print the next break
+  if (R.nextUp != null) bsPriceLines.push(bsCandles.createPriceLine({ price: R.nextUp, color: R.trend === -1 ? BS_COL["CHoCH1"] : BS_COL["BOS1"], lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: R.trend === -1 ? "CHoCH ↑ above" : "BOS ↑ above" }));
+  if (R.nextDn != null) bsPriceLines.push(bsCandles.createPriceLine({ price: R.nextDn, color: R.trend === 1 ? BS_COL["CHoCH-1"] : BS_COL["BOS-1"], lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: R.trend === 1 ? "CHoCH ↓ below" : "BOS ↓ below" }));
+
+  if (keepRange) bsChart.timeScale().setVisibleLogicalRange(keepRange);
+  else {
+    const n = c.length, show = Math.min(n, isMobile() ? 90 : 180);
+    bsChart.timeScale().setVisibleLogicalRange({ from: n - show, to: n + Math.max(2, Math.min(6, Math.round(show / 20))) });
+  }
+  bsLastKey = key;
+
+  // header
+  const price = c[c.length - 1].c;
+  const tfLabel = TL_TFS.find((x) => x.key === tf).label;
+  document.getElementById("bsName").textContent = s.name;
+  document.getElementById("bsPrice").textContent = tlFmt(price);
+  const b = bsRes.bias;
+  document.getElementById("bsBias").innerHTML = `<span class="badge ${b > 0.33 ? "bull" : b < -0.33 ? "bear" : "neutral"}">${bsRes.biasText}</span>`;
+  document.getElementById("bsTfLbl").textContent = `Structure on ${tfLabel}`;
+  let note = "";
+  if (R.pending) note = ` · <span class="${R.pending.dir > 0 ? "bull" : "bear"}" style="background:none;border:0">${R.pending.kind} ${R.pending.dir > 0 ? "↑" : "↓"} forming (needs candle close)</span>`;
+  else if (R.last) note = ` · last ${bsEventText(R.last)} ${R.barsSince} candle${R.barsSince === 1 ? "" : "s"} ago`;
+  document.getElementById("bsTf").innerHTML = bsBiasBadge(R.trend) + `<span class="neutral" style="font-size:12px">${note}</span>`;
+  document.getElementById("bsRaySetup").innerHTML = ray ? `<span class="badge ${ray.setup.tone}">${ray.setup.text}</span>` : `<span class="neutral">—</span>`;
+
+  // legend
+  document.getElementById("bsLegend").innerHTML =
+    `<span><i style="background:${BS_COL.BOS1}"></i>BOS ↑</span><span><i style="background:${BS_COL["BOS-1"]}"></i>BOS ↓</span>` +
+    (showCh ? `<span><i style="background:${BS_COL.CHoCH1}"></i>CHoCH ↑</span><span><i style="background:${BS_COL["CHoCH-1"]}"></i>CHoCH ↓</span>` : "") +
+    `<span>- - next break level</span>` + (showSw ? `<span>HH / HL / LH / LL = swing points</span>` : "") +
+    (document.getElementById("bsOb").checked ? `<span><i style="background:${BS_OB[1]}"></i>Bull OB</span><span><i style="background:${BS_OB[-1]}"></i>Bear OB</span>` : "") +
+    (document.getElementById("bsRays").checked && ray ? TL_TFS.filter((x) => new Set(ray.lines.map((L) => L.tf)).has(x.key)).map((x) => `<span><i style="background:${TL_COLORS[x.key]}"></i>${x.label} ray${x.key === tf ? " (this TF)" : ""}</span>`).join("") : "");
+
+  // top-down table
+  document.getElementById("bsTable").innerHTML = TL_TFS.filter((x) => bsRes.tfs[x.key]).map((x) => {
+    const Q = bsRes.tfs[x.key];
+    const L = Q.last;
+    const col = L ? BS_COL[L.kind + L.dir] : "";
+    return `<tr data-tf="${x.key}" class="${x.key === tf ? "sel" : ""}">
+      <td><span class="tf-dot" style="background:${TL_COLORS[x.key]}"></span><b>${x.label}</b></td>
+      <td>${bsBiasBadge(Q.trend)}</td>
+      <td>${L ? `<b style="color:${col}">${bsEventText(L)}</b><div class="neutral" style="font-size:11px">${Q.barsSince} bar${Q.barsSince === 1 ? "" : "s"} ago</div>` : "—"}${Q.pending ? `<div style="font-size:11px;color:${BS_COL[Q.pending.kind + Q.pending.dir]}">${Q.pending.kind} forming</div>` : ""}</td>
+      <td>${tlRayCell(x.key, "up")}</td>
+      <td>${tlRayCell(x.key, "down")}</td>
+      <td class="hide-sm">${Q.nextUp != null ? tlFmt(Q.nextUp) : `<span class="neutral" style="font-size:11px">forming</span>`}</td>
+      <td class="hide-sm">${Q.nextDn != null ? tlFmt(Q.nextDn) : `<span class="neutral" style="font-size:11px">forming</span>`}</td>
+    </tr>`;
+  }).join("");
+  document.querySelectorAll("#bsTable tr").forEach((tr) => tr.onclick = () => tlSelectTf(tr.dataset.tf));
+
+  // side card: next break levels + recent events
+  const lvl = (p, up) => {
+    if (p == null) return `<span class="neutral">waiting for a new swing ${up ? "high" : "low"}</span>`;
+    const d = (p - price) / price * 100;
+    return `${tlFmt(p)} <span class="neutral" style="font-size:11px">(${d >= 0 ? "+" : ""}${d.toFixed(2)}%)</span>`;
+  };
+  const upKind = R.trend === -1 ? "CHoCH ↑" : "BOS ↑", dnKind = R.trend === 1 ? "CHoCH ↓" : "BOS ↓";
+  document.getElementById("bsInfo").textContent = tfLabel;
+  document.getElementById("bsLevels").innerHTML =
+    `<tr><td><b style="color:${BS_COL[(R.trend === -1 ? "CHoCH" : "BOS") + "1"]}">${upKind}</b><div class="neutral" style="font-size:11px">close above</div></td><td>${lvl(R.nextUp, true)}</td></tr>` +
+    `<tr><td><b style="color:${BS_COL[(R.trend === 1 ? "CHoCH" : "BOS") + "-1"]}">${dnKind}</b><div class="neutral" style="font-size:11px">close below</div></td><td>${lvl(R.nextDn, false)}</td></tr>` +
+    R.events.slice(-6).reverse().map((e) => `<tr><td><span style="color:${BS_COL[e.kind + e.dir]}">${bsEventText(e)}</span></td><td>${tlFmt(e.level)} <span class="neutral" style="font-size:11px">· ${bsWhen(e.tAt)}</span></td></tr>`).join("");
+  bsCards(ov, vol, price, tfLabel, R);
+}
+
+const BS_LIQ = { buy: "#38bdf8", sell: "#f472b6" };
+const BS_OB = { 1: "rgba(59,130,246,.9)", "-1": "rgba(168,85,247,.9)" };
+
+function tlRayCell(tf, side) {
+  const r = tlRes && tlRes.tfs[tf];
+  const st = r && (side === "up" ? r.upStatus : r.downStatus);
+  if (!st) return `<span class="neutral" style="font-size:11px">none</span>`;
+  return `${tlStatusBadge(st, side)}<div class="neutral" style="font-size:11px">${tlFmt(st.value)}</div>`;
+}
+const BS_FIB_COL = { 0: "#94a3b8", 0.236: "#64748b", 0.382: "#64748b", 0.5: "#e2e8f0", 0.618: "#f59e0b", 0.705: "#fbbf24", 0.786: "#f59e0b", 1: "#94a3b8" };
+
+function bsOverlays(c, R, tf, endT, markers, vol, ray) {
+  const price = c[c.length - 1].c;
+  const on = (id) => document.getElementById(id).checked;
+  const fib = SMC.bosFib(c, R);
+  const liq = SMC.liquidity(tlData, bsRes, tf, price);
+  const sw = SMC.sweeps(c, liq);
+  const fv = SMC.fvgs(c);
+  const obs = SMC.orderBlocks(c, R);
+  const cf = SMC.confluence(R, fib, sw, fv, bsRes.bias, price, obs, ray);
+  const fibMode = document.getElementById("bsFibMode").value;
+  const line = (t0, v0, t1, v1, opt) => {
+    const se = bsChart.addLineSeries(Object.assign({ priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, autoscaleInfoProvider: () => null }, opt));
+    se.setData([{ time: t0, value: v0 }, { time: t1, value: v1 }]);
+    bsSeries.push(se);
+    return se;
+  };
+
+  // Fibonacci: on the leg that printed the last break, or the latest swing (auto)
+  if (fibMode === "auto" && ray && ray.fib) {
+    const f = ray.fib;
+    const t0 = c.find((x) => x.t >= f.t1);
+    for (const lv of f.levels) {
+      line(t0 ? t0.t : c[0].t, lv.price, endT, lv.price, { color: TL_FIB_COLORS[lv.r] || "#94a3b8", lineWidth: lv.r === 0.618 || lv.r === 0.5 ? 2 : 1, lineStyle: 2, lastValueVisible: true, title: `${(lv.r * 100).toFixed(1)}%` });
+    }
+  }
+  if (fibMode === "bos" && fib) {
+    for (const lv of fib.levels) {
+      const key = lv.r;
+      const lab = lv.r === 0.5 ? "50% EQ" : lv.r === 0.705 ? "70.5% OTE" : `${(lv.r * 100).toFixed(1)}%`;
+      line(fib.tStart, lv.price, endT, lv.price, {
+        color: BS_FIB_COL[key] || "#94a3b8", lineWidth: lv.r === 0.5 || lv.r === 0.705 ? 2 : 1,
+        lineStyle: lv.r >= 0.618 && lv.r <= 0.786 ? 0 : 2, lastValueVisible: true, title: lab,
+      });
+    }
+    // the leg itself
+    line(fib.tStart, fib.start, fib.tEnd > fib.tStart ? fib.tEnd : endT, fib.end, { color: "rgba(226,232,240,.35)", lineWidth: 1, lineStyle: 1 });
+  }
+
+  // HTF liquidity: nearest 4 levels above and below price
+  if (on("bsLiq")) {
+    const rest = liq.filter((l) => !l.swept);
+    const above = rest.filter((l) => l.price >= price).slice(0, 4);
+    const below = rest.filter((l) => l.price < price).slice(-4);
+    for (const L of above.concat(below)) {
+      bsPriceLines.push(bsCandles.createPriceLine({
+        price: L.price, color: L.swept ? "rgba(148,163,184,.5)" : BS_LIQ[L.side], lineWidth: L.strong ? 2 : 1, lineStyle: 1,
+        axisLabelVisible: true, title: L.tag + (L.swept ? " ✓" : ""),
+      }));
+    }
+    sw.forEach((s) => markers.push({ time: s.t, position: s.dir > 0 ? "belowBar" : "aboveBar", color: "#facc15", shape: "square", text: `Sweep ${s.level.tag.split(" · ")[0]}` }));
+  }
+
+  // volume profile of the last 200 candles
+  if (on("bsVp")) {
+    bsPriceLines.push(bsCandles.createPriceLine({ price: vol.poc, color: "#e2e8f0", lineWidth: 2, lineStyle: 0, axisLabelVisible: true, title: "POC" }));
+    bsPriceLines.push(bsCandles.createPriceLine({ price: vol.vah, color: "rgba(226,232,240,.5)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false, title: "VAH" }));
+    bsPriceLines.push(bsCandles.createPriceLine({ price: vol.val, color: "rgba(226,232,240,.5)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false, title: "VAL" }));
+  }
+
+  // open Fair Value Gaps: nearest 3 below and 3 above price
+  if (on("bsFvg")) {
+    const bull = fv.filter((g) => g.dir > 0 && g.top <= price).sort((a, b) => b.top - a.top).slice(0, 3);
+    const bear = fv.filter((g) => g.dir < 0 && g.bot >= price).sort((a, b) => a.bot - b.bot).slice(0, 3);
+    for (const g of bull.concat(bear)) {
+      const col = g.dir > 0 ? "rgba(34,197,94,.75)" : "rgba(239,68,68,.75)";
+      line(g.t, g.top, endT, g.top, { color: col, lineWidth: 1, lineStyle: 0 });
+      line(g.t, g.bot, endT, g.bot, { color: col, lineWidth: 1, lineStyle: 0 });
+      line(g.t, (g.top + g.bot) / 2, endT, (g.top + g.bot) / 2, { color: col.replace(".75", ".25"), lineWidth: 4, lineStyle: 0 });
+    }
+  }
+  // order blocks: nearest 3 bullish at/below price and 3 bearish at/above
+  if (on("bsOb")) {
+    const bull = obs.filter((z) => z.dir > 0 && z.bot <= price).sort((a, b) => b.top - a.top).slice(0, 3);
+    const bear = obs.filter((z) => z.dir < 0 && z.top >= price).sort((a, b) => a.bot - b.bot).slice(0, 3);
+    for (const z of bull.concat(bear)) {
+      const col = BS_OB[z.dir];
+      line(z.t, z.top, endT, z.top, { color: col, lineWidth: 1, lineStyle: 0 });
+      line(z.t, z.bot, endT, z.bot, { color: col, lineWidth: 1, lineStyle: 0 });
+      line(z.t, (z.top + z.bot) / 2, endT, (z.top + z.bot) / 2, { color: col.replace(".9)", ".22)"), lineWidth: 6, lineStyle: 0 });
+      markers.push({ time: z.t, position: z.dir > 0 ? "belowBar" : "aboveBar", color: col, shape: "square", size: 0.6, text: z.dir > 0 ? "Bull OB" : "Bear OB" });
+    }
+  }
+  return { fib, liq, sw, fv, cf, obs };
+}
+
+function bsCards(ov, vol, price, tfLabel, R) {
+  const { fib, liq, sw, fv, cf, obs } = ov;
+  // order blocks + FVG card
+  const zrow = (z, label, col) => {
+    const inside = price <= z.top && price >= z.bot;
+    const d = inside ? 0 : ((z.dir > 0 ? z.top : z.bot) - price) / price * 100;
+    return `<tr><td><span class="tf-dot" style="background:${col}"></span><b>${label}</b>${z.kind ? `<div class="neutral" style="font-size:11px">from ${z.kind} ${z.dir > 0 ? "↑" : "↓"}</div>` : ""}</td>
+      <td>${tlFmt(z.bot)} – ${tlFmt(z.top)}</td>
+      <td>${inside ? `<b style="color:#facc15">price inside</b>` : `<span class="${d >= 0 ? "bull" : "bear"}" style="background:none;border:0">${d >= 0 ? "+" : ""}${d.toFixed(2)}%</span>`}</td>
+      <td>${z.tested === undefined ? "open" : z.tested ? "tested" : `<b>fresh</b>`}</td></tr>`;
+  };
+  const bullOb = obs.filter((z) => z.dir > 0 && z.bot <= price).sort((a, b) => b.top - a.top).slice(0, 3);
+  const bearOb = obs.filter((z) => z.dir < 0 && z.top >= price).sort((a, b) => a.bot - b.bot).slice(0, 3);
+  const bullFv = fv.filter((g) => g.dir > 0 && g.top <= price).sort((a, b) => b.top - a.top).slice(0, 2);
+  const bearFv = fv.filter((g) => g.dir < 0 && g.bot >= price).sort((a, b) => a.bot - b.bot).slice(0, 2);
+  document.getElementById("bsObTable").innerHTML =
+    `<tr><td colspan="4" class="neutral" style="font-size:11px">ABOVE PRICE · supply (sell zones)</td></tr>` +
+    (bearOb.map((z) => zrow(z, "Bear OB", BS_OB[-1])).concat(bearFv.map((g) => zrow(g, "Bear FVG", "rgba(239,68,68,.8)"))).join("") || `<tr><td colspan="4" class="neutral">none open</td></tr>`) +
+    `<tr><td colspan="4" style="background:rgba(76,141,255,.08)"><b>Price ${tlFmt(price)}</b></td></tr>` +
+    `<tr><td colspan="4" class="neutral" style="font-size:11px">BELOW PRICE · demand (buy zones)</td></tr>` +
+    (bullOb.map((z) => zrow(z, "Bull OB", BS_OB[1])).concat(bullFv.map((g) => zrow(g, "Bull FVG", "rgba(34,197,94,.8)"))).join("") || `<tr><td colspan="4" class="neutral">none open</td></tr>`);
+
+  // Fibonacci + volume card
+  const fibHtml = fib
+    ? `<tr><td>BOS leg</td><td><b style="color:${BS_COL[fib.kind + fib.dir]}">${fib.kind} ${fib.dir > 0 ? "↑" : "↓"}</b> ${tlFmt(fib.start)} → ${tlFmt(fib.end)}</td></tr>
+       <tr><td>Price is at</td><td><b>${(fib.retrace * 100).toFixed(1)}%</b> retracement · <span class="${fib.zone === "Discount" ? "bull" : "bear"}" style="background:none;border:0">${fib.zone}</span>${fib.ote ? ` · <b style="color:#f59e0b">in OTE</b>` : ""}</td></tr>
+       <tr><td>Equilibrium (50%)</td><td>${tlFmt(fib.eq)}</td></tr>
+       <tr><td>OTE zone</td><td>${tlFmt(fib.levels.find((l) => l.r === 0.618).price)} – ${tlFmt(fib.levels.find((l) => l.r === 0.786).price)}</td></tr>`
+    : `<tr><td colspan="2" class="neutral">No break yet on ${tfLabel}</td></tr>`;
+  const where = price > vol.vah ? "above value area" : price < vol.val ? "below value area" : "inside value area";
+  const rvTxt = vol.rvNow >= 2 ? `<b style="color:#facc15">${vol.rvNow.toFixed(1)}× — volume spike</b>` : `${vol.rvNow.toFixed(1)}× average`;
+  document.getElementById("bsFibInfo").textContent = tfLabel + (document.getElementById("bsFibMode").value === "auto" ? " · chart shows the auto swing Fib" : "");
+  document.getElementById("bsFibTable").innerHTML = fibHtml +
+    `<tr><td>Relative volume</td><td>${rvTxt}</td></tr>
+     <tr><td>POC (last 200)</td><td>${tlFmt(vol.poc)} <span class="neutral" style="font-size:11px">· price ${where}</span></td></tr>
+     <tr><td>Value area</td><td>${tlFmt(vol.val)} – ${tlFmt(vol.vah)}</td></tr>`;
+
+  // liquidity card
+  const rest = liq.filter((l) => !l.swept);
+  const swept = liq.filter((l) => l.swept);
+  const above = rest.filter((l) => l.price >= price).slice(0, 5).reverse();
+  const below = rest.filter((l) => l.price < price).slice(-5).reverse();
+  const row = (L) => `<tr><td><span class="tf-dot" style="background:${BS_LIQ[L.side]}"></span><b>${L.tag}</b><div class="neutral" style="font-size:11px">${L.name}</div></td>
+    <td>${tlFmt(L.price)}</td><td class="${L.dist >= 0 ? "bull" : "bear"}" style="background:none;border:0">${L.dist >= 0 ? "+" : ""}${L.dist.toFixed(2)}%</td>
+    <td>${L.swept ? `<span class="neutral">swept</span>` : L.strong ? `<b style="color:#facc15">pool</b>` : "resting"}</td></tr>`;
+  document.getElementById("bsLiqTable").innerHTML =
+    `<tr><td colspan="4" class="neutral" style="font-size:11px">ABOVE PRICE · buy-side liquidity (stops of shorts)</td></tr>` + (above.map(row).join("") || `<tr><td colspan="4" class="neutral">none nearby</td></tr>`) +
+    `<tr><td colspan="4" style="background:rgba(76,141,255,.08)"><b>Price ${tlFmt(price)}</b></td></tr>` +
+    `<tr><td colspan="4" class="neutral" style="font-size:11px">BELOW PRICE · sell-side liquidity (stops of longs)</td></tr>` + (below.map(row).join("") || `<tr><td colspan="4" class="neutral">none nearby</td></tr>`) +
+    (swept.length ? `<tr><td colspan="4" class="neutral" style="font-size:12px">Already taken this period: ${swept.map((l) => `${l.tag} ${tlFmt(l.price)}`).join(" · ")}</td></tr>` : "") +
+    (sw.length ? `<tr><td colspan="4"><b style="color:#facc15">Recent sweep:</b> ${sw.map((s) => `${s.level.tag.split(" · ")[0]} ${s.dir > 0 ? "(bullish — wick below, closed back above)" : "(bearish — wick above, closed back below)"}`).join("; ")}</td></tr>` : "");
+
+  // confluence card
+  const box = document.getElementById("bsConf");
+  if (!cf) { box.innerHTML = `<div class="msg">No break yet on ${tfLabel}.</div>`; return; }
+  const side = cf.dir > 0 ? "long (buy)" : "short (sell)";
+  box.innerHTML = `<div class="msg" style="color:var(--text)"><b style="font-size:16px" class="${cf.dir > 0 ? "bull" : "bear"}" >${cf.score}/${cf.total}</b> &nbsp;${side} confluence on ${tfLabel}</div>` +
+    `<table class="tt"><tbody>${cf.items.map((x) => `<tr><td style="width:26px">${x.ok ? `<b class="bull" style="background:none;border:0">✔</b>` : `<span class="neutral">✖</span>`}</td><td class="${x.ok ? "" : "neutral"}">${x.text}</td></tr>`).join("")}</tbody></table>` +
+    `<div class="msg">More ticks = more reasons agree. It is not a signal by itself — wait for your entry rule and always use a stop.</div>`;
+}
+
+["bsRays", "bsHtf", "bsSw", "bsCh", "bsOb", "bsLiq", "bsVp", "bsFvg", "bsVol"].forEach((id) => {
+  const el = document.getElementById(id);
+  el.checked = load("tvdash." + id, el.checked);
+  el.onchange = () => { save("tvdash." + id, el.checked); bsRender(); };
+});
+
+{
+  const fm = document.getElementById("bsFibMode");
+  fm.value = load("tvdash.bsFibMode", "bos");
+  fm.onchange = () => { save("tvdash.bsFibMode", fm.value); bsRender(); };
+  // layers panel open on big screens, collapsed on phones
+  const lay = document.getElementById("bsLayers");
+  if (lay && !isMobile()) lay.open = true;
+}
+
+document.querySelectorAll("#views button").forEach((b) => b.onclick = () => setView(b.dataset.view));
+
+renderTape();
+if (view !== "signals") setView(view); else { buildGrid(); renderMover(); }
+
+/* ---- installable app (PWA) ---- */
+(function () {
+  const inAndroidApp = /; wv\)/.test(navigator.userAgent) || location.hostname === "appassets.androidplatform.net";
+  if ("serviceWorker" in navigator && window.isSecureContext && location.protocol !== "file:" && !inAndroidApp) {
+    window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+  }
+  let deferred = null;
+  const btn = document.getElementById("installBtn");
+  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferred = e; btn.hidden = false; });
+  btn.onclick = async () => {
+    if (!deferred) return;
+    deferred.prompt();
+    try { await deferred.userChoice; } catch (e) {}
+    deferred = null; btn.hidden = true;
+  };
+  window.addEventListener("appinstalled", () => { btn.hidden = true; });
+})();
+</script>
+</body>
+</html>
