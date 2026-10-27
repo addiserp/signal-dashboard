@@ -1,5 +1,5 @@
 // Service worker: keeps the app shell available, never caches market data
-const CACHE = "signals-v9";
+const CACHE = "signals-v15";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/maskable-512.png", "./icons/apple-touch-icon.png",

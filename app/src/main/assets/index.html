@@ -100,6 +100,20 @@
   .views button.on{background:var(--accent);color:#fff}
   [hidden]{display:none !important}
   .views .sm{display:none}
+  #btView{padding:var(--gutter);display:grid;gap:12px}
+  /* grid children may shrink below their content (long chip rows and tables scroll inside instead) */
+  #bosView>*,#btView>*,.tv-grid>*{min-width:0}
+  .chips{max-width:100%}
+  .bt-controls{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:12px 14px}
+  .bt-controls input[type=date]{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:5px 8px;font:inherit;color-scheme:dark}
+  .bt-modes{display:flex;gap:8px;flex-basis:100%;flex-wrap:wrap}
+  .bt-modes button{flex:1 1 220px;text-align:left;padding:10px 12px;border-radius:10px;font-weight:700;min-height:52px}
+  .bt-modes button small{display:block;font-weight:400;color:var(--muted);font-size:11px;margin-top:2px}
+  .bt-modes button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .bt-modes button.on small{color:rgba(255,255,255,.85)}
+  .bt-bar{height:4px;background:var(--line);margin:0 14px;border-radius:2px;overflow:hidden}
+  .bt-bar div{height:100%;width:0;background:var(--accent);transition:width .3s}
+  button:disabled{opacity:.5;cursor:wait}
   details.layers{background:var(--panel);border:1px solid var(--line);border-radius:10px}
   details.layers summary{cursor:pointer;padding:9px 14px;font-weight:600;color:var(--muted);list-style:none}
   details.layers summary::before{content:"▸ ";}
@@ -207,6 +221,7 @@
       <div class="views" id="views">
         <button data-view="signals" class="on">Signals</button>
         <button data-view="bos"><span class="lg">Chart analysis</span><span class="sm">Analysis</span></button>
+        <button data-view="bt"><span class="lg">Backtest</span><span class="sm">Test</span></button>
       </div>
     </div>
     <div class="quick">
@@ -278,6 +293,13 @@
     <div class="msg" id="bsMsg"></div>
   </section>
 
+  <section class="tv-card" id="dcCard">
+    <div class="card-title">Donchian 4H system <small>the only system that tested positive (BTC, 2022–2026) · same rules as the Telegram alerts</small></div>
+    <div class="tv-top" id="dcTop"></div>
+    <div style="overflow-x:auto"><table class="tt"><thead><tr><th>Last trades (replayed)</th><th>Side</th><th>Entry</th><th>Exit</th><th>Result</th></tr></thead><tbody id="dcTrades"></tbody></table></div>
+    <div class="msg">Buy when a 4H candle closes above the highest high of the previous 20 candles; first stop 2×ATR below; then move the stop up to the lowest low of the last 10 candles. Set up Telegram alerts with <b>alerts/README.md</b> in your GitHub repository.</div>
+  </section>
+
   <div class="tv-grid">
     <section class="tv-card">
       <div class="card-title">Top-down: structure &amp; trend rays <small>tap a row to open that timeframe</small></div>
@@ -316,6 +338,111 @@
   <div class="msg"><b>Trend rays</b> follow the top-down method (1M → 15m): the first down ray starts at the highest high, the first up ray at the lowest low, price may not cut through a ray, and each new ray starts at the previous one's last touch. Thick rays belong to the selected timeframe. "At line" = possible bounce entry, "Broken" = a candle closed through it (exit).<br><br><b>Order blocks</b> (blue = bullish demand, purple = bearish supply) are the last opposite candle before the move that broke structure; "fresh" = price hasn't come back yet, "tested" = it has. A zone is removed once a candle closes through it.<br><br>How to read the rest: swing highs/lows are confirmed pivots. <b>BOS</b> (break of structure) = a candle <i>closes</i> beyond the last swing in the trend's direction — the trend continues (uptrend: close above the last swing high; downtrend: close below the last swing low). <b>CHoCH</b> (change of character) = the first close beyond a swing <i>against</i> the trend — an early reversal warning. Dashed lines are the levels that would print the next break. Higher-timeframe structure is stronger; a BOS that agrees with the 4H/1D bias is the higher-probability one.<br><br><b>Fibonacci</b> is drawn on the leg that printed the last break: after a bullish BOS, buyers look for price to pull back into <i>discount</i> (below 50%), ideally the <b>OTE</b> zone 61.8–78.6%; after a bearish BOS, sellers look for <i>premium</i>. <b>Liquidity</b>: stops rest above old highs (buy-side, blue) and below old lows (sell-side, pink) — equal highs/lows are the strongest pools. A <b>sweep</b> (yellow) is a wick through a level that closes back inside, often before a move the other way. <b>Yellow volume bars</b> = 2× normal volume. <b>POC</b> = price with the most volume in the last 200 candles. <b>FVG</b> = an imbalance gap that price often returns to fill. Not financial advice.</div>
 </div>
 
+<div id="btView" hidden>
+  <div class="tv-row"><div class="chips" id="btSyms"></div></div>
+  <section class="tv-card">
+    <div class="card-title">Backtest settings <small>replays history candle by candle — no peeking at the future</small></div>
+    <div class="bt-controls">
+      <div class="bt-modes" id="btModes" role="tablist" aria-label="Strategy">
+        <button type="button" data-mode="intraday">Intraday playbooks<small>Ray · BOS+OTE · Sweep · Precision — 15m / 1h / 4h</small></button>
+        <button type="button" data-mode="trend">Trend following<small>Donchian · EMA · Structure — 4H / 1D</small></button>
+      </div>
+      <select id="btMode" hidden><option value="intraday">Intraday playbooks</option><option value="trend">Trend following</option></select>
+      <label class="tf-lbl">Period <select id="btPeriod">
+        <option value="3">Last 3 months</option><option value="6">Last 6 months</option><option value="12" selected>Last 12 months</option><option value="36">Last 3 years</option><option value="60">Last 5 years</option>
+        <option value="pre2025">2024 → 19 Jan 2025 (before Trump's 2nd term)</option>
+        <option value="y2025">20 Jan 2025 → 19 Jan 2026 (first year of the term)</option>
+        <option value="y2023">Calendar 2023</option>
+        <option value="custom">Custom dates…</option></select></label>
+      <span id="btCustom" class="tf-lbl" hidden>From <input type="date" id="btFrom" min="2018-01-01"> to <input type="date" id="btTo" min="2018-01-01"></span>
+      <label class="tf-lbl bt-intra">Entry timeframe <select id="btTf"><option value="15m" selected>15m</option><option value="1h">1h</option><option value="4h">4h</option></select></label>
+      <label class="tf-lbl bt-intra">Target <select id="btR"><option value="1.5">1.5R</option><option value="2" selected>2R</option><option value="3">3R</option></select></label>
+      <label class="chk bt-intra"><input type="checkbox" id="btCost" checked> Include fees (0.05% per side)</label>
+      <label class="tf-lbl bt-trend" hidden>Candles <select id="btTTf"><option value="4h" selected>4H</option><option value="1d">1D</option></select></label>
+      <label class="tf-lbl bt-trend" hidden>Direction <select id="btSide"><option value="long" selected>Long only</option><option value="both">Long + short</option></select></label>
+      <label class="tf-lbl bt-trend" hidden>Fees <select id="btFee"><option value="0.05" selected>Taker 0.05%</option><option value="0.02">Maker 0.02%</option><option value="0">None</option></select></label>
+      <label class="chk bt-trend" hidden><input type="checkbox" id="btFund" checked> Funding 0.01% / 8h</label>
+      <label class="tf-lbl bt-trend" hidden>Risk per trade <select id="btRisk"><option value="0.5">0.5%</option><option value="1" selected>1%</option><option value="2">2%</option></select></label>
+      <button id="btRun" class="primary">Run backtest</button>
+      <button id="btRunAll">Test all symbols</button>
+    </div>
+    <div class="bt-bar"><div id="btBar"></div></div>
+    <div class="msg" id="btProg">Pick a symbol and tap "Run backtest". 12 months of 15m candles take about 20–40 seconds to download. Older periods work too — compare "before Trump's 2nd term" with "last 12 months".</div>
+  </section>
+
+  <div id="btResults" hidden>
+    <section class="tv-card">
+      <div class="tv-top" id="btHead"></div>
+      <div style="overflow-x:auto"><table class="tt">
+        <thead><tr><th>Playbook</th><th>Trades</th><th>Win %</th><th>Avg per trade</th><th class="hide-sm">Profit factor</th><th>Total</th><th class="hide-sm">Worst drawdown</th><th>Verdict</th></tr></thead>
+        <tbody id="btSummary"></tbody>
+      </table></div>
+    </section>
+    <section class="tv-card" style="margin-top:12px">
+      <div class="card-title">Equity curve <small>cumulative R per playbook (1R = the amount risked per trade)</small></div>
+      <div id="btChart" style="height:340px"></div>
+    </section>
+    <div class="tv-grid" style="margin-top:12px">
+      <section class="tv-card">
+        <div class="card-title">Does a higher confluence score win more?</div>
+        <table class="tt"><thead><tr><th>Score at entry</th><th>Trades</th><th>Win %</th><th>Avg per trade</th></tr></thead><tbody id="btScore"></tbody></table>
+        <div class="msg" id="btScoreNote"></div>
+      </section>
+      <section class="tv-card">
+        <div class="card-title">Long vs short <small>trades · win % · avg</small></div>
+        <table class="tt"><thead><tr><th>Playbook</th><th>Long</th><th>Short</th></tr></thead><tbody id="btSides"></tbody></table>
+      </section>
+    </div>
+    <section class="tv-card" style="margin-top:12px">
+      <div class="card-title">Last 30 trades <small id="btTradesNote"></small></div>
+      <div style="overflow-x:auto"><table class="tt">
+        <thead><tr><th>Entry time</th><th>Playbook</th><th>Side</th><th class="hide-sm">Entry</th><th class="hide-sm">Stop</th><th>Exit</th><th>Result</th><th class="hide-sm">Score</th></tr></thead>
+        <tbody id="btTrades"></tbody>
+      </table></div>
+    </section>
+  </div>
+
+  <div id="btTResults" hidden>
+    <section class="tv-card">
+      <div class="tv-top" id="btTHead"></div>
+      <div style="overflow-x:auto"><table class="tt">
+        <thead><tr><th>System</th><th>Trades</th><th>Win %</th><th>Avg per trade</th><th class="hide-sm">Profit factor</th><th class="hide-sm">Best trade</th><th>Account return</th><th class="hide-sm">Max drawdown</th><th>Verdict</th></tr></thead>
+        <tbody id="btTSummary"></tbody>
+      </table></div>
+      <div class="msg">Account return = growth of the account if you risk the chosen % on every trade of that system (fees and funding included). Buy &amp; hold = the coin's own price change; it takes the full price swings, the systems only risk a small slice per trade.</div>
+    </section>
+    <section class="tv-card" style="margin-top:12px">
+      <div class="card-title">Account growth vs buy &amp; hold <small>start = 100, log scale</small></div>
+      <div id="btTChart" style="height:360px"></div>
+    </section>
+    <section class="tv-card" style="margin-top:12px">
+      <div class="card-title">Last 30 trades</div>
+      <div style="overflow-x:auto"><table class="tt">
+        <thead><tr><th>Entry</th><th>System</th><th>Side</th><th class="hide-sm">Entry price</th><th class="hide-sm">Exit price</th><th>Held</th><th class="hide-sm">Price move</th><th>Result</th></tr></thead>
+        <tbody id="btTTrades"></tbody>
+      </table></div>
+    </section>
+  </div>
+
+  <section class="tv-card" id="btTrendAll" hidden>
+    <div class="card-title">All symbols — trend following <small>account return · trades · avg R · max drawdown</small></div>
+    <div style="overflow-x:auto"><table class="tt">
+      <thead><tr><th>Symbol</th><th>Donchian breakout</th><th>EMA trend</th><th>Structure trend</th></tr></thead>
+      <tbody id="btTAll"></tbody>
+    </table></div>
+  </section>
+
+  <section class="tv-card" id="btIntraAll">
+    <div class="card-title">All symbols <small>avg per trade · trades · win %, with the current settings</small></div>
+    <div style="overflow-x:auto"><table class="tt">
+      <thead><tr><th>Symbol</th><th>Ray bounce</th><th>BOS + OTE</th><th>Sweep reversal</th><th>Precision Entry</th><th>Best playbook</th></tr></thead>
+      <tbody id="btAll"></tbody>
+    </table></div>
+  </section>
+  <div class="msg bt-trend" hidden><b>Trend following systems.</b> They trade 4H or daily candles, hold for days to weeks and use wide stops that follow price, so fees are small compared with the risk. <b>Donchian breakout</b>: buy when a candle closes above the highest high of the last 20 candles; first stop 2×ATR below; exit when price breaks the lowest low of the last 10 candles. <b>EMA trend</b>: buy when price closes above the 50 EMA while the 50 EMA is above the 200 EMA; the stop trails 3×ATR below the highest high since entry. <b>Structure trend</b>: buy on a BOS/CHoCH up while the daily structure is bullish; stop under the last swing low, raised to each new higher low; exit after a bearish CHoCH/BOS. Short trades are the mirror image (choose "Long + short"). Entries fill at the next candle's open, stops at the stop price (or the open if price gaps through it). Funding is charged on every open position as a cost, which is conservative. Trend systems usually win only 30–45% of trades and earn their money from a few big winners — expect long losing streaks.</div>
+  <div class="msg bt-intra"><b>How the test works.</b> Candles are replayed one by one and each decision only uses what was known at that moment. A trade is entered on the next candle after its signal (BOS + OTE uses a limit order at 70.5% of the BOS leg). The stop and a fixed target (1.5R, 2R or 3R) are set at entry; if one candle touches both, the stop counts first. Trades still open after 24 hours (15m), 2 days (1h) or 5 days (4h) are closed at market. Fees of 0.05% per side are taken off every trade. <b>Ray bounce</b> needs 4H structure in the same direction and a candle that touches the ray and closes back on the right side. <b>BOS + OTE</b> needs a BOS that agrees with 4H structure. <b>Sweep reversal</b> needs a wick through the previous day's high or low that closes back inside, then a CHoCH/BOS the other way within 12 candles. <b>Precision Entry</b> is the "Precision Entry Signal" TradingView indicator: EMA 21 crosses EMA 55, price on the right side of EMA 200, RSI ≥ 55 (≤ 45 for shorts), volume above its 20-candle average and a close beyond the last 5/5 pivot from the past 50 candles; stop 1.5×ATR, target as chosen (the indicator's default is 2R). "Keep" = at least 30 trades, more than +0.1R per trade and profit factor above 1.2. Gold before December 2025 is tested on PAXG, a Binance token backed by physical gold that follows the gold price closely. "Avg daily range" shows how volatile the tested period was, so you can compare calm and wild markets. Past results don't guarantee future results; the trend rays here are drawn on the entry timeframe only, so they differ a little from the top-down rays on the Analysis tab. Not financial advice.</div>
+</div>
+
 <div id="signalsView">
 <main id="grid"></main>
 
@@ -343,7 +470,7 @@
 </dialog>
 
 <script>
-const DEFAULTS = ["BINANCE:BTCUSDT","BINANCE:ETHUSDT","OANDA:XAUUSD","NASDAQ:SPCX","BINANCE:ZECUSDT","BINANCE:HYPEUSDT","BINANCE:NEARUSDT"];
+const DEFAULTS = ["BINANCE:BTCUSDT","BINANCE:ETHUSDT","OANDA:XAUUSD","TVC:USOIL","NASDAQ:SPCX","BINANCE:ZECUSDT","BINANCE:HYPEUSDT","BINANCE:NEARUSDT"];
 const REFRESH_SEC = 60;
 const TF_ORDER = ["1m","5m","15m","30m","1h","4h","1D"];
 const CHART_TF = {"1m":"1","5m":"5","15m":"15","30m":"30","1h":"60","4h":"240","1D":"D"};
@@ -384,6 +511,11 @@ if (DATA_VER < 5) {   // v5 added ZEC, HYPE, NEAR: append them to a saved list
 let interval = load("tvdash.interval", "30m");
 let preset   = load("tvdash.preset", "momentum");
 let moverTab = load("tvdash.mover", "crypto");
+if (load("tvdash.ver", DATA_VER) < 15 && !symbols.includes("TVC:USOIL")) {   // v15 adds crude oil
+  const g = symbols.indexOf("OANDA:XAUUSD");
+  symbols.splice(g >= 0 ? g + 1 : symbols.length, 0, "TVC:USOIL");
+  save("tvdash.symbols", symbols);
+}
 if (DATA_VER < 8) {   // v8: BTC/ETH use the Binance USDT pairs and BTCUSDT opens first
   symbols = symbols.map((x) => x === "BITSTAMP:BTCUSD" ? "BINANCE:BTCUSDT" : x === "BITSTAMP:ETHUSD" ? "BINANCE:ETHUSDT" : x);
   const b = symbols.indexOf("BINANCE:BTCUSDT");
@@ -559,6 +691,7 @@ function stamp(){
 
 let left = REFRESH_SEC;
 function refresh(){
+  if (view === "bt") { stamp(); left = REFRESH_SEC; return; }   // backtests only run when you tap Run
   if (view !== "signals") { tlLoad(); stamp(); left = REFRESH_SEC; return; }
   visibleIdx().forEach(i=>{
     renderTA(i);
@@ -1035,6 +1168,7 @@ const TL_DEFAULTS = [
   { name: "BTCUSDT", market: "spot",    sym: "BTCUSDT" },
   { name: "ETHUSDT", market: "spot",    sym: "ETHUSDT" },
   { name: "XAUUSD",  market: "futures", sym: "XAUUSDT" },
+  { name: "WTI OIL",  market: "futures", sym: "CLUSDT" },
   { name: "SPCXUSD", market: "futures", sym: "SPCXUSDT" },
   { name: "ZECUSDT",  market: "spot",    sym: "ZECUSDT" },
   { name: "HYPEUSDT", market: "futures", sym: "HYPEUSDT" },
@@ -1057,6 +1191,14 @@ if (load("tvdash.ver", 5) < 9) {   // v9: same names as the Signals tab
   tlSyms = tlSyms.map((x) => (x.sym === "BTCUSDT" || x.sym === "ETHUSDT") && x.name === x.sym.replace("USDT", "USD") ? { ...x, name: x.sym } : x);
   save("tvdash.tlSyms", tlSyms);
   save("tvdash.ver", 9);
+}
+if (load("tvdash.ver", 9) < 15) {   // v15: crude oil (Binance CLUSDT perpetual, since April 2026)
+  if (!tlSyms.some((x) => x.sym === "CLUSDT")) {
+    const g = tlSyms.findIndex((x) => x.sym === "XAUUSDT");
+    tlSyms.splice(g >= 0 ? g + 1 : tlSyms.length, 0, { name: "WTI OIL", market: "futures", sym: "CLUSDT" });
+    save("tvdash.tlSyms", tlSyms);
+  }
+  save("tvdash.ver", 15);
 }
 let tlActive = Math.min(load("tvdash.tlActive", 0), tlSyms.length - 1);
 let tlTf = load("tvdash.tlTf", "15m");
@@ -1217,12 +1359,14 @@ function tlSelectTf(tf) {
 function setView(v) {
   if (v === "trend") v = "bos";   // Trend lines and Structure are now one tab
   view = v; save("tvdash.view", v);
-  document.body.classList.toggle("view-bos", v === "bos");
+  document.body.classList.toggle("view-bos", v !== "signals");
+  document.getElementById("btView").hidden = v !== "bt";
   document.querySelectorAll("#views button").forEach((b) => b.classList.toggle("on", b.dataset.view === v));
   document.getElementById("bosView").hidden = v !== "bos";
   document.getElementById("signalsView").hidden = v !== "signals";
   document.getElementById("symtabs").style.display = v === "signals" ? "" : "none";
-  if (v === "bos") { tlBuildChips(); if (!tlData) tlLoad(); else renderActive(); }
+  if (v === "bt") { btBuildChips(); btShowSaved(); }
+  else if (v === "bos") { tlBuildChips(); if (!tlData) tlLoad(); else renderActive(); }
   else { buildGrid(); lazyMover(); }
   left = REFRESH_SEC;
 }
@@ -1492,8 +1636,119 @@ function bsWhen(t) {
   return new Date(t * 1000).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
+// Donchian breakout system (the one that tested positive on BTC 4H) — live replay.
+// Exactly the rules of the Trend-following backtest:
+//   entry  : a candle CLOSES above the highest high of the previous 20 candles (short: below the 20 low)
+//   fill   : next candle's open
+//   stop   : first stop 2×ATR(20) from the signal close, then trailed to the lowest low of the
+//            last 10 candles (only ever moves up for longs); stop fills at the stop price, or at the
+//            open if price gaps through it
+// The replay is stateless: it re-runs recent history every time, so the alert job needs no database.
+(function (root) {
+  "use strict";
+
+  function atrSeries(c, n = 20) {
+    const out = new Array(c.length).fill(0);
+    let s = 0;
+    const tr = (i) => i === 0 ? c[0].h - c[0].l : Math.max(c[i].h - c[i].l, Math.abs(c[i].h - c[i - 1].c), Math.abs(c[i].l - c[i - 1].c));
+    for (let i = 0; i < c.length; i++) { s += tr(i); if (i >= n) s -= tr(i - n); out[i] = s / Math.min(i + 1, n); }
+    return out;
+  }
+
+  // c = CLOSED candles only, oldest first: {t (sec), o, h, l, c}
+  function replay(c, opts = {}) {
+    const sides = opts.sides || "long";
+    const warm = opts.warm == null ? 210 : opts.warm;
+    const atr = atrSeries(c, 20);
+    const events = [];
+    const trades = [];
+    let pos = null, pending = null;
+    const closePos = (k, price, how) => {
+      trades.push({ dir: pos.dir, t: c[pos.entryIdx].t, exitT: c[k].t, entry: pos.entry, stop0: pos.stop0, exit: price, how, r: pos.dir * (price - pos.entry) / pos.risk });
+      events.push({ k, t: c[k].t, type: "exit", dir: pos.dir, price, entry: pos.entry, r: pos.dir * (price - pos.entry) / pos.risk, how });
+      pos = null;
+    };
+    for (let k = 1; k < c.length; k++) {
+      const x = c[k];
+      if (pending && !pos) {
+        if (pending.dir > 0 ? x.o > pending.stop : x.o < pending.stop) {
+          pos = { dir: pending.dir, entry: x.o, entryIdx: k, stop: pending.stop, stop0: pending.stop, risk: Math.abs(x.o - pending.stop) };
+          events.push({ k, t: x.t, type: "filled", dir: pos.dir, price: x.o, stop: pos.stop });
+        } else events.push({ k, t: x.t, type: "skipped", dir: pending.dir, price: x.o, stop: pending.stop });
+        pending = null;
+      }
+      if (pos) {
+        if (pos.dir > 0 && x.l <= pos.stop) closePos(k, Math.min(x.o, pos.stop), "stop");
+        else if (pos.dir < 0 && x.h >= pos.stop) closePos(k, Math.max(x.o, pos.stop), "stop");
+      }
+      if (k < warm) continue;
+      const A = atr[k];
+      if (pos) {
+        let lo = Infinity, hi = -Infinity;
+        for (let m = k - 9; m <= k; m++) { lo = Math.min(lo, c[m].l); hi = Math.max(hi, c[m].h); }
+        const next = pos.dir > 0 ? Math.max(pos.stop, lo) : Math.min(pos.stop, hi);
+        if (next !== pos.stop) { events.push({ k, t: x.t, type: "stop", dir: pos.dir, from: pos.stop, stop: next, price: x.c }); pos.stop = next; }
+        continue;
+      }
+      let hi = -Infinity, lo = Infinity;
+      for (let m = k - 20; m < k; m++) { hi = Math.max(hi, c[m].h); lo = Math.min(lo, c[m].l); }
+      if (x.c > hi) { pending = { dir: 1, stop: x.c - 2 * A }; events.push({ k, t: x.t, type: "signal", dir: 1, price: x.c, level: hi, stop: pending.stop, atr: A }); }
+      else if (sides === "both" && x.c < lo) { pending = { dir: -1, stop: x.c + 2 * A }; events.push({ k, t: x.t, type: "signal", dir: -1, price: x.c, level: lo, stop: pending.stop, atr: A }); }
+    }
+    // levels for the next candle
+    const n = c.length, k = n - 1;
+    let hi20 = -Infinity, lo20 = Infinity, lo10 = Infinity, hi10 = -Infinity;
+    for (let m = Math.max(0, k - 19); m <= k; m++) { hi20 = Math.max(hi20, c[m].h); lo20 = Math.min(lo20, c[m].l); }
+    for (let m = Math.max(0, k - 9); m <= k; m++) { lo10 = Math.min(lo10, c[m].l); hi10 = Math.max(hi10, c[m].h); }
+    return {
+      events, trades,
+      position: pos ? { dir: pos.dir, entry: pos.entry, entryT: c[pos.entryIdx].t, stop: pos.stop, stop0: pos.stop0, risk: pos.risk, openR: pos.dir * (c[k].c - pos.entry) / pos.risk } : null,
+      pending,
+      last: c[k], atr: atr[k], hi20, lo20, lo10, hi10,
+    };
+  }
+
+  const api = { replay, atrSeries };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.DonchianCore = api;
+})(typeof window !== "undefined" ? window : globalThis);
+
+function dcRender() {
+  const box = document.getElementById("dcTop");
+  if (!box) return;
+  const s = tlSyms[tlActive];
+  const all = tlData && tlData["4h"];
+  if (!all || all.length < 240) { box.innerHTML = `<div class="neutral">Not enough 4H history for ${s.name} yet.</div>`; document.getElementById("dcTrades").innerHTML = ""; return; }
+  const nowS = Date.now() / 1000;
+  const c = all.filter((x) => x.t + 14400 <= nowS);            // closed candles only
+  const r = DonchianCore.replay(c, { sides: "long" });
+  const live = all[all.length - 1].c;
+  const p = r.position;
+  const tested = s.sym === "BTCUSDT" ? `<span class="badge bull">backtested: positive</span>` : s.sym === "XAUUSDT" ? `<span class="badge bear">backtest: lost money on gold</span>` : `<span class="badge neutral">not backtested on this symbol</span>`;
+  let state;
+  if (p) {
+    const openR = (live - p.entry) / p.risk;
+    state = `<div><div class="muted">Status</div><div><span class="badge bull">IN A LONG</span></div></div>
+      <div><div class="muted">Entry</div><div><b>${tlFmt(p.entry)}</b> <span class="neutral" style="font-size:11px">${new Date(p.entryT * 1000).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span></div></div>
+      <div><div class="muted">Stop now</div><div><b>${tlFmt(p.stop)}</b> <span class="neutral" style="font-size:11px">${((p.stop - live) / live * 100).toFixed(2)}%</span></div></div>
+      <div><div class="muted">Open result</div><div><b class="${openR >= 0 ? "bull" : "bear"}" style="background:none;border:0">${(openR >= 0 ? "+" : "") + openR.toFixed(2)}R</b></div></div>`;
+  } else if (r.pending) {
+    state = `<div><div class="muted">Status</div><div><span class="badge bull">BUY SIGNAL on the last 4H close</span></div></div>
+      <div><div class="muted">Stop to place</div><div><b>${tlFmt(r.pending.stop)}</b></div></div>`;
+  } else {
+    const d = (r.hi20 - live) / live * 100;
+    state = `<div><div class="muted">Status</div><div><span class="badge neutral">no trade — waiting for a breakout</span></div></div>
+      <div><div class="muted">Buy if a 4H candle closes above</div><div><b>${tlFmt(r.hi20)}</b> <span class="neutral" style="font-size:11px">${d >= 0 ? "+" : ""}${d.toFixed(2)}% from ${tlFmt(live)}</span></div></div>
+      <div><div class="muted">First stop would be about</div><div>${tlFmt(Math.max(r.hi20, live) - 2 * r.atr)} <span class="neutral" style="font-size:11px">(2×ATR)</span></div></div>`;
+  }
+  box.innerHTML = `<div><div class="muted">Symbol</div><div class="big">${s.name}</div><div style="margin-top:4px">${tested}</div></div>` + state;
+  const tr = r.trades.slice(-6).reverse();
+  document.getElementById("dcTrades").innerHTML = tr.length ? tr.map((t) => `<tr><td>${new Date(t.t * 1000).toLocaleDateString()}</td><td>${t.dir > 0 ? "long" : "short"}</td><td>${tlFmt(t.entry)}</td><td>${tlFmt(t.exit)}</td><td><b class="${t.r > 0 ? "bull" : "bear"}" style="background:none;border:0">${(t.r >= 0 ? "+" : "") + t.r.toFixed(2)}R</b> <span class="neutral" style="font-size:11px">before fees</span></td></tr>`).join("") : `<tr><td colspan="5" class="neutral">No completed trades in the last ${Math.round(c.length / 6)} days</td></tr>`;
+}
+
 function bsRender() {
   if (!tlData) return;
+  try { dcRender(); } catch (e) { console.warn("Donchian card:", e); }
   if (bsEnsureChart() === false) { window.addEventListener("load", () => bsRender(), { once: true }); return; }
   document.getElementById("bsLoading").hidden = true;
   bsRes = StructureEngine.analyze(tlData, TrendEngine.ORDER);
@@ -1795,6 +2050,994 @@ function bsCards(ov, vol, price, tfLabel, R) {
   // layers panel open on big screens, collapsed on phones
   const lay = document.getElementById("bsLayers");
   if (lay && !isMobile()) lay.open = true;
+}
+
+// Backtest engine for the AddisERP Signals playbooks.
+// Replays candles bar by bar and only uses information that was available at that moment
+// (no look-ahead). Entries happen on the NEXT candle after a signal; if a candle touches both the
+// stop and the target, the stop is assumed to come first (conservative).
+//
+// Playbooks (long + short, mirrored):
+//   ray  – Ray bounce: 4H structure agrees, price dips to the up ray and closes back above it
+//   ote  – BOS + OTE: 4H agrees, entry-TF BOS, limit order in the OTE zone (70.5%) of the BOS leg
+//   sweep– Sweep reversal: wick through the previous day's low/high, close back inside,
+//          then a CHoCH/BOS the other way within 12 candles
+(function (root) {
+  "use strict";
+  const SE = root.StructureEngine || (typeof require !== "undefined" ? require("./structure.js") : null);
+  const TE = root.TrendEngine || (typeof require !== "undefined" ? require("./engine.js") : null);
+
+  const TF_SEC = { "15m": 900, "1h": 3600, "4h": 14400, "1d": 86400 };
+  const PLAYBOOKS = { ray: "Ray bounce", ote: "BOS + OTE", sweep: "Sweep reversal", precision: "Precision Entry" };
+
+  // ---- indicators used by "Precision Entry" (same maths as TradingView's ta.ema / ta.rsi / ta.atr)
+  function emaArr(c, n) { const k = 2 / (n + 1), o = new Array(c.length); for (let i = 0; i < c.length; i++) o[i] = i === 0 ? c[0].c : c[i].c * k + o[i - 1] * (1 - k); return o; }
+  function rsiArr(c, n = 14) {
+    const o = new Array(c.length).fill(50); let up = 0, dn = 0;
+    for (let i = 1; i < c.length; i++) {
+      const d = c[i].c - c[i - 1].c, u = Math.max(d, 0), w = Math.max(-d, 0);
+      if (i <= n) { up += u / n; dn += w / n; } else { up = (up * (n - 1) + u) / n; dn = (dn * (n - 1) + w) / n; }
+      if (i >= n) o[i] = dn === 0 ? 100 : 100 - 100 / (1 + up / dn);
+    }
+    return o;
+  }
+  function rmaAtr(c, n = 14) {
+    const o = new Array(c.length).fill(0);
+    for (let i = 0; i < c.length; i++) {
+      const tr = i === 0 ? c[0].h - c[0].l : Math.max(c[i].h - c[i].l, Math.abs(c[i].h - c[i - 1].c), Math.abs(c[i].l - c[i - 1].c));
+      o[i] = i < n ? ((o[i - 1] || 0) * i + tr) / (i + 1) : (o[i - 1] * (n - 1) + tr) / n;
+    }
+    return o;
+  }
+  function smaVol(c, n = 20) { const o = new Array(c.length).fill(0); let s = 0; for (let i = 0; i < c.length; i++) { s += c[i].v || 0; if (i >= n) s -= c[i - n].v || 0; o[i] = s / Math.min(i + 1, n); } return o; }
+
+  // rolling ATR(14), causal
+  function atrSeries(c, n = 14) {
+    const out = new Array(c.length).fill(0);
+    let s = 0;
+    const tr = (i) => i === 0 ? c[0].h - c[0].l : Math.max(c[i].h - c[i].l, Math.abs(c[i].h - c[i - 1].c), Math.abs(c[i].l - c[i - 1].c));
+    for (let i = 0; i < c.length; i++) {
+      s += tr(i);
+      if (i >= n) s -= tr(i - n);
+      out[i] = s / Math.min(i + 1, n);
+    }
+    return out;
+  }
+
+  // structure direction of a higher timeframe, as known at time t (after the break candle closed)
+  function htfTrendFn(hc, tf) {
+    if (!hc || hc.length < 20) return () => 0;
+    const S = SE.analyzeTf(hc, tf);
+    const sec = TF_SEC[tf];
+    const ev = S.events.map((e) => ({ known: hc[e.at].t + sec, dir: e.dir }));
+    return (t) => {
+      // last event known by time t (binary search)
+      let lo = 0, hi = ev.length - 1, ans = 0;
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        if (ev[mid].known <= t) { ans = ev[mid].dir; lo = mid + 1; } else hi = mid - 1;
+      }
+      return ans;
+    };
+  }
+
+  // previous completed day's high/low at time t
+  function prevDayFn(dc) {
+    if (!dc || dc.length < 2) return () => null;
+    return (t) => {
+      let lo = 0, hi = dc.length - 1, idx = -1;
+      while (lo <= hi) { const mid = (lo + hi) >> 1; if (dc[mid].t <= t) { idx = mid; lo = mid + 1; } else hi = mid - 1; }
+      if (idx < 1) return null;
+      return { h: dc[idx - 1].h, l: dc[idx - 1].l };
+    };
+  }
+
+  // single-timeframe trend ray from the data up to bar k (same rules as the Trend-line engine)
+  function rayAt(c, k, side, atr, win = 400, tail = 3) {
+    const e = k - tail;
+    const s0 = Math.max(0, k - win);
+    if (e - s0 < 20) return null;
+    let a = s0;
+    for (let i = s0; i <= e; i++) if (side === "up" ? c[i].l < c[a].l : c[i].h > c[a].h) a = i;
+    if (e - a < 5) return null;
+    let chain = TE.hullChain(c, a, e, side);
+    while (chain.length > 2 && chain[chain.length - 1] > e - 2) chain.pop();
+    if (chain.length < 2) return null;
+    const s = TE.simplify(c, chain, side, atr * 0.5);
+    const i = s[s.length - 2], j = s[s.length - 1];
+    if (j - i < 3) return null;
+    const val = side === "up" ? (x) => c[x].l : (x) => c[x].h;
+    return { t1: c[i].t, p1: val(i), t2: c[j].t, p2: val(j) };
+  }
+  const lineAt = (L, t) => L.p1 + (L.p2 - L.p1) * (t - L.t1) / (L.t2 - L.t1);
+
+  // walk a trade forward from bar j; entryAtOpen = true -> filled at c[j].o
+  function simulate(c, j, dir, entry, stop, target, maxBars) {
+    for (let m = j; m < c.length && m < j + maxBars; m++) {
+      const x = c[m];
+      const hitStop = dir > 0 ? x.l <= stop : x.h >= stop;
+      const hitTgt = dir > 0 ? x.h >= target : x.l <= target;
+      if (hitStop) return { exitIdx: m, exit: stop, how: "stop" };      // stop first if both
+      if (hitTgt) return { exitIdx: m, exit: target, how: "target" };
+    }
+    const m = Math.min(c.length - 1, j + maxBars - 1);
+    if (m === c.length - 1 && j + maxBars - 1 > c.length - 1) return null;   // still open at the end of the data
+    return { exitIdx: m, exit: c[m].c, how: "time" };
+  }
+
+  function run(data, opts = {}) {
+    const tf = opts.entryTf || "15m";
+    const c = data[tf];
+    if (!c || c.length < 300) throw new Error("not enough candles for " + tf);
+    const R_T = opts.targetR || 2;
+    const cost = (opts.costPct == null ? 0.05 : opts.costPct) / 100;   // per side
+    const maxBars = opts.maxBars || (tf === "15m" ? 96 : tf === "1h" ? 48 : 30);
+    const startT = opts.startT || c[0].t;
+    const sec = TF_SEC[tf];
+    const atr = atrSeries(c);
+    const S = SE.analyzeTf(c, tf);
+    const evAt = new Map(); S.events.forEach((e) => evAt.set(e.at, e));
+    const t4h = htfTrendFn(data["4h"], "4h");
+    const t1d = htfTrendFn(data["1d"], "1d");
+    const pd = prevDayFn(data["1d"]);
+
+    const trades = [];
+    const busyUntil = { ray: -1, ote: -1, sweep: -1, precision: -1 };
+    // Precision Entry indicators (EMA 21/55/200, RSI 14, ATR 14, volume SMA 20, pivots 5/5)
+    const eF = emaArr(c, 21), eS = emaArr(c, 55), eT = emaArr(c, 200), rsi = rsiArr(c, 14), atrP = rmaAtr(c, 14), vS = smaVol(c, 20);
+    let pH = null, pL = null;   // last confirmed pivot high / low {price, idx}
+    let lastEv = null;                    // latest structure event known at bar k
+    const pendingOte = [];                // {dir, lowIdx/highIdx, created, ...}
+    const sweeps = [];                    // {dir, wick, at}
+    let rayUp = null, rayDn = null, rayCalcAt = -99;
+    const warm = 250;
+
+    // confluence score at entry (0-6), causal
+    function score(k, dir) {
+      const t = c[k].t + sec;
+      let sc = 0;
+      if (t4h(t) === dir) sc++;
+      if (t1d(t) === dir) sc++;
+      if (lastEv && lastEv.dir === dir) sc++;
+      // discount / premium of the current leg
+      if (lastEv) {
+        let lo = Infinity, hi = -Infinity;
+        for (let m = lastEv.from; m <= k; m++) { lo = Math.min(lo, c[m].l); hi = Math.max(hi, c[m].h); }
+        const eq = (lo + hi) / 2;
+        if (dir > 0 ? c[k].c < eq : c[k].c > eq) sc++;
+      }
+      if (sweeps.some((s) => s.dir === dir && k - s.at <= 24)) sc++;
+      // order block of the last same-direction break, still unbroken and near price
+      const e = [...S.events].reverse().find((x) => x.at <= k - 1 && x.dir === dir);
+      if (e) {
+        let a = e.from; for (let m = e.from; m <= e.at; m++) if (dir > 0 ? c[m].l < c[a].l : c[m].h > c[a].h) a = m;
+        let ob = a; for (let m = a; m >= Math.max(0, a - 10); m--) { if (dir > 0 ? c[m].c < c[m].o : c[m].c > c[m].o) { ob = m; break; } }
+        const top = c[ob].h, bot = c[ob].l;
+        let ok = true; for (let m = e.at + 1; m <= k; m++) if (dir > 0 ? c[m].c < bot : c[m].c > top) { ok = false; break; }
+        if (ok && c[k].c <= top * 1.003 && c[k].c >= bot * 0.997) sc++;
+      }
+      return sc;
+    }
+
+    function open(pb, k, dir, j, entry, stop, why) {
+      // k = signal bar, j = fill bar
+      if (dir > 0 ? entry <= stop : entry >= stop) return;       // gapped through the stop: no trade
+      const risk = Math.abs(entry - stop);
+      if (!(risk > 0) || risk < atr[k] * 0.1) return;           // ignore absurdly tight stops
+      const target = entry + dir * R_T * risk;
+      const res = simulate(c, j, dir, entry, stop, target, maxBars);
+      if (!res) return;
+      const gross = dir * (res.exit - entry) / risk;
+      const r = gross - (cost * (entry + res.exit)) / risk;
+      trades.push({ pb, dir, signalT: c[k].t, t: c[j].t, exitT: c[res.exitIdx].t, entry, stop, target, exit: res.exit, how: res.how, r, score: score(k, dir), why });
+      busyUntil[pb] = res.exitIdx;
+    }
+
+    for (let k = 1; k < c.length - 1; k++) {
+      // structure events confirmed at the close of bar k
+      const ev = evAt.get(k);
+      if (ev) lastEv = ev;
+      if (k < warm || c[k].t < startT) {
+        if (ev) pendingOte.length = 0;
+        continue;
+      }
+      const tClose = c[k].t + sec;
+      const trend4 = t4h(tClose);
+      const A = atr[k];
+
+      // ---- sweeps of the previous day's high/low
+      const p = pd(c[k].t);
+      if (p) {
+        if (c[k].l < p.l && c[k].c > p.l) sweeps.push({ dir: 1, wick: c[k].l, at: k });
+        if (c[k].h > p.h && c[k].c < p.h) sweeps.push({ dir: -1, wick: c[k].h, at: k });
+      }
+      while (sweeps.length && k - sweeps[0].at > 12) sweeps.shift();
+
+      // ---- Sweep reversal: CHoCH/BOS the other way within 12 candles after a sweep
+      if (ev && k > busyUntil.sweep) {
+        const sw = sweeps.filter((s) => s.dir === ev.dir && s.at < k).pop();
+        if (sw) {
+          const stop = sw.dir > 0 ? Math.min(sw.wick, ...c.slice(sw.at, k + 1).map((x) => x.l)) - 0.1 * A
+                                   : Math.max(sw.wick, ...c.slice(sw.at, k + 1).map((x) => x.h)) + 0.1 * A;
+          open("sweep", k, ev.dir, k + 1, c[k + 1].o, stop, `sweep of previous day ${sw.dir > 0 ? "low" : "high"} + ${ev.kind}`);
+          const idx = sweeps.indexOf(sw); if (idx >= 0) sweeps.splice(idx, 1);
+        }
+      }
+
+      // ---- BOS + OTE: create a pending limit after a BOS that agrees with 4H
+      if (ev) {
+        pendingOte.length = 0;
+        if (ev.kind === "BOS" && trend4 === ev.dir) {
+          let a = ev.from + 1;
+          for (let m = ev.from + 1; m <= ev.at; m++) if (ev.dir > 0 ? c[m].l < c[a].l : c[m].h > c[a].h) a = m;
+          const ext = ev.dir > 0 ? c[a].l : c[a].h;
+          let far = ev.dir > 0 ? -Infinity : Infinity;
+          for (let m = a; m <= k; m++) far = ev.dir > 0 ? Math.max(far, c[m].h) : Math.min(far, c[m].l);
+          pendingOte.push({ dir: ev.dir, ext, far, created: k });
+        }
+      } else if (pendingOte.length && k > busyUntil.ote) {
+        const po = pendingOte[0];
+        const lvl = po.far - po.dir * (po.far - po.ext) * 0.705;       // OTE midpoint
+        const x = c[k];
+        const filled = po.dir > 0 ? x.l <= lvl : x.h >= lvl;
+        if (k - po.created > maxBars || t4h(tClose) !== po.dir) pendingOte.length = 0;
+        else if (filled) {
+          const entry = po.dir > 0 ? Math.min(x.o, lvl) : Math.max(x.o, lvl);
+          const stop = po.ext - po.dir * 0.1 * A;
+          const risk = Math.abs(entry - stop);
+          if (risk > A * 0.1 && (po.dir > 0 ? entry > stop : entry < stop)) {
+            if (po.dir > 0 ? x.l <= stop : x.h >= stop) {
+              // filled and stopped inside the same candle: a full loss
+              trades.push({ pb: "ote", dir: po.dir, signalT: c[k].t, t: x.t, exitT: x.t, entry, stop, target: entry + po.dir * R_T * risk, exit: stop, how: "stop", r: -1 - (cost * (entry + stop)) / risk, score: score(k, po.dir), why: "BOS leg retrace to 70.5%" });
+              busyUntil.ote = k;
+            } else {
+              // the target is only checked from the next candle (we can't know if it came before the fill)
+              const target = entry + po.dir * R_T * risk;
+              const res = simulate(c, k + 1, po.dir, entry, stop, target, maxBars);
+              if (res) {
+                const r = po.dir * (res.exit - entry) / risk - (cost * (entry + res.exit)) / risk;
+                trades.push({ pb: "ote", dir: po.dir, signalT: c[k].t, t: x.t, exitT: c[res.exitIdx].t, entry, stop, target, exit: res.exit, how: res.how, r, score: score(k, po.dir), why: "BOS leg retrace to 70.5%" });
+                busyUntil.ote = res.exitIdx;
+              }
+            }
+          }
+          pendingOte.length = 0;
+        } else {
+          // the leg can still extend before price pulls back
+          po.far = po.dir > 0 ? Math.max(po.far, x.h) : Math.min(po.far, x.l);
+          if (po.dir > 0 ? x.c < po.ext : x.c > po.ext) pendingOte.length = 0;
+        }
+      }
+
+      // ---- Precision Entry: EMA21/55 cross + price vs EMA200 + RSI 55/45 + volume above average
+      //      + close beyond the last 5/5 pivot (formed within 50 candles); stop 1.5×ATR, fixed target
+      {
+        const i = k - 5;   // a 5/5 pivot at i is confirmed at the close of k
+        if (i >= 5) {
+          let hi = true, lo = true;
+          for (let j = i - 5; j <= i + 5; j++) { if (j === i) continue; if (c[j].h >= c[i].h) hi = false; if (c[j].l <= c[i].l) lo = false; }
+          if (hi) pH = { price: c[i].h, idx: i };
+          if (lo) pL = { price: c[i].l, idx: i };
+        }
+        if (k > busyUntil.precision) {
+          const volOk = (c[k].v || 0) > vS[k];
+          const bull = eF[k] > eS[k] && eF[k - 1] <= eS[k - 1] && c[k].c > eT[k] && rsi[k] >= 55 && volOk && pH && c[k].c > pH.price && k - pH.idx <= 50 && c[k].c > eF[k];
+          const bear = eF[k] < eS[k] && eF[k - 1] >= eS[k - 1] && c[k].c < eT[k] && rsi[k] <= 45 && volOk && pL && c[k].c < pL.price && k - pL.idx <= 50 && c[k].c < eF[k];
+          if (bull) { const e = c[k + 1].o; open("precision", k, 1, k + 1, e, e - 1.5 * atrP[k], "EMA cross + RSI + volume + pivot break"); }
+          else if (bear) { const e = c[k + 1].o; open("precision", k, -1, k + 1, e, e + 1.5 * atrP[k], "EMA cross + RSI + volume + pivot break"); }
+        }
+      }
+
+      // ---- Ray bounce
+      if (k - rayCalcAt >= 8) { rayUp = rayAt(c, k, "up", A); rayDn = rayAt(c, k, "down", A); rayCalcAt = k; }
+      if (k > busyUntil.ray) {
+        if (rayUp && trend4 > 0) {
+          const v = lineAt(rayUp, c[k].t);
+          if (c[k].l <= v + 0.15 * A && c[k].c > v && c[k].c > c[k].o)
+            open("ray", k, 1, k + 1, c[k + 1].o, Math.min(c[k].l, v) - 0.1 * A, "bounce off the up ray");
+        }
+        if (k > busyUntil.ray && rayDn && trend4 < 0) {
+          const v = lineAt(rayDn, c[k].t);
+          if (c[k].h >= v - 0.15 * A && c[k].c < v && c[k].c < c[k].o)
+            open("ray", k, -1, k + 1, c[k + 1].o, Math.max(c[k].h, v) + 0.1 * A, "rejection at the down ray");
+        }
+      }
+    }
+    trades.sort((a, b) => a.t - b.t);
+    return { trades, from: Math.max(startT, c[warm] ? c[warm].t : c[0].t), to: c[c.length - 1].t, bars: c.length, opts: { tf, R_T, cost: cost * 100, maxBars } };
+  }
+
+  function stats(trades) {
+    const n = trades.length;
+    if (!n) return { n: 0 };
+    let wins = 0, sum = 0, pos = 0, neg = 0, run = 0, maxRun = 0, eq = 0, peak = 0, dd = 0;
+    for (const t of trades) {
+      sum += t.r;
+      if (t.r > 0) { wins++; pos += t.r; run = 0; } else { neg += -t.r; run++; maxRun = Math.max(maxRun, run); }
+      eq += t.r; peak = Math.max(peak, eq); dd = Math.max(dd, peak - eq);
+    }
+    return { n, winRate: wins / n, avgR: sum / n, totalR: sum, pf: neg ? pos / neg : Infinity, maxLossRun: maxRun, maxDD: dd };
+  }
+
+  function report(res) {
+    const by = (f) => stats(res.trades.filter(f));
+    const out = { all: by(() => true), pb: {}, side: {}, score: {} };
+    for (const k of Object.keys(PLAYBOOKS)) {
+      out.pb[k] = by((t) => t.pb === k);
+      out.side[k] = { long: by((t) => t.pb === k && t.dir > 0), short: by((t) => t.pb === k && t.dir < 0) };
+    }
+    out.score["0–2"] = by((t) => t.score <= 2);
+    out.score["3–4"] = by((t) => t.score >= 3 && t.score <= 4);
+    out.score["5–6"] = by((t) => t.score >= 5);
+    return out;
+  }
+
+  const api = { run, stats, report, PLAYBOOKS, atrSeries, simulate };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.Backtest = api;
+})(typeof window !== "undefined" ? window : globalThis);
+
+// Trend-following backtest (4H or 1D candles, wide stops that trail price).
+// Same honesty rules as the intraday backtest: decisions use only closed candles, entries fill at the
+// next candle's open, stops fill at the stop price (or at the open if price gaps through it).
+//
+// Systems (long, or long + short):
+//   donchian – Donchian breakout (Turtle-style): close above the 20-candle high; initial stop 2×ATR;
+//              exit when price breaks the 10-candle low
+//   ema      – EMA trend: close above EMA50 while EMA50 > EMA200; chandelier stop 3×ATR below the
+//              highest high since entry
+//   smc      – Structure trend: BOS/CHoCH up while the daily structure is bullish; stop under the last
+//              confirmed swing low, moved up to each new higher low; exit on a bearish CHoCH/BOS close
+(function (root) {
+  "use strict";
+  const SE = root.StructureEngine || (typeof require !== "undefined" ? require("./structure.js") : null);
+  const SYSTEMS = { donchian: "Donchian breakout", ema: "EMA trend + chandelier", smc: "Structure trend (BOS)" };
+  const TF_SEC = { "4h": 14400, "1d": 86400 };
+
+  function atrSeries(c, n = 20) {
+    const out = new Array(c.length).fill(0);
+    let s = 0;
+    const tr = (i) => i === 0 ? c[0].h - c[0].l : Math.max(c[i].h - c[i].l, Math.abs(c[i].h - c[i - 1].c), Math.abs(c[i].l - c[i - 1].c));
+    for (let i = 0; i < c.length; i++) { s += tr(i); if (i >= n) s -= tr(i - n); out[i] = s / Math.min(i + 1, n); }
+    return out;
+  }
+  function ema(c, n) {
+    const out = new Array(c.length); const k = 2 / (n + 1);
+    for (let i = 0; i < c.length; i++) out[i] = i === 0 ? c[0].c : c[i].c * k + out[i - 1] * (1 - k);
+    return out;
+  }
+
+  // daily structure direction known at time t (after the break candle closed)
+  function dailyTrend(dc) {
+    if (!dc || dc.length < 30) return () => 0;
+    const S = SE.analyzeTf(dc, "1d");
+    const ev = S.events.map((e) => ({ known: dc[e.at].t + 86400, dir: e.dir }));
+    return (t) => { let lo = 0, hi = ev.length - 1, a = 0; while (lo <= hi) { const m = (lo + hi) >> 1; if (ev[m].known <= t) { a = ev[m].dir; lo = m + 1; } else hi = m - 1; } return a; };
+  }
+
+  function run(data, opts = {}) {
+    const tf = opts.tf || "4h";
+    const c = data[tf];
+    if (!c || c.length < 260) throw new Error("not enough candles for " + tf);
+    const sec = TF_SEC[tf];
+    const fee = (opts.feePct == null ? 0.05 : opts.feePct) / 100;           // per side
+    const funding = (opts.fundingPct == null ? 0.01 : opts.fundingPct) / 100; // per 8 hours, charged on open positions
+    const sides = opts.sides || "long";                                      // "long" | "both"
+    const startT = opts.startT || c[0].t;
+    const atr = atrSeries(c, 20);
+    const e50 = ema(c, 50), e200 = ema(c, 200);
+    const S = SE.analyzeTf(c, tf);
+    const evAt = new Map(); S.events.forEach((e) => evAt.set(e.at, e));
+    const swingConf = new Map();   // swings become known p candles after they form
+    const p = SE.PIV[tf] || 3;
+    S.swings.forEach((w) => { const k = w.i + p; if (!swingConf.has(k)) swingConf.set(k, []); swingConf.get(k).push(w); });
+    const dTrend = dailyTrend(data["1d"]);
+    const warm = 210;
+    const trades = [];
+
+    for (const sys of Object.keys(SYSTEMS)) {
+      let pos = null;          // {dir, entry, entryIdx, stop, risk, far}
+      let pending = null;      // signal at close of k -> fill at open of k+1
+      let lastLow = null, lastHigh = null;   // latest confirmed swing points (smc)
+      let exitNext = false;
+      const close = (k, price, how) => {
+        const hours = (c[k].t - c[pos.entryIdx].t) / 3600 + sec / 3600;
+        const cost = fee * (pos.entry + price) + funding * (hours / 8) * pos.entry;
+        const r = pos.dir * (price - pos.entry) / pos.risk - cost / pos.risk;
+        trades.push({ sys, dir: pos.dir, t: c[pos.entryIdx].t, exitT: c[k].t, entry: pos.entry, stop0: pos.stop0, exit: price, how, r, bars: k - pos.entryIdx + 1, retPct: pos.dir * (price - pos.entry) / pos.entry * 100 });
+        pos = null;
+      };
+
+      for (let k = 1; k < c.length; k++) {
+        const x = c[k];
+        // swing points confirmed at k (known from the close of k)
+        // 1) fills at the open of k
+        if (pending && !pos) {
+          const entry = x.o;
+          const stop = pending.stop;
+          if (pending.dir > 0 ? entry > stop : entry < stop) {
+            pos = { dir: pending.dir, entry, entryIdx: k, stop, stop0: stop, risk: Math.abs(entry - stop), far: pending.dir > 0 ? x.h : x.l };
+          }
+          pending = null;
+        }
+        if (pos && exitNext) { close(k, x.o, "signal"); exitNext = false; }
+        // 2) stop inside candle k (gap through the stop fills at the open)
+        if (pos) {
+          if (pos.dir > 0 && x.l <= pos.stop) close(k, Math.min(x.o, pos.stop), "stop");
+          else if (pos.dir < 0 && x.h >= pos.stop) close(k, Math.max(x.o, pos.stop), "stop");
+        }
+        // 3) end of candle k: update state, trailing stops and signals
+        const confirmed = swingConf.get(k) || [];
+        for (const w of confirmed) { if (w.type === "L") lastLow = w; else lastHigh = w; }
+        if (k < warm || x.t < startT || k === c.length - 1) continue;
+        const A = atr[k];
+        if (pos) {
+          pos.far = pos.dir > 0 ? Math.max(pos.far, x.h) : Math.min(pos.far, x.l);
+          if (sys === "donchian") {
+            let lo = Infinity, hi = -Infinity;
+            for (let m = k - 9; m <= k; m++) { lo = Math.min(lo, c[m].l); hi = Math.max(hi, c[m].h); }
+            pos.stop = pos.dir > 0 ? Math.max(pos.stop, lo) : Math.min(pos.stop, hi);
+          } else if (sys === "ema") {
+            pos.stop = pos.dir > 0 ? Math.max(pos.stop, pos.far - 3 * A) : Math.min(pos.stop, pos.far + 3 * A);
+          } else if (sys === "smc") {
+            for (const w of confirmed) {
+              if (pos.dir > 0 && w.type === "L" && w.i > pos.entryIdx - 1) pos.stop = Math.max(pos.stop, w.price - 0.5 * A);
+              if (pos.dir < 0 && w.type === "H" && w.i > pos.entryIdx - 1) pos.stop = Math.min(pos.stop, w.price + 0.5 * A);
+            }
+            const ev = evAt.get(k);
+            if (ev && ev.dir === -pos.dir && k < c.length - 1) exitNext = true;
+          }
+          continue;
+        }
+        // no position: look for a new signal (filled next candle)
+        const tClose = x.t + sec;
+        const sig = (dir) => {
+          if (dir < 0 && sides !== "both") return null;
+          if (sys === "donchian") {
+            let hi = -Infinity, lo = Infinity;
+            for (let m = k - 20; m < k; m++) { hi = Math.max(hi, c[m].h); lo = Math.min(lo, c[m].l); }
+            if (dir > 0 && x.c > hi) return { dir, stop: x.c - 2 * A };
+            if (dir < 0 && x.c < lo) return { dir, stop: x.c + 2 * A };
+          } else if (sys === "ema") {
+            const upNow = x.c > e50[k] && e50[k] > e200[k], upPrev = c[k - 1].c > e50[k - 1] && e50[k - 1] > e200[k - 1];
+            const dnNow = x.c < e50[k] && e50[k] < e200[k], dnPrev = c[k - 1].c < e50[k - 1] && e50[k - 1] < e200[k - 1];
+            if (dir > 0 && upNow && !upPrev) return { dir, stop: x.c - 3 * A };
+            if (dir < 0 && dnNow && !dnPrev) return { dir, stop: x.c + 3 * A };
+          } else if (sys === "smc") {
+            const ev = evAt.get(k);
+            if (!ev || ev.dir !== dir) return null;
+            const htf = tf === "1d" ? ev.dir : dTrend(tClose);
+            if (htf !== dir) return null;
+            const ref = dir > 0 ? lastLow : lastHigh;
+            if (!ref) return null;
+            const stop = dir > 0 ? Math.min(ref.price, x.c - A) - 0.5 * A : Math.max(ref.price, x.c + A) + 0.5 * A;
+            return { dir, stop };
+          }
+          return null;
+        };
+        pending = sig(1) || sig(-1);
+      }
+      if (pos) {
+        // still open at the end of the data: close at the last price (marked as "open")
+        close(c.length - 1, c[c.length - 1].c, "open");
+      }
+    }
+    trades.sort((a, b) => a.t - b.t);
+    const first = c.find((x) => x.t >= startT) || c[warm];
+    return { trades, from: Math.max(startT, c[warm].t), to: c[c.length - 1].t, bars: c.length, buyHoldPct: (c[c.length - 1].c / first.o - 1) * 100, firstPrice: first.o, lastPrice: c[c.length - 1].c };
+  }
+
+  // account growth risking riskPct of the account on every trade (one system at a time)
+  function equity(trades, riskPct = 1) {
+    let eq = 100, peak = 100, dd = 0;
+    const pts = [];
+    for (const t of [...trades].sort((a, b) => a.exitT - b.exitT)) {
+      eq *= 1 + (riskPct / 100) * t.r;
+      peak = Math.max(peak, eq); dd = Math.max(dd, (peak - eq) / peak * 100);
+      pts.push({ t: t.exitT, eq });
+    }
+    return { finalPct: eq - 100, maxDDPct: dd, pts };
+  }
+
+  function stats(trades) {
+    const n = trades.length;
+    if (!n) return { n: 0 };
+    let wins = 0, sum = 0, pos = 0, neg = 0, run = 0, maxRun = 0, best = -Infinity, bars = 0;
+    for (const t of trades) {
+      sum += t.r; bars += t.bars; best = Math.max(best, t.r);
+      if (t.r > 0) { wins++; pos += t.r; run = 0; } else { neg -= t.r; run++; maxRun = Math.max(maxRun, run); }
+    }
+    return { n, winRate: wins / n, avgR: sum / n, totalR: sum, pf: neg ? pos / neg : Infinity, maxLossRun: maxRun, bestR: best, avgBars: bars / n };
+  }
+
+  const api = { run, stats, equity, SYSTEMS };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.TrendBacktest = api;
+})(typeof window !== "undefined" ? window : globalThis);
+
+// ================= Backtest view =================
+let btActive = Math.min(load("tvdash.btActive", 0), tlSyms.length - 1);
+let btChart = null, btSeries = [], btBusy = false, btLast = null;
+const BT_CACHE = {};
+const BT_COL = { ray: "#f472b6", ote: "#22c55e", sweep: "#facc15", precision: "#38bdf8", all: "#e2e8f0" };
+const btSleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// older periods for symbols that didn't exist yet on Binance futures
+const BT_PROXY = { XAUUSDT: { market: "spot", sym: "PAXGUSDT", note: "PAXG (gold-backed token) used as gold before the XAUUSDT contract existed" } };
+
+function btPeriod() {
+  const v = document.getElementById("btPeriod").value;
+  const now = Date.now();
+  const day = 86400e3;
+  const utc = (y, m, d) => Date.UTC(y, m, d);
+  let a, b, label;
+  if (/^\d+$/.test(v)) { b = now; a = now - +v * 30.44 * day; label = `last ${v} months`; }
+  else if (v === "pre2025") { a = utc(2024, 0, 1); b = utc(2025, 0, 20); label = "1 Jan 2024 → 19 Jan 2025 (before the inauguration)"; }
+  else if (v === "y2023") { a = utc(2023, 0, 1); b = utc(2024, 0, 1); label = "calendar 2023"; }
+  else if (v === "y2025") { a = utc(2025, 0, 20); b = utc(2026, 0, 20); label = "20 Jan 2025 → 19 Jan 2026 (first year of the term)"; }
+  else {
+    const f = document.getElementById("btFrom").value, t = document.getElementById("btTo").value;
+    a = f ? Date.parse(f + "T00:00:00Z") : now - 365 * day;
+    b = t ? Math.min(now, Date.parse(t + "T23:59:59Z")) : now;
+    label = `${f || "?"} → ${t || "today"}`;
+  }
+  return { startMs: a, endMs: b, id: /^\d+$/.test(v) ? v + "m" : v === "custom" ? `${Math.round(a / day)}-${Math.round(b / day)}` : v, label };
+}
+
+function btOpts() {
+  const p = btPeriod();
+  return {
+    months: Math.max(1, Math.round((p.endMs - p.startMs) / (30.44 * 86400e3))),
+    period: p,
+    entryTf: document.getElementById("btTf").value,
+    targetR: +document.getElementById("btR").value,
+    costPct: document.getElementById("btCost").checked ? 0.05 : 0,
+  };
+}
+
+// download candles from startMs to now, newest page first, going back with endTime
+async function btFetchRange(s, interval, startMs, onPage, endMs) {
+  const limit = s.market === "futures" ? 1500 : 1000;
+  const bases = s.market === "futures"
+    ? ["https://fapi.binance.com/fapi/v1/klines"]
+    : ["https://data-api.binance.vision/api/v3/klines", "https://api.binance.com/api/v3/klines"];
+  let end = endMs || Date.now();
+  const pages = [];
+  for (let guard = 0; guard < 120; guard++) {
+    let page = null, lastErr = null;
+    for (const b of bases) {
+      try {
+        const r = await fetch(`${b}?symbol=${encodeURIComponent(s.sym)}&interval=${interval}&limit=${limit}&endTime=${end}`, { cache: "no-store" });
+        if (r.status === 429 || r.status === 418) { await btSleep(5000); throw new Error("rate limit, retrying"); }
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        page = await r.json();
+        if (!Array.isArray(page)) throw new Error(page && page.msg ? page.msg : "bad data");
+        break;
+      } catch (e) { lastErr = e; }
+    }
+    if (!page) throw lastErr || new Error("no data");
+    if (onPage) onPage();
+    if (!page.length) break;
+    pages.unshift(page);
+    const first = page[0][0];
+    if (first <= startMs || page.length < limit) break;
+    end = first - 1;
+    await btSleep(120);   // stay well inside Binance's rate limit
+  }
+  const out = [];
+  let lastT = -1;
+  for (const p of pages) for (const k of p) {
+    const t = Math.floor(k[0] / 1000);
+    if (t <= lastT || k[0] < startMs || (endMs && k[0] > endMs)) continue;
+    out.push({ t, o: +k[1], h: +k[2], l: +k[3], c: +k[4], v: +k[5] });
+    lastT = t;
+  }
+  return out;
+}
+
+async function btLoadData(s, o, progress) {
+  const key = `${s.market}:${s.sym}|${o.entryTf}|${o.period.id}`;
+  const hit = BT_CACHE[key];
+  if (hit && Date.now() - hit.at < 30 * 60e3) return hit.data;
+  const now = o.period.endMs;
+  const startMs = o.period.startMs;
+  const tfSec = { "15m": 900, "1h": 3600, "4h": 14400 }[o.entryTf];
+  const warmMs = 300 * tfSec * 1000;
+  const htfStart = startMs - 150 * 86400e3;
+  // rough page count for the progress bar
+  const lim = s.market === "futures" ? 1500 : 1000;
+  const est = Math.ceil((now - startMs + warmMs) / (tfSec * 1000) / lim) + Math.ceil((now - htfStart) / (14400e3) / lim) + 1;
+  let done = 0;
+  const tick = () => { done++; progress(Math.min(0.97, done / est)); };
+  const entry = await btFetchRange(s, o.entryTf, startMs - warmMs, tick, now);
+  const h4 = await btFetchRange(s, "4h", htfStart, tick, now);
+  const d1 = await btFetchRange(s, "1d", htfStart, tick, now);
+  const data = { [o.entryTf]: entry, "4h": h4, "1d": d1, startT: Math.floor(startMs / 1000) };
+  BT_CACHE[key] = { data, at: Date.now() };
+  return data;
+}
+
+function btFmtR(x) { return (x >= 0 ? "+" : "") + x.toFixed(2) + "R"; }
+function btVerdict(s) {
+  if (!s || !s.n) return `<span class="neutral">no trades</span>`;
+  if (s.n < 30) return `<span class="badge neutral">too few trades</span>`;
+  if (s.avgR > 0.1 && s.pf > 1.2) return `<span class="badge bull">keep</span>`;
+  if (s.avgR > 0) return `<span class="badge neutral">watch</span>`;
+  return `<span class="badge bear">drop</span>`;
+}
+function btRow(label, s, col) {
+  if (!s || !s.n) return `<tr><td>${col ? `<span class="tf-dot" style="background:${col}"></span>` : ""}<b>${label}</b></td><td colspan="7" class="neutral">no trades</td></tr>`;
+  const cls = s.avgR > 0 ? "bull" : "bear";
+  return `<tr><td>${col ? `<span class="tf-dot" style="background:${col}"></span>` : ""}<b>${label}</b></td>
+    <td>${s.n}</td><td>${(s.winRate * 100).toFixed(0)}%</td>
+    <td><b class="${cls}" style="background:none;border:0">${btFmtR(s.avgR)}</b></td>
+    <td class="hide-sm">${s.pf === Infinity ? "∞" : s.pf.toFixed(2)}</td>
+    <td>${btFmtR(s.totalR)}</td>
+    <td class="hide-sm">${s.maxDD.toFixed(1)}R · ${s.maxLossRun} in a row</td>
+    <td>${btVerdict(s)}</td></tr>`;
+}
+
+function btBuildChips() {
+  document.getElementById("btSyms").innerHTML = tlSyms.map((s, i) => `<button data-i="${i}" class="${i === btActive ? "on" : ""}">${s.name}</button>`).join("");
+  document.querySelectorAll("#btSyms button").forEach((b) => b.onclick = () => {
+    btActive = +b.dataset.i; save("tvdash.btActive", btActive); btBuildChips(); btShowSaved();
+  });
+}
+
+function btSaveKey(s, o) { return `tvdash.bt.${s.market}:${s.sym}|${o.entryTf}|${o.period.id}|${o.targetR}|${o.costPct}`; }
+
+function btShowSaved() {
+  if (typeof btMode === "function" && btMode() === "trend") { tbtShowSaved(); return; }
+  document.getElementById("btTResults").hidden = true;
+  const s = tlSyms[btActive], o = btOpts();
+  const saved = load(btSaveKey(s, o), null);
+  if (saved) btRender(saved, false);
+  else {
+    document.getElementById("btResults").hidden = true;
+    document.getElementById("btProg").textContent = `No saved result for ${s.name} with these settings yet. Tap "Run backtest".`;
+  }
+  btRenderAll();
+}
+
+async function btRun(idx, quiet) {
+  const s0 = tlSyms[idx], o = btOpts();
+  let s = s0, proxy = null;
+  const prog = document.getElementById("btProg");
+  const bar = document.getElementById("btBar");
+  const show = (f, txt) => { bar.style.width = Math.round(f * 100) + "%"; prog.textContent = txt; };
+  show(0.02, `${s.name}: downloading ${o.period.label}, ${o.entryTf} candles…`);
+  const dl = (src) => btLoadData(src, o, (f) => show(f, `${s0.name}: downloading ${o.period.label}, ${o.entryTf} candles… ${Math.round(f * 100)}%`));
+  let data = await dl(s);
+  const enough = (d) => d[o.entryTf].filter((x) => x.t * 1000 >= o.period.startMs).length >= 0.6 * ((o.period.endMs - o.period.startMs) / 1000 / ({ "15m": 900, "1h": 3600, "4h": 14400 }[o.entryTf]));
+  if (!enough(data) && BT_PROXY[s.sym]) {
+    proxy = BT_PROXY[s.sym];
+    s = { name: s0.name, market: proxy.market, sym: proxy.sym };
+    data = await dl(s);
+  }
+  if (data[o.entryTf].length < 400) throw new Error(`Binance has almost no ${s.sym} history for ${o.period.label} — the symbol probably wasn't listed yet`);
+  // how wild was the market? average daily range (high-low) inside the period
+  const days = data["1d"].filter((x) => x.t * 1000 >= o.period.startMs);
+  const vol = days.length ? days.reduce((a, x) => a + (x.h - x.l) / x.c, 0) / days.length * 100 : null;
+  show(0.98, `${s.name}: replaying ${data[o.entryTf].length.toLocaleString()} candles…`);
+  await btSleep(30);
+  const res = Backtest.run(data, { entryTf: o.entryTf, targetR: o.targetR, costPct: o.costPct, startT: data.startT });
+  const rep = Backtest.report(res);
+  const out = {
+    sym: s0.name, market: s0.market, opts: o, vol, proxy: proxy ? proxy.note : null, periodLabel: o.period.label, from: res.from, to: res.to, candles: res.bars, at: Date.now(), report: rep,
+    trades: res.trades.map((t) => ({ pb: t.pb, dir: t.dir, t: t.t, exitT: t.exitT, entry: t.entry, stop: t.stop, target: t.target, exit: t.exit, how: t.how, r: t.r, score: t.score })),
+  };
+  // keep saved results small: stats + the last 300 trades
+  save(btSaveKey(s0, o), { ...out, trades: out.trades.slice(-300) });
+  const all = load("tvdash.btAll", {});
+  all[`${s0.market}:${s0.sym}|${o.entryTf}|${o.period.id}|${o.targetR}|${o.costPct}`] = { name: s0.name, at: out.at, pb: rep.pb, all: rep.all, vol: out.vol, proxy: out.proxy };
+  save("tvdash.btAll", all);
+  show(1, `${s0.name}${proxy ? " (as PAXG)" : ""}: done — ${rep.all.n || 0} trades from ${new Date(res.from * 1000).toLocaleDateString()} to ${new Date(res.to * 1000).toLocaleDateString()}.`);
+  if (!quiet) btRender(out, true);
+  btRenderAll();
+  return out;
+}
+
+function btRender(out, full) {
+  document.getElementById("btResults").hidden = false;
+  document.getElementById("btTResults").hidden = true;
+  const rep = out.report, o = out.opts;
+  document.getElementById("btHead").innerHTML =
+    `<div><div class="muted">Symbol</div><div class="big">${out.sym}</div></div>
+     <div><div class="muted">Period</div><div><b>${new Date(out.from * 1000).toLocaleDateString()} → ${new Date(out.to * 1000).toLocaleDateString()}</b></div></div>
+     <div><div class="muted">Settings</div><div>${o.entryTf} entries · target ${o.targetR}R · fees ${o.costPct ? "0.05%/side" : "off"}</div></div>
+     ${out.vol != null ? `<div><div class="muted">Avg daily range</div><div><b>${out.vol.toFixed(2)}%</b> <span class="neutral" style="font-size:11px">how volatile the period was</span></div></div>` : ""}
+     ${out.proxy ? `<div style="flex-basis:100%"><span class="neutral" style="font-size:12px">${out.proxy}</span></div>` : ""}
+     <div><div class="muted">Overall</div><div>${btVerdict(rep.all)} <b class="${(rep.all.avgR || 0) > 0 ? "bull" : "bear"}" style="background:none;border:0">${rep.all.n ? btFmtR(rep.all.avgR) + " per trade" : ""}</b></div></div>`;
+  document.getElementById("btSummary").innerHTML =
+    Object.keys(Backtest.PLAYBOOKS).map((k) => btRow(Backtest.PLAYBOOKS[k], rep.pb[k], BT_COL[k])).join("") + btRow("All playbooks", rep.all, BT_COL.all);
+  document.getElementById("btSides").innerHTML = Object.keys(Backtest.PLAYBOOKS).map((k) => {
+    const L = rep.side[k].long, S = rep.side[k].short;
+    const cell = (x) => x && x.n ? `${x.n} · ${(x.winRate * 100).toFixed(0)}% · <b class="${x.avgR > 0 ? "bull" : "bear"}" style="background:none;border:0">${btFmtR(x.avgR)}</b>` : `<span class="neutral">—</span>`;
+    return `<tr><td><span class="tf-dot" style="background:${BT_COL[k]}"></span>${Backtest.PLAYBOOKS[k]}</td><td>${cell(L)}</td><td>${cell(S)}</td></tr>`;
+  }).join("");
+  const sc = rep.score;
+  document.getElementById("btScore").innerHTML = Object.entries(sc).map(([k, s]) =>
+    `<tr><td><b>${k}</b></td><td>${s.n || 0}</td><td>${s.n ? (s.winRate * 100).toFixed(0) + "%" : "—"}</td><td>${s.n ? `<b class="${s.avgR > 0 ? "bull" : "bear"}" style="background:none;border:0">${btFmtR(s.avgR)}</b>` : "—"}</td></tr>`).join("");
+  const lo = sc["0–2"], hi = sc["5–6"];
+  let verdict = "Not enough trades in each score group to tell yet.";
+  if (lo.n >= 15 && hi.n >= 15) verdict = hi.avgR > lo.avgR + 0.1
+    ? `Yes — trades scoring 5–6 earned ${btFmtR(hi.avgR)} vs ${btFmtR(lo.avgR)} for 0–2. Waiting for a high score helps on this symbol.`
+    : `No clear benefit — 5–6 scored ${btFmtR(hi.avgR)} vs ${btFmtR(lo.avgR)} for 0–2. Don't rely on the score alone here.`;
+  document.getElementById("btScoreNote").textContent = verdict;
+
+  // equity curve (cumulative R by exit time)
+  btEquity(out.trades);
+
+  // last trades
+  document.getElementById("btTrades").innerHTML = out.trades.slice(-30).reverse().map((t) =>
+    `<tr><td>${new Date(t.t * 1000).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</td>
+     <td><span class="tf-dot" style="background:${BT_COL[t.pb]}"></span>${Backtest.PLAYBOOKS[t.pb]}</td>
+     <td>${t.dir > 0 ? `<span class="bull" style="background:none;border:0">long</span>` : `<span class="bear" style="background:none;border:0">short</span>`}</td>
+     <td class="hide-sm">${tlFmt(t.entry)}</td><td class="hide-sm">${tlFmt(t.stop)}</td>
+     <td>${t.how}</td><td><b class="${t.r > 0 ? "bull" : "bear"}" style="background:none;border:0">${btFmtR(t.r)}</b></td><td class="hide-sm">${t.score}/6</td></tr>`).join("") || `<tr><td colspan="8" class="neutral">no trades</td></tr>`;
+  document.getElementById("btTradesNote").textContent = full ? "" : "(saved result — the chart shows up to the last 300 trades)";
+}
+
+function btEquity(trades) {
+  const el = document.getElementById("btChart");
+  if (!window.LightweightCharts) { window.addEventListener("load", () => btEquity(trades), { once: true }); return; }
+  if (!btChart) {
+    btChart = LightweightCharts.createChart(el, {
+      autoSize: true,
+      layout: { background: { type: "solid", color: "#161b24" }, textColor: "#8a93a6", fontSize: 11 },
+      grid: { vertLines: { color: "rgba(38,45,58,.6)" }, horzLines: { color: "rgba(38,45,58,.6)" } },
+      rightPriceScale: { borderColor: "#262d3a" }, timeScale: { borderColor: "#262d3a" },
+      localization: { priceFormatter: (p) => (p >= 0 ? "+" : "") + p.toFixed(1) + "R" },
+    });
+  }
+  btSeries.forEach((s) => btChart.removeSeries(s)); btSeries = [];
+  const lines = { ...Object.fromEntries(Object.keys(Backtest.PLAYBOOKS).map((k) => [k, trades.filter((t) => t.pb === k)])), all: trades };
+  for (const [k, ts] of Object.entries(lines)) {
+    if (!ts.length) continue;
+    const se = btChart.addLineSeries({ color: BT_COL[k], lineWidth: k === "all" ? 3 : 2, priceLineVisible: false, lastValueVisible: true, title: k === "all" ? "All" : Backtest.PLAYBOOKS[k] });
+    let eq = 0, lastT = 0;
+    const pts = [];
+    [...ts].sort((a, b) => a.exitT - b.exitT).forEach((t) => {
+      eq += t.r;
+      let tt = t.exitT; if (tt <= lastT) tt = lastT + 1; lastT = tt;
+      pts.push({ time: tt, value: +eq.toFixed(3) });
+    });
+    se.setData(pts);
+    btSeries.push(se);
+  }
+  btChart.timeScale().fitContent();
+}
+
+function btRenderAll() {
+  const o = btOpts();
+  const all = load("tvdash.btAll", {});
+  const rows = tlSyms.map((s) => {
+    const r = all[`${s.market}:${s.sym}|${o.entryTf}|${o.period.id}|${o.targetR}|${o.costPct}`];
+    if (!r) return `<tr><td><b>${s.name}</b></td><td colspan="4" class="neutral">not tested with these settings</td></tr>`;
+    const cell = (x) => x && x.n ? `<b class="${x.avgR > 0 ? "bull" : "bear"}" style="background:none;border:0">${btFmtR(x.avgR)}</b> <span class="neutral" style="font-size:11px">${x.n} · ${(x.winRate * 100).toFixed(0)}%</span>` : `<span class="neutral">—</span>`;
+    const best = Object.keys(Backtest.PLAYBOOKS).filter((k) => r.pb[k] && r.pb[k].n >= 30).sort((a, b) => r.pb[b].avgR - r.pb[a].avgR)[0];
+    return `<tr><td><b>${s.name}</b>${r.proxy ? ` <span class="neutral" style="font-size:11px">(PAXG)</span>` : ""}${r.vol != null ? `<div class="neutral" style="font-size:11px">daily range ${r.vol.toFixed(1)}%</div>` : ""}</td>${Object.keys(Backtest.PLAYBOOKS).map((k) => `<td>${cell(r.pb[k])}</td>`).join("")}<td>${best && r.pb[best].avgR > 0 ? `<span class="badge bull">${Backtest.PLAYBOOKS[best]}</span>` : `<span class="neutral">none positive</span>`}</td></tr>`;
+  });
+  document.getElementById("btAll").innerHTML = rows.join("");
+}
+
+document.getElementById("btRun").onclick = async () => {
+  if (btBusy) return; btBusy = true;
+  document.getElementById("btRun").disabled = document.getElementById("btRunAll").disabled = true;
+  try { if (btMode() === "trend") await tbtRun(btActive); else await btRun(btActive); }
+  catch (e) { document.getElementById("btProg").textContent = `Couldn't run the backtest (${e.message}). Check your connection; Binance can be blocked on some networks.`; }
+  finally { btBusy = false; document.getElementById("btRun").disabled = document.getElementById("btRunAll").disabled = false; }
+};
+document.getElementById("btRunAll").onclick = async () => {
+  if (btBusy) return; btBusy = true;
+  document.getElementById("btRun").disabled = document.getElementById("btRunAll").disabled = true;
+  try {
+    for (let i = 0; i < tlSyms.length; i++) {
+      try {
+        if (btMode() === "trend") { const out = await tbtRun(i, i !== btActive); if (i === btActive) tbtRender(out); }
+        else { const out = await btRun(i, i !== btActive); if (i === btActive) btRender(out, true); }
+      }
+      catch (e) { document.getElementById("btProg").textContent = `${tlSyms[i].name}: skipped (${e.message})`; await btSleep(800); }
+    }
+    document.getElementById("btProg").textContent = "All symbols tested — see the comparison table.";
+  } finally { btBusy = false; document.getElementById("btRun").disabled = document.getElementById("btRunAll").disabled = false; }
+};
+function btCustomVis() { document.getElementById("btCustom").hidden = document.getElementById("btPeriod").value !== "custom"; }
+["btMode", "btPeriod", "btTf", "btR", "btCost", "btFrom", "btTo", "btTTf", "btSide", "btFee", "btFund", "btRisk"].forEach((id) => {
+  const el = document.getElementById(id);
+  const v = load("tvdash." + id, null);
+  if (v !== null) { if (el.type === "checkbox") el.checked = v; else el.value = v; }
+  el.onchange = () => { save("tvdash." + id, el.type === "checkbox" ? el.checked : el.value); btModeVis(); btCustomVis(); btShowSaved(); };
+});
+
+btCustomVis();
+btModeVis();
+// big Strategy buttons drive the hidden select
+function btSyncModeButtons() { document.querySelectorAll("#btModes button").forEach((b) => b.classList.toggle("on", b.dataset.mode === btMode())); }
+document.querySelectorAll("#btModes button").forEach((b) => b.onclick = () => {
+  const sel = document.getElementById("btMode");
+  if (sel.value === b.dataset.mode) return;
+  sel.value = b.dataset.mode;
+  sel.onchange();
+  btSyncModeButtons();
+});
+btSyncModeButtons();
+
+// ================= Backtest view: Trend following mode =================
+const TBT_COL = { donchian: "#60a5fa", ema: "#a78bfa", smc: "#22c55e", hold: "#94a3b8" };
+let tbtChart = null, tbtSeries = [];
+
+function btMode() { return document.getElementById("btMode").value; }
+function tbtOpts() {
+  return {
+    period: btPeriod(),
+    tf: document.getElementById("btTTf").value,
+    sides: document.getElementById("btSide").value,
+    feePct: +document.getElementById("btFee").value,
+    fundingPct: document.getElementById("btFund").checked ? 0.01 : 0,
+    risk: +document.getElementById("btRisk").value,
+  };
+}
+function tbtKey(s, o) { return `${s.market}:${s.sym}|${o.tf}|${o.period.id}|${o.sides}|${o.feePct}|${o.fundingPct}`; }
+
+async function tbtLoad(s, o, progress) {
+  const key = "T|" + tbtKey(s, o);
+  const hit = BT_CACHE[key];
+  if (hit && Date.now() - hit.at < 30 * 60e3) return hit.data;
+  const sec = o.tf === "4h" ? 14400 : 86400;
+  const start = o.period.startMs - 230 * sec * 1000;
+  const dStart = o.period.startMs - 320 * 86400e3;
+  let done = 0;
+  const lim = s.market === "futures" ? 1500 : 1000;
+  const est = Math.ceil((o.period.endMs - start) / (sec * 1000) / lim) + Math.ceil((o.period.endMs - dStart) / 86400e3 / lim) + 1;
+  const tick = () => { done++; progress(Math.min(0.97, done / est)); };
+  const main = await btFetchRange(s, o.tf, start, tick, o.period.endMs);
+  const d1 = o.tf === "1d" ? await btFetchRange(s, "1d", dStart, tick, o.period.endMs) : await btFetchRange(s, "1d", dStart, tick, o.period.endMs);
+  const data = { [o.tf]: main, "1d": d1, startT: Math.floor(o.period.startMs / 1000) };
+  BT_CACHE[key] = { data, at: Date.now() };
+  return data;
+}
+
+async function tbtRun(idx, quiet) {
+  const s0 = tlSyms[idx], o = tbtOpts();
+  let s = s0, proxy = null;
+  const prog = document.getElementById("btProg"), bar = document.getElementById("btBar");
+  const show = (f, txt) => { bar.style.width = Math.round(f * 100) + "%"; prog.textContent = txt; };
+  const dl = (src) => tbtLoad(src, o, (f) => show(f, `${s0.name}: downloading ${o.period.label}, ${o.tf} candles… ${Math.round(f * 100)}%`));
+  show(0.02, `${s0.name}: downloading ${o.period.label}, ${o.tf} candles…`);
+  let data = await dl(s);
+  const sec = o.tf === "4h" ? 14400 : 86400;
+  const need = (o.period.endMs - o.period.startMs) / 1000 / sec;
+  if (data[o.tf].filter((x) => x.t * 1000 >= o.period.startMs).length < 0.6 * need && BT_PROXY[s.sym]) {
+    proxy = BT_PROXY[s.sym]; s = { name: s0.name, market: proxy.market, sym: proxy.sym }; data = await dl(s);
+  }
+  if (data[o.tf].length < 260) throw new Error(`not enough ${s.sym} history for ${o.period.label} on ${o.tf} — pick a longer or more recent period`);
+  show(0.98, `${s0.name}: replaying ${data[o.tf].length.toLocaleString()} candles…`);
+  await btSleep(20);
+  const res = TrendBacktest.run(data, { tf: o.tf, feePct: o.feePct, fundingPct: o.fundingPct, sides: o.sides, startT: data.startT });
+  const per = {};
+  for (const k of Object.keys(TrendBacktest.SYSTEMS)) {
+    const ts = res.trades.filter((t) => t.sys === k);
+    per[k] = { ...TrendBacktest.stats(ts), eq: TrendBacktest.equity(ts, o.risk) };
+  }
+  const days = data["1d"].filter((x) => x.t * 1000 >= o.period.startMs);
+  const vol = days.length ? days.reduce((a, x) => a + (x.h - x.l) / x.c, 0) / days.length * 100 : null;
+  const out = {
+    mode: "trend", sym: s0.name, opts: o, from: res.from, to: res.to, buyHoldPct: res.buyHoldPct, per, vol, proxy: proxy ? proxy.note : null,
+    trades: res.trades.map((t) => ({ sys: t.sys, dir: t.dir, t: t.t, exitT: t.exitT, entry: t.entry, stop0: t.stop0, exit: t.exit, how: t.how, r: t.r, bars: t.bars, retPct: t.retPct })),
+    hold: data[o.tf].filter((x) => x.t >= data.startT).filter((_, i, a) => i % Math.max(1, Math.floor(a.length / 400)) === 0 || i === a.length - 1).map((x) => ({ t: x.t, c: x.c })),
+  };
+  save("tvdash.btT." + tbtKey(s0, o), out);
+  const all = load("tvdash.btTAll", {});
+  all[tbtKey(s0, o)] = { name: s0.name, per: Object.fromEntries(Object.entries(per).map(([k, v]) => [k, { n: v.n, avgR: v.avgR, winRate: v.winRate, ret: v.eq.finalPct, dd: v.eq.maxDDPct }])), hold: res.buyHoldPct, proxy: !!proxy, risk: o.risk };
+  save("tvdash.btTAll", all);
+  show(1, `${s0.name}${proxy ? " (as PAXG)" : ""}: done — ${res.trades.length} trades from ${new Date(res.from * 1000).toLocaleDateString()} to ${new Date(res.to * 1000).toLocaleDateString()}.`);
+  if (!quiet) tbtRender(out);
+  tbtRenderAll();
+  return out;
+}
+
+function tbtVerdict(s, hold) {
+  if (!s || !s.n) return `<span class="neutral">no trades</span>`;
+  if (s.n < 20) return `<span class="badge neutral">too few trades</span>`;
+  if (s.avgR > 0.2 && s.pf > 1.3) return `<span class="badge bull">keep</span>`;
+  if (s.avgR > 0) return `<span class="badge neutral">watch</span>`;
+  return `<span class="badge bear">drop</span>`;
+}
+
+function tbtRender(out) {
+  document.getElementById("btResults").hidden = true;
+  document.getElementById("btTResults").hidden = false;
+  const o = out.opts;
+  document.getElementById("btTHead").innerHTML =
+    `<div><div class="muted">Symbol</div><div class="big">${out.sym}</div></div>
+     <div><div class="muted">Period</div><div><b>${new Date(out.from * 1000).toLocaleDateString()} → ${new Date(out.to * 1000).toLocaleDateString()}</b></div></div>
+     <div><div class="muted">Settings</div><div>${o.tf} candles · ${o.sides === "both" ? "long + short" : "long only"} · fees ${o.feePct}%/side · funding ${o.fundingPct ? "0.01%/8h" : "off"} · risk ${o.risk}% per trade</div></div>
+     <div><div class="muted">Buy &amp; hold</div><div><b class="${out.buyHoldPct >= 0 ? "bull" : "bear"}" style="background:none;border:0">${out.buyHoldPct >= 0 ? "+" : ""}${out.buyHoldPct.toFixed(1)}%</b></div></div>
+     ${out.vol != null ? `<div><div class="muted">Avg daily range</div><div><b>${out.vol.toFixed(2)}%</b></div></div>` : ""}
+     ${out.proxy ? `<div style="flex-basis:100%"><span class="neutral" style="font-size:12px">${out.proxy}</span></div>` : ""}`;
+  document.getElementById("btTSummary").innerHTML = Object.keys(TrendBacktest.SYSTEMS).map((k) => {
+    const s = out.per[k];
+    if (!s || !s.n) return `<tr><td><span class="tf-dot" style="background:${TBT_COL[k]}"></span><b>${TrendBacktest.SYSTEMS[k]}</b></td><td colspan="8" class="neutral">no trades</td></tr>`;
+    const ret = s.eq.finalPct;
+    return `<tr><td><span class="tf-dot" style="background:${TBT_COL[k]}"></span><b>${TrendBacktest.SYSTEMS[k]}</b></td>
+      <td>${s.n}</td><td>${(s.winRate * 100).toFixed(0)}%</td>
+      <td><b class="${s.avgR > 0 ? "bull" : "bear"}" style="background:none;border:0">${btFmtR(s.avgR)}</b></td>
+      <td class="hide-sm">${s.pf === Infinity ? "∞" : s.pf.toFixed(2)}</td>
+      <td class="hide-sm">${btFmtR(s.bestR)}</td>
+      <td><b class="${ret >= 0 ? "bull" : "bear"}" style="background:none;border:0">${ret >= 0 ? "+" : ""}${ret.toFixed(1)}%</b></td>
+      <td class="hide-sm">−${s.eq.maxDDPct.toFixed(1)}%</td>
+      <td>${tbtVerdict(s)}</td></tr>`;
+  }).join("");
+  // equity: % account for each system vs buy & hold (scaled to the same start)
+  if (!window.LightweightCharts) { window.addEventListener("load", () => tbtRender(out), { once: true }); return; }
+  if (!tbtChart) {
+    tbtChart = LightweightCharts.createChart(document.getElementById("btTChart"), {
+      autoSize: true,
+      layout: { background: { type: "solid", color: "#161b24" }, textColor: "#8a93a6", fontSize: 11 },
+      grid: { vertLines: { color: "rgba(38,45,58,.6)" }, horzLines: { color: "rgba(38,45,58,.6)" } },
+      rightPriceScale: { borderColor: "#262d3a", mode: LightweightCharts.PriceScaleMode.Logarithmic }, timeScale: { borderColor: "#262d3a" },
+      localization: { priceFormatter: (p) => p.toFixed(0) },
+    });
+  }
+  tbtSeries.forEach((x) => tbtChart.removeSeries(x)); tbtSeries = [];
+  const start = out.from;
+  const add = (k, pts, title, width) => {
+    const se = tbtChart.addLineSeries({ color: TBT_COL[k], lineWidth: width, priceLineVisible: false, lastValueVisible: true, title });
+    let lastT = 0; const clean = [];
+    for (const p of pts) { let t = p.time; if (t <= lastT) t = lastT + 1; lastT = t; clean.push({ time: t, value: p.value }); }
+    se.setData(clean); tbtSeries.push(se);
+  };
+  for (const k of Object.keys(TrendBacktest.SYSTEMS)) {
+    const ts = out.trades.filter((t) => t.sys === k);
+    if (!ts.length) continue;
+    const eq = TrendBacktest.equity(ts, o.risk);
+    add(k, [{ time: start, value: 100 }].concat(eq.pts.map((p) => ({ time: p.t, value: +p.eq.toFixed(2) }))), TrendBacktest.SYSTEMS[k], 2);
+  }
+  if (out.hold && out.hold.length) {
+    const p0 = out.hold[0].c;
+    add("hold", out.hold.map((x) => ({ time: x.t, value: +(100 * x.c / p0).toFixed(2) })), "Buy & hold", 1);
+  }
+  tbtChart.timeScale().fitContent();
+  document.getElementById("btTTrades").innerHTML = out.trades.slice(-30).reverse().map((t) =>
+    `<tr><td>${new Date(t.t * 1000).toLocaleDateString()}</td>
+     <td><span class="tf-dot" style="background:${TBT_COL[t.sys]}"></span>${TrendBacktest.SYSTEMS[t.sys]}</td>
+     <td>${t.dir > 0 ? `<span class="bull" style="background:none;border:0">long</span>` : `<span class="bear" style="background:none;border:0">short</span>`}</td>
+     <td class="hide-sm">${tlFmt(t.entry)}</td><td class="hide-sm">${tlFmt(t.exit)}</td>
+     <td>${t.bars} ${o.tf === "4h" ? "×4h" : "days"}</td><td class="hide-sm">${t.retPct >= 0 ? "+" : ""}${t.retPct.toFixed(1)}%</td>
+     <td><b class="${t.r > 0 ? "bull" : "bear"}" style="background:none;border:0">${btFmtR(t.r)}</b>${t.how === "open" ? ` <span class="neutral" style="font-size:11px">still open</span>` : ""}</td></tr>`).join("") || `<tr><td colspan="8" class="neutral">no trades</td></tr>`;
+}
+
+function tbtRenderAll() {
+  const o = tbtOpts();
+  const all = load("tvdash.btTAll", {});
+  document.getElementById("btTAll").innerHTML = tlSyms.map((s) => {
+    const r = all[tbtKey(s, o)];
+    if (!r) return `<tr><td><b>${s.name}</b></td><td colspan="4" class="neutral">not tested with these settings</td></tr>`;
+    const cell = (x) => x && x.n ? `<b class="${x.ret >= 0 ? "bull" : "bear"}" style="background:none;border:0">${x.ret >= 0 ? "+" : ""}${x.ret.toFixed(0)}%</b> <span class="neutral" style="font-size:11px">${x.n} · ${btFmtR(x.avgR)} · DD ${x.dd.toFixed(0)}%</span>` : `<span class="neutral">—</span>`;
+    return `<tr><td><b>${s.name}</b>${r.proxy ? ` <span class="neutral" style="font-size:11px">(PAXG)</span>` : ""}<div class="neutral" style="font-size:11px">buy &amp; hold ${r.hold >= 0 ? "+" : ""}${r.hold.toFixed(0)}% · risk ${r.risk}%</div></td>${Object.keys(TrendBacktest.SYSTEMS).map((k) => `<td>${cell(r.per[k])}</td>`).join("")}</tr>`;
+  }).join("");
+}
+
+function tbtShowSaved() {
+  const s = tlSyms[btActive], o = tbtOpts();
+  const saved = load("tvdash.btT." + tbtKey(s, o), null);
+  document.getElementById("btResults").hidden = true;
+  if (saved) { saved.opts.risk = o.risk; tbtRender(saved); }
+  else {
+    document.getElementById("btTResults").hidden = true;
+    document.getElementById("btProg").textContent = `No saved trend result for ${s.name} with these settings yet. Tap "Run backtest".`;
+  }
+  tbtRenderAll();
+}
+
+function btModeVis() {
+  const trend = btMode() === "trend";
+  document.querySelectorAll(".bt-intra").forEach((e) => e.hidden = trend);
+  document.querySelectorAll(".bt-trend").forEach((e) => e.hidden = !trend);
+  document.getElementById("btIntraAll").hidden = trend;
+  document.getElementById("btTrendAll").hidden = !trend;
+  if (!trend) document.getElementById("btTResults").hidden = true;
 }
 
 document.querySelectorAll("#views button").forEach((b) => b.onclick = () => setView(b.dataset.view));

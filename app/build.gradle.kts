@@ -10,8 +10,8 @@ android {
         applicationId = "com.addiserp.signals"
         minSdk = 24
         targetSdk = 34
-        versionCode = 9
-        versionName = "9.0"
+        versionCode = 15
+        versionName = "15.0"
     }
 
     buildTypes {
