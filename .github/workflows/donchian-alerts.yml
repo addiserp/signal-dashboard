@@ -2,7 +2,7 @@ name: Donchian 4H alerts
 
 on:
   schedule:
-    - cron: "7 * * * *"        # every hour at :07 UTC (4H candles close at 00, 04, 08, 12, 16, 20 UTC)
+    - cron: "*/15 * * * *"     # every 15 minutes (4H candles close at 00, 04, 08, 12, 16, 20 UTC = 03, 07, 11, 15, 19, 23 Addis Ababa)
   workflow_dispatch:
     inputs:
       mode:
@@ -35,8 +35,9 @@ jobs:
 
       - name: Check signals and send Telegram alerts
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # repository secrets (recommended); repository variables with the same names also work
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN || vars.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID || vars.TELEGRAM_CHAT_ID }}
           MODE: ${{ github.event.inputs.mode || 'auto' }}
         run: node alerts/run.mjs
 
