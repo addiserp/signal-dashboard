@@ -4,45 +4,62 @@
   "accountUSDT": 0,
   "dailySummaryHourUTC": 5,
   "stopUpdates": true,
+  "earlyWarning": true,
   "symbols": [
     {
       "name": "BTCUSDT",
       "enabled": true,
-      "sides": "both",
+      "sides": "long",
       "tested": "Backtest 2022–2026: +0.15R to +0.25R per trade after fees and funding",
       "sources": [
-        { "type": "binance-spot", "symbol": "BTCUSDT" },
-        { "type": "yahoo", "symbol": "BTC-USD" }
+        { "type": "binance-spot",
+          "symbol": "BTCUSDT"
+        },
+        { "type": "yahoo",
+          "symbol": "BTC-USD"
+        }
       ]
     },
     {
       "name": "Crude oil (WTI)",
       "enabled": true,
-      "sides": "both",
+      "sides": "long",
       "tested": "Not backtested yet (Binance CLUSDT exists only since April 2026) — use small size",
       "sources": [
-        { "type": "binance-futures", "symbol": "CLUSDT" },
-        { "type": "yahoo", "symbol": "CL=F" }
+        { "type": "binance-futures",
+          "symbol": "CLUSDT"
+        },
+        { "type": "yahoo",
+          "symbol": "CL=F"
+        }
       ]
     },
     {
       "name": "ETHUSDT",
-      "enabled": true,
-      "sides": "both",
+      "enabled": false,
+      "sides": "long",
       "tested": "Run the trend backtest first",
       "sources": [
-        { "type": "binance-spot", "symbol": "ETHUSDT" },
-        { "type": "yahoo", "symbol": "ETH-USD" }
+        { "type": "binance-spot",
+          "symbol": "ETHUSDT"
+        },
+        { "type": "yahoo",
+          "symbol": "ETH-USD"
+        }
       ]
     },
     {
       "name": "Gold (XAU)",
-      "enabled": true,
-      "sides": "both",
+      "enabled": false,
+      "sides": "long",
       "tested": "Backtest: Donchian 4H lost money on gold — keep disabled",
       "sources": [
-        { "type": "binance-futures", "symbol": "XAUUSDT" },
-        { "type": "yahoo", "symbol": "GC=F" }
+        { "type": "binance-futures",
+          "symbol": "XAUUSDT"
+        },
+        { "type": "yahoo",
+          "symbol": "GC=F"
+        }
       ]
     }
   ]
