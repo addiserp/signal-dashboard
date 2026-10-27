@@ -9,7 +9,7 @@
     {
       "name": "BTCUSDT",
       "enabled": true,
-      "sides": "long",
+      "sides": "both",
       "tested": "Backtest 2022–2026: +0.15R to +0.25R per trade after fees and funding",
       "sources": [
         { "type": "binance-spot",
@@ -23,7 +23,7 @@
     {
       "name": "Crude oil (WTI)",
       "enabled": true,
-      "sides": "long",
+      "sides": "both",
       "tested": "Not backtested yet (Binance CLUSDT exists only since April 2026) — use small size",
       "sources": [
         { "type": "binance-futures",
@@ -36,8 +36,8 @@
     },
     {
       "name": "ETHUSDT",
-      "enabled": false,
-      "sides": "long",
+      "enabled": true,
+      "sides": "both",
       "tested": "Run the trend backtest first",
       "sources": [
         { "type": "binance-spot",
@@ -50,8 +50,8 @@
     },
     {
       "name": "Gold (XAU)",
-      "enabled": false,
-      "sides": "long",
+      "enabled": true,
+      "sides": "both",
       "tested": "Backtest: Donchian 4H lost money on gold — keep disabled",
       "sources": [
         { "type": "binance-futures",
