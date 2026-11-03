@@ -1,7 +1,8 @@
 // AddisERP Signals — Donchian 4H alerts to Telegram.
-// Runs on GitHub Actions every hour. For each enabled symbol it downloads recent 4H candles,
-// replays the Donchian system (same rules as the app's backtest) and sends a Telegram message when
-// the LAST CLOSED candle produced: a buy signal, a stop move, or a stop-out.
+// Runs on GitHub Actions (every 15 min when triggered by cron-job.org; GitHub's own schedule is often
+// hours late). For each enabled symbol it downloads recent 4H candles, replays the Donchian system
+// (same rules as the app's backtest) and sends a Telegram message for every signal, stop move or
+// stop-out since the previous run — so a late run catches up instead of silently skipping events.
 //
 // Environment: TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID (GitHub secrets)
 //              TELEGRAM_CHAT_ID can hold several ids separated by commas: one per person or group
@@ -26,6 +27,8 @@ const failedChats = new Map();   // chat id -> reason (reported once at the end)
 const DRY = process.env.DRY_RUN === "1";
 const STATE_FILE = process.env.STATE_FILE || join(process.cwd(), ".alert-state", "state.json");
 const TF_SEC = 4 * 3600;
+const COST = { feePct: cfg.feePct == null ? 0.05 : cfg.feePct, fundingPct: cfg.fundingPct == null ? 0.01 : cfg.fundingPct };
+const LIVE_SINCE = Math.floor(Date.parse((cfg.liveSince || "2026-10-27") + "T00:00:00Z") / 1000);
 const now = Math.floor(Date.now() / 1000);
 
 // ---------- data ----------
@@ -40,9 +43,9 @@ function openCandle(c) { const x = c[c.length - 1]; return x && x.t + TF_SEC > n
 
 async function binance(kind, symbol) {
   const urls = kind === "binance-futures"
-    ? [`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=4h&limit=600`]
-    : [`https://data-api.binance.vision/api/v3/klines?symbol=${symbol}&interval=4h&limit=600`,
-       `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=4h&limit=600`];
+    ? [`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=4h&limit=1500`]
+    : [`https://data-api.binance.vision/api/v3/klines?symbol=${symbol}&interval=4h&limit=1000`,
+       `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=4h&limit=1000`];
   let err;
   for (const u of urls) {
     try {
@@ -95,34 +98,81 @@ const when = (t) => new Date(t * 1000).toISOString().slice(0, 16).replace("T", "
 const eat = (t) => new Date((t + 3 * 3600) * 1000).toISOString().slice(11, 16) + " EAT";
 const R = (x) => (x >= 0 ? "+" : "") + x.toFixed(2) + "R";
 
-function sizeLine(entry, stop) {
-  if (!cfg.accountUSDT) return "";
-  const riskUSDT = cfg.accountUSDT * cfg.riskPct / 100;
-  const qty = riskUSDT / Math.abs(entry - stop);
-  return `\nSize at ${cfg.riskPct}% of ${fmt(cfg.accountUSDT)} USDT: <b>${qty.toPrecision(3)}</b> units (${fmt(qty * entry)} USDT notional)`;
+function sizeLine(entry, stop, dir = 1) {
+  if (!cfg.accountUSDT) return "\n<i>Tip: set accountUSDT in alerts/config.json to get the position size here.</i>";
+  const lev = cfg.leverage || 1;
+  const z = D.size({ account: cfg.accountUSDT, riskPct: cfg.riskPct, entry, stop, leverage: lev, dir });
+  if (!z) return "";
+  let line = `\nSize at ${cfg.riskPct}% risk of ${fmt(cfg.accountUSDT)} USDT: <b>${z.qty.toPrecision(3)}</b> units = ${fmt(z.notional)} USDT`;
+  if (lev > 1) line += ` · margin ${fmt(z.margin)} USDT at ${lev}×`;
+  if (z.liqBeforeStop) line += `\n⚠️ At ${lev}× you would be liquidated (≈${fmt(z.liq)}) before the stop — use lower leverage.`;
+  else if (z.tooBig) line += `\n⚠️ The margin is more than your account — use more leverage or a smaller risk %.`;
+  return line;
 }
 
-function eventMessage(sym, ev, res, source) {
+// ---------- paper-trading ledger (survives beyond the candle window) ----------
+function recordPaper(state, sym, res) {
+  state.ledger = state.ledger || {};
+  for (const t of res.trades) {
+    if (t.t < LIVE_SINCE) continue;
+    state.ledger[`${sym.name}|${t.t}`] = { sym: sym.name, dir: t.dir, t: t.t, exitT: t.exitT, entry: t.entry, stop0: t.stop0, exit: t.exit, net: D.netR(t, COST) };
+  }
+}
+function paperOf(state, name) {
+  const trades = Object.values(state.ledger || {}).filter((x) => x.sym === name);
+  const total = trades.reduce((a, x) => a + x.net, 0);
+  return { n: trades.length, wins: trades.filter((x) => x.net > 0).length, total };
+}
+const sinceText = new Date(LIVE_SINCE * 1000).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+
+const ago = (t) => { const m = Math.max(0, Math.round((now - t) / 60)); return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}min` : `${m} min`; };
+const LATE_SEC = 45 * 60;   // an alert more than 45 min after the candle close is marked late
+const CHASE_R = 0.5;        // a late entry is OK only within 0.5R of the signal price
+
+// what to do now with a signal that is reported late
+function lateSignalAdvice(ev, res, livePrice) {
+  const entryT = ev.t + TF_SEC;
+  const p = res.position && res.position.entryT === entryT ? res.position : null;
+  const done = res.trades.find((x) => x.t === entryT);
+  if (done) return `\n⏹ <b>Already over:</b> this trade was stopped out at ${fmt(done.exit)} (${R(done.r)}). Nothing to do.`;
+  if (!p) return `\n⏹ <b>Skip:</b> the next candle opened beyond the stop, so the system didn't take this trade.`;
+  const risk = Math.abs(ev.price - ev.stop);
+  const px = livePrice != null ? livePrice : res.last.c;
+  const moved = p.dir * (px - ev.price) / risk;
+  const where = `Price now ${fmt(px)} (${moved >= 0 ? "+" : ""}${moved.toFixed(2)}R from the signal), current stop <b>${fmt(p.stop)}</b>.`;
+  if (moved > CHASE_R) return `\n🚫 <b>Don't chase:</b> ${where} Too far from the entry — wait for the next signal.`;
+  if (p.dir > 0 ? px <= p.stop : px >= p.stop) return `\n🚫 <b>Don't enter:</b> ${where} Price is already at the stop.`;
+  return `\n✅ <b>Still OK to enter:</b> ${where}`;
+}
+
+function eventMessage(sym, ev, res, source, livePrice) {
   const tag = `<b>${sym.name} · 4H Donchian</b>`;
   const closeT = ev.t + TF_SEC;
+  const late = now - closeT > LATE_SEC;
+  const lateHead = late ? `⏰ <b>Late alert</b> — the 4H candle closed at ${eat(closeT)}, ${ago(closeT)} ago.\n` : "";
   if (ev.type === "signal") {
     const side = ev.dir > 0 ? "BUY" : "SELL";
-    return `${ev.dir > 0 ? "🟢" : "🔻"} ${tag} — <b>${side} signal</b>
+    const short = ev.dir < 0 ? `\n⚠️ Short trades were not backtested positive — long only is the tested system.` : "";
+    return `${lateHead}${ev.dir > 0 ? "🟢" : "🔻"} ${tag} — <b>${side} signal</b>
 The 4H candle closed at <b>${fmt(ev.price)}</b>, ${ev.dir > 0 ? "above the 20-candle high" : "below the 20-candle low"} (${fmt(ev.level)}).
-Enter: market order now (next candle opened ${eat(closeT)})
-Stop: <b>${fmt(ev.stop)}</b> (2×ATR, ${pct(ev.stop, ev.price)})${sizeLine(ev.price, ev.stop)}
+${late ? `Planned entry: next candle open at ${eat(closeT)}` : `Enter: market order now (next candle opened ${eat(closeT)})`}
+Stop: <b>${fmt(ev.stop)}</b> (2×ATR, ${pct(ev.stop, ev.price)})${sizeLine(ev.price, ev.stop, ev.dir)}${late ? lateSignalAdvice(ev, res, livePrice) : ""}${short}
 ${sym.tested}
 <i>${source} · candle ${when(ev.t)}</i>`;
   }
   if (ev.type === "stop") {
     const open = res.position ? `\nOpen trade: ${R(res.position.openR)} (entry ${fmt(res.position.entry)})` : "";
-    return `🔼 ${tag} — <b>move your stop to ${fmt(ev.stop)}</b> (was ${fmt(ev.from)})
+    return `${lateHead}🔼 ${tag} — <b>move your stop to ${fmt(ev.stop)}</b> (was ${fmt(ev.from)})
 New 10-candle ${ev.dir > 0 ? "low" : "high"} after the ${eat(closeT)} close; price ${fmt(ev.price)}.${open}
 <i>${source}</i>`;
   }
   if (ev.type === "exit") {
-    return `🔴 ${tag} — <b>stop hit at ${fmt(ev.price)}</b>
-Trade closed: <b>${R(ev.r)}</b> (entry ${fmt(ev.entry)}). Waiting for the next breakout.
+    const tr = res.trades.find((x) => x.exitT === ev.t);
+    const net = tr ? D.netR(tr, COST) : ev.r;
+    const p = paperOf(state, sym.name);
+    return `${lateHead}🔴 ${tag} — <b>stop hit at ${fmt(ev.price)}</b>
+Trade closed: <b>${R(net)}</b> after fees and funding (${R(ev.r)} before), entry ${fmt(ev.entry)}. Waiting for the next breakout.
+📒 Paper trading since ${sinceText}: ${p.n} trade${p.n === 1 ? "" : "s"}, ${p.wins} win${p.wins === 1 ? "" : "s"}, <b>${R(p.total)}</b>
 <i>${source} · candle ${when(ev.t)}</i>`;
   }
   return null;
@@ -209,14 +259,16 @@ function saveState(s) {
 }
 
 const state = loadState();
-const status = [], problems = [];
+const status = [], problems = [], opens = {};
 let sentCount = 0;
 for (const sym of cfg.symbols.filter((s) => s.enabled)) {
   let data;
   try { data = await candles(sym); }
   catch (e) { problems.push(`${sym.name}: ${e.message}`); console.error(`${sym.name}: ${e.message}`); continue; }
   const res = D.replay(data.c, { sides: sym.sides || "long" });
+  recordPaper(state, sym, res);
   status.push(statusLine(sym, res, data.source));
+  opens[sym.name] = res.position && res.position.entryT >= LIVE_SINCE ? D.netR({ dir: res.position.dir, entry: res.position.entry, stop0: res.position.stop0, t: res.position.entryT, exit: res.last.c, exitT: res.last.t }, COST) : null;
   const lastK = data.c.length - 1;
   const fresh = now - (res.last.t + TF_SEC) < 8 * 3600;        // ignore stale data
   console.log(`${sym.name}: ${data.c.length} candles from ${data.source}, last closed ${when(res.last.t)}${fresh ? "" : " (stale)"}`);
@@ -226,11 +278,18 @@ for (const sym of cfg.symbols.filter((s) => s.enabled)) {
     const key = `${sym.name}|early|${data.live.t}`;
     if (!state.sent[key]) { await send(earlyMessage(sym, res, data.live, data.source)); state.sent[key] = now; sentCount++; }
   }
-  for (const ev of res.events.filter((e) => e.k === lastK && ["signal", "stop", "exit"].includes(e.type))) {
+  // every event since the previous run (first run: only the last candle). Capped at 3 days.
+  state.lastT = state.lastT || {};
+  const fromT = Math.max(state.lastT[sym.name] != null ? state.lastT[sym.name] + 1 : res.last.t, now - 3 * 86400);
+  const evs = res.events.filter((e) => e.t >= fromT && ["signal", "stop", "exit"].includes(e.type));
+  state.lastT[sym.name] = res.last.t;
+  for (const ev of evs) {
     if (ev.type === "stop" && !cfg.stopUpdates) continue;
+    // stop moves: only the newest one still matters, and none once the trade is closed
+    if (ev.type === "stop" && evs.some((e) => e.t > ev.t && (e.type === "stop" || e.type === "exit"))) continue;
     const key = `${sym.name}|${ev.type}|${ev.t}`;
     if (state.sent[key]) continue;
-    const msg = eventMessage(sym, ev, res, data.source);
+    const msg = eventMessage(sym, ev, res, data.source, data.live ? data.live.c : null);
     if (!msg) continue;
     await send(msg);
     state.sent[key] = now; sentCount++;
@@ -239,12 +298,22 @@ for (const sym of cfg.symbols.filter((s) => s.enabled)) {
 
 const today = new Date().toISOString().slice(0, 10);
 const hourUTC = new Date().getUTCHours();
-const wantSummary = MODE === "test" || MODE === "summary" || (MODE === "auto" && hourUTC === cfg.dailySummaryHourUTC && state.summaryDay !== today);
+const wantSummary = MODE === "test" || MODE === "summary" || (MODE === "auto" && hourUTC >= cfg.dailySummaryHourUTC && state.summaryDay !== today);
 if (wantSummary) {
   const head = MODE === "test" ? "✅ <b>AddisERP Signals alerts are working</b>" : "☀️ <b>Daily status · 4H Donchian</b>";
   const body = status.length ? status.join("\n") : "No symbol could be loaded.";
+  // paper-trading scorecard (net of fees and funding)
+  const names = cfg.symbols.filter((s) => s.enabled).map((s) => s.name);
+  let all = 0, n = 0, w = 0;
+  const rows = names.map((nm) => {
+    const p = paperOf(state, nm); all += p.total; n += p.n; w += p.wins;
+    const o = opens[nm] != null ? ` · open ${R(opens[nm])}` : "";
+    return `• ${nm}: ${p.n} closed${p.n ? `, ${p.wins} win${p.wins === 1 ? "" : "s"}, ${R(p.total)}` : ""}${o}`;
+  });
+  const acct = cfg.riskPct ? ` ≈ ${(all * cfg.riskPct).toFixed(1)}% of the account at ${cfg.riskPct}% risk` : "";
+  const score = `\n\n📒 <b>Paper trading since ${sinceText}</b> (after fees + funding)\n${rows.join("\n")}\nTotal: <b>${R(all)}</b> over ${n} closed trade${n === 1 ? "" : "s"}${n ? acct : ""}`;
   const warn = problems.length ? `\n\n⚠️ ${problems.join("\n⚠️ ")}` : "";
-  await send(`${head}\n${body}${warn}\n<i>Not financial advice.</i>`);
+  await send(`${head}\n${body}${score}${warn}\n<i>Not financial advice.</i>`);
   if (MODE === "auto") state.summaryDay = today;
   sentCount++;
 }

@@ -1,14 +1,14 @@
 # Donchian 4H alerts on Telegram
 
-Every 15 minutes, GitHub checks the latest **closed 4H candle** for each enabled symbol and sends you a Telegram message when the Donchian system (the one that tested positive on BTC 4H):
+Every 15 minutes (after step 5 below), GitHub checks the latest **closed 4H candle** for each enabled symbol and sends you a Telegram message when the Donchian system (the one that tested positive on BTC 4H):
 
 | Message | When |
 | --- | --- |
 | ⚡ **Breakout forming** | early warning: the live price is above the 20-candle high while the 4H candle is still open (once per candle — don't buy yet) |
 | 🟢 **BUY signal** | a 4H candle closes above the highest high of the previous 20 candles — with the stop to place (2×ATR) |
 | 🔼 **Move your stop** | while in a trade, the 10-candle low rises — the new stop level |
-| 🔴 **Stop hit** | the trade is closed, with the result in R |
-| ☀️ **Daily status** | once a day (05:00 UTC = 08:00 Addis Ababa): position, stop, or the breakout level to watch |
+| 🔴 **Stop hit** | the trade is closed, with the result in R after fees and funding, and the running paper-trading total |
+| ☀️ **Daily status** | once a day (05:00 UTC = 08:00 Addis Ababa): position, stop, or the breakout level to watch, plus the 📒 paper-trading scorecard |
 
 Rules are exactly the app's backtest, so live alerts and backtest results match. It costs nothing (GitHub Actions is free for public repositories).
 
@@ -19,9 +19,21 @@ Rules are exactly the app's backtest, so live alerts and backtest results match.
 3. **Add both to GitHub.** In your `signal-dashboard` repository: **Settings → Secrets and variables → Actions → New repository secret**
    - Name `TELEGRAM_BOT_TOKEN`, value = the token from step 1
    - Name `TELEGRAM_CHAT_ID`, value = the number from step 2
-4. **Send a test.** **Actions** tab → **Donchian 4H alerts** → **Run workflow** → mode `test` → **Run workflow**. Within a minute you should get "✅ AddisERP Signals alerts are working" with the current status of each symbol.
+4. **Send a test.** **Actions** tab → **Donchian 4H alerts** → **Run workflow** → choose mode **`test`** → **Run workflow**. Within a minute you should get "✅ AddisERP Signals alerts are working" with the current status of each symbol.
 
-That's it — from now on it runs by itself every 15 minutes.
+5. **Make it really run every 15 minutes (important).** GitHub's own schedule is unreliable on free accounts — in the first week it ran only every 4–7 hours, so alerts came hours late. A free outside timer fixes this:
+   1. **Make a GitHub token.** Click your profile photo → **Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token**. Name `cron-job`, expiration: the longest offered, **Repository access → Only select repositories → signal-dashboard**, **Permissions → Repository permissions → Actions: Read and write**. Generate and copy the token (starts with `github_pat_`).
+   2. **Create the timer.** Sign up free at **cron-job.org** → **Create cronjob**:
+      - URL: `https://api.github.com/repos/addiserp/signal-dashboard/actions/workflows/donchian-alerts.yml/dispatches`
+      - Schedule: **every 15 minutes**
+      - **Advanced** tab → Request method **POST**, and add these headers:
+        `Authorization` = `Bearer github_pat_…your token…`, `Accept` = `application/vnd.github+json`, `Content-Type` = `application/json`
+      - Request body: `{"ref":"main","inputs":{"mode":"auto"}}`
+   3. Save and press **Test run**: the answer should be **204** (no content) — that means it worked. Then **Actions** in GitHub shows a new run every 15 minutes (event *workflow_dispatch*).
+
+   When the token expires GitHub emails you; make a new one and paste it into the cron-job.org header.
+
+That's it.
 
 ## Send alerts to more people
 
@@ -49,11 +61,26 @@ Open **Actions → Donchian 4H alerts → the latest run**. If something is wron
 
 A green run means the message was accepted by Telegram — check the chat with **your bot** (not @BotFather).
 
+## Late alerts
+
+If a run is late (or GitHub skipped some), the next run **catches up**: it sends every signal, stop-out and the newest stop move since the previous run, marked **⏰ Late alert** with how long ago the candle closed. A late BUY/SELL also says what to do now:
+
+- ✅ **Still OK to enter** — price is within 0.5R of the signal price; enter with the stop shown.
+- 🚫 **Don't chase** — price already ran more than 0.5R; skip it and wait for the next signal.
+- ⏹ **Already over** — the trade was stopped out before the alert; nothing to do.
+
+## Paper-trading scorecard
+
+The backtest says the system earned about +0.15R to +0.25R per trade. The scorecard checks whether that holds **live, from today on**: every trade the alerts produce after `liveSince` is recorded (net of fees and funding) and the daily message shows *trades · wins · total R · average R*. Give it at least 20–30 trades before judging — that is several months on 4H. If the live average stays clearly below zero after that, stop trading the system with real money. The same scorecard is in the app (Analysis tab → *Tested system: Donchian 4H* → Paper trading since).
+
 ## Settings (`alerts/config.json`)
 
-- `enabled` — turn a symbol on or off. BTCUSDT and crude oil are on; ETH and gold are off (gold lost money in the 4H backtest).
-- `sides` — `"long"` (buy signals only) or `"both"` (also sell signals when a candle closes below the 20-candle low).
+- `enabled` — turn a symbol on or off. BTCUSDT and crude oil are on; ETH and gold are off (gold lost money in the 4H backtest). To check other coins, open the app → **Backtest → ✅ Check Donchian 4H on all coins**; turn a coin on only if Donchian breakout shows at least +0.10R per trade over 60+ trades.
+- `sides` — `"long"` (buy signals only — **the tested system**) or `"both"` (also sell signals when a candle closes below the 20-candle low; shorts were not backtested positive, and the message says so).
 - `accountUSDT` + `riskPct` — set your account size (e.g. `1000`) to get a position size in every buy message.
+- `leverage` — the leverage you use on Binance futures (e.g. `5`). The buy message shows the margin needed and the rough liquidation price, and warns if liquidation would come **before** your stop (lower the leverage if it does).
+- `feePct` / `fundingPct` — costs used for the net R (Binance VIP0 taker `0.05`; funding `0.01` per 8 hours).
+- `liveSince` — start date of the paper-trading scorecard (`YYYY-MM-DD`). Change it to restart the count.
 - `stopUpdates` — `false` if you only want buy and stop-hit messages.
 - `earlyWarning` — `false` to turn off the ⚡ breakout-forming messages.
 - `dailySummaryHourUTC` — hour of the daily status (UTC; Addis Ababa = UTC + 3).

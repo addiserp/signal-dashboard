@@ -101,6 +101,17 @@
   [hidden]{display:none !important}
   .views .sm{display:none}
   #btView{padding:var(--gutter);display:grid;gap:12px}
+  #dcCard{border-color:rgba(34,197,94,.45)}
+  .dc-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:0;border-top:1px solid var(--line)}
+  .dc-grid>div{min-width:0}
+  .dc-grid>div+div{border-left:1px solid var(--line)}
+  .card-sub{padding:10px 14px 0;font-weight:600;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+  .card-sub input[type=date]{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:3px 6px;font:inherit;color-scheme:dark}
+  .calc{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;padding:10px 14px}
+  .calc label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+  .calc input{background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px 8px;font:inherit;font-size:15px;min-width:0}
+  .calc button{grid-column:1 / -1}
+  @media (max-width:760px){ .dc-grid{grid-template-columns:1fr} .dc-grid>div+div{border-left:0;border-top:1px solid var(--line)} }
   /* grid children may shrink below their content (long chip rows and tables scroll inside instead) */
   #bosView>*,#btView>*,.tv-grid>*{min-width:0}
   .chips{max-width:100%}
@@ -280,6 +291,31 @@
     </div>
   </details>
 
+  <section class="tv-card" id="dcCard">
+    <div class="card-title">✅ Tested system: Donchian 4H <small>the only system that tested positive (BTC 4H, 2022–2026, after fees + funding) · same rules as your Telegram alerts</small></div>
+    <div class="tv-top" id="dcTop"></div>
+    <div class="dc-grid">
+      <div>
+        <div class="card-sub">📒 Paper trading since <input type="date" id="dcSince" value="2026-10-27"> <small class="neutral">(after fees + funding)</small></div>
+        <div class="tv-top" id="dcPaper"></div>
+        <div style="overflow-x:auto"><table class="tt"><thead><tr><th>Entry</th><th>Side</th><th>Entry price</th><th>Exit price</th><th>Result</th></tr></thead><tbody id="dcTrades"></tbody></table></div>
+      </div>
+      <div>
+        <div class="card-sub">🧮 Trade calculator <small class="neutral">Binance USDT-M, isolated margin</small></div>
+        <div class="calc">
+          <label>Account (USDT)<input type="number" id="ccAcct" min="0" step="10" value="1000"></label>
+          <label>Risk per trade (%)<input type="number" id="ccRisk" min="0.1" max="10" step="0.1" value="1"></label>
+          <label>Leverage (×)<input type="number" id="ccLev" min="1" max="125" step="1" value="5"></label>
+          <label>Entry<input type="number" id="ccEntry" step="any"></label>
+          <label>Stop<input type="number" id="ccStop" step="any"></label>
+          <button type="button" id="ccFill">Use the system's levels</button>
+        </div>
+        <table class="tt"><tbody id="ccOut"></tbody></table>
+      </div>
+    </div>
+    <div class="msg">Rules: buy when a 4H candle closes above the highest high of the previous 20 candles; first stop 2×ATR below; then move the stop up to the lowest low of the last 10 candles. Paper results replay the same rules on the candles since the date above (up to the last ~5 months the app loads). Telegram alerts: <b>alerts/README.md</b> in your GitHub repository. Not financial advice.</div>
+  </section>
+
   <section class="tv-card">
     <div class="tv-top">
       <div><div class="muted">Symbol</div><div class="big" id="bsName">—</div></div>
@@ -293,12 +329,6 @@
     <div class="msg" id="bsMsg"></div>
   </section>
 
-  <section class="tv-card" id="dcCard">
-    <div class="card-title">Donchian 4H system <small>the only system that tested positive (BTC, 2022–2026) · same rules as the Telegram alerts</small></div>
-    <div class="tv-top" id="dcTop"></div>
-    <div style="overflow-x:auto"><table class="tt"><thead><tr><th>Last trades (replayed)</th><th>Side</th><th>Entry</th><th>Exit</th><th>Result</th></tr></thead><tbody id="dcTrades"></tbody></table></div>
-    <div class="msg">Buy when a 4H candle closes above the highest high of the previous 20 candles; first stop 2×ATR below; then move the stop up to the lowest low of the last 10 candles. Set up Telegram alerts with <b>alerts/README.md</b> in your GitHub repository.</div>
-  </section>
 
   <div class="tv-grid">
     <section class="tv-card">
@@ -321,7 +351,7 @@
       <div style="overflow-x:auto"><table class="tt"><tbody id="bsLiqTable"></tbody></table></div>
     </section>
     <section class="tv-card">
-      <div class="card-title">Confluence checklist</div>
+      <div class="card-title">Confluence checklist <small>description only — tested: higher scores did not win more</small></div>
       <div id="bsConf"></div>
     </section>
   </div>
@@ -335,6 +365,7 @@
       <table class="tt"><tbody id="bsFibTable"></tbody></table>
     </section>
   </div>
+  <div class="msg" style="border:1px solid rgba(245,158,11,.4);border-radius:10px;background:rgba(245,158,11,.06);color:var(--text)"><b>What the backtests showed (2022–2026, after fees):</b> the setups on this tab — trend-ray bounce, BOS + OTE, liquidity sweeps, order blocks and the confluence score — did <b>not</b> make money as automatic rules on 15m, 1h or 4h; before fees they were about break-even. Use them to <i>read</i> the chart (trend, structure, levels). The only system that tested positive is the <b>Donchian 4H</b> card at the top. Re-test anytime in the Backtest tab.</div>
   <div class="msg"><b>Trend rays</b> follow the top-down method (1M → 15m): the first down ray starts at the highest high, the first up ray at the lowest low, price may not cut through a ray, and each new ray starts at the previous one's last touch. Thick rays belong to the selected timeframe. "At line" = possible bounce entry, "Broken" = a candle closed through it (exit).<br><br><b>Order blocks</b> (blue = bullish demand, purple = bearish supply) are the last opposite candle before the move that broke structure; "fresh" = price hasn't come back yet, "tested" = it has. A zone is removed once a candle closes through it.<br><br>How to read the rest: swing highs/lows are confirmed pivots. <b>BOS</b> (break of structure) = a candle <i>closes</i> beyond the last swing in the trend's direction — the trend continues (uptrend: close above the last swing high; downtrend: close below the last swing low). <b>CHoCH</b> (change of character) = the first close beyond a swing <i>against</i> the trend — an early reversal warning. Dashed lines are the levels that would print the next break. Higher-timeframe structure is stronger; a BOS that agrees with the 4H/1D bias is the higher-probability one.<br><br><b>Fibonacci</b> is drawn on the leg that printed the last break: after a bullish BOS, buyers look for price to pull back into <i>discount</i> (below 50%), ideally the <b>OTE</b> zone 61.8–78.6%; after a bearish BOS, sellers look for <i>premium</i>. <b>Liquidity</b>: stops rest above old highs (buy-side, blue) and below old lows (sell-side, pink) — equal highs/lows are the strongest pools. A <b>sweep</b> (yellow) is a wick through a level that closes back inside, often before a move the other way. <b>Yellow volume bars</b> = 2× normal volume. <b>POC</b> = price with the most volume in the last 200 candles. <b>FVG</b> = an imbalance gap that price often returns to fill. Not financial advice.</div>
 </div>
 
@@ -363,6 +394,7 @@
       <label class="tf-lbl bt-trend" hidden>Fees <select id="btFee"><option value="0.05" selected>Taker 0.05%</option><option value="0.02">Maker 0.02%</option><option value="0">None</option></select></label>
       <label class="chk bt-trend" hidden><input type="checkbox" id="btFund" checked> Funding 0.01% / 8h</label>
       <label class="tf-lbl bt-trend" hidden>Risk per trade <select id="btRisk"><option value="0.5">0.5%</option><option value="1" selected>1%</option><option value="2">2%</option></select></label>
+      <button id="btCoinCheck" class="primary" type="button" title="Trend following · last 5 years · 4H · long only · real fees and funding · every symbol">✅ Check Donchian 4H on all coins</button>
       <button id="btRun" class="primary">Run backtest</button>
       <button id="btRunAll">Test all symbols</button>
     </div>
@@ -426,6 +458,7 @@
 
   <section class="tv-card" id="btTrendAll" hidden>
     <div class="card-title">All symbols — trend following <small>account return · trades · avg R · max drawdown</small></div>
+    <div class="msg">How to read the coin check: a coin is worth turning on in <b>alerts/config.json</b> only if <b>Donchian breakout</b> shows at least <b>+0.10R per trade over 60+ trades</b> and a max drawdown you could live with. Short histories (SPCX, HYPE, crude oil) can't pass yet.</div>
     <div style="overflow-x:auto"><table class="tt">
       <thead><tr><th>Symbol</th><th>Donchian breakout</th><th>EMA trend</th><th>Structure trend</th></tr></thead>
       <tbody id="btTAll"></tbody>
@@ -1708,17 +1741,58 @@ function bsWhen(t) {
     };
   }
 
-  const api = { replay, atrSeries };
+  // result of a trade in R after Binance fees (both sides) and funding while it was open
+  function netR(t, o = {}) {
+    const fee = (o.feePct == null ? 0.05 : o.feePct) / 100, funding = (o.fundingPct == null ? 0.01 : o.fundingPct) / 100;
+    const risk = Math.abs(t.entry - t.stop0);
+    if (!(risk > 0)) return 0;
+    const exitT = t.exitT != null ? t.exitT : Date.now() / 1000;
+    const hours = Math.max(4, (exitT - t.t) / 3600 + 4);
+    const exit = t.exit != null ? t.exit : t.price;
+    return t.dir * (exit - t.entry) / risk - (fee * (t.entry + exit) + funding * (hours / 8) * t.entry) / risk;
+  }
+
+  // paper-trading scorecard: trades that started on/after sinceT (unix seconds)
+  function paper(trades, position, last, sinceT, o = {}) {
+    const closed = trades.filter((t) => t.t >= sinceT);
+    const rs = closed.map((t) => netR(t, o));
+    const total = rs.reduce((a, b) => a + b, 0);
+    let open = null;
+    if (position && position.entryT >= sinceT) {
+      open = { ...position, r: netR({ dir: position.dir, entry: position.entry, stop0: position.stop0, t: position.entryT, exit: last.c, exitT: last.t }, o) };
+    }
+    return { n: closed.length, wins: rs.filter((r) => r > 0).length, total, avg: closed.length ? total / closed.length : 0, open, closed: closed.map((t, i) => ({ ...t, net: rs[i] })) };
+  }
+
+  // position size for a given account, risk and leverage (isolated margin, rough liquidation estimate)
+  function size(o) {
+    const { account, riskPct, entry, stop, leverage = 1, dir = 1 } = o;
+    const dist = Math.abs(entry - stop);
+    if (!(account > 0 && riskPct > 0 && dist > 0)) return null;
+    const riskUSDT = account * riskPct / 100;
+    const qty = riskUSDT / dist;
+    const notional = qty * entry;
+    const margin = notional / leverage;
+    const liq = dir > 0 ? entry * (1 - 1 / leverage + 0.005) : entry * (1 + 1 / leverage - 0.005);
+    const liqBeforeStop = leverage > 1 && (dir > 0 ? liq >= stop : liq <= stop);
+    return { riskUSDT, qty, notional, margin, liq, liqBeforeStop, stopPct: dist / entry * 100, tooBig: margin > account };
+  }
+
+  const api = { replay, atrSeries, netR, paper, size };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.DonchianCore = api;
 })(typeof window !== "undefined" ? window : globalThis);
 
+let dcLevels = null;   // entry/stop suggested by the system for the calculator
 function dcRender() {
   const box = document.getElementById("dcTop");
   if (!box) return;
   const s = tlSyms[tlActive];
   const all = tlData && tlData["4h"];
-  if (!all || all.length < 240) { box.innerHTML = `<div class="neutral">Not enough 4H history for ${s.name} yet.</div>`; document.getElementById("dcTrades").innerHTML = ""; return; }
+  if (!all || all.length < 240) {
+    box.innerHTML = `<div class="neutral">Not enough 4H history for ${s.name} yet.</div>`;
+    document.getElementById("dcTrades").innerHTML = ""; document.getElementById("dcPaper").innerHTML = ""; dcLevels = null; ccRender(); return;
+  }
   const nowS = Date.now() / 1000;
   const c = all.filter((x) => x.t + 14400 <= nowS);            // closed candles only
   const r = DonchianCore.replay(c, { sides: "long" });
@@ -1728,23 +1802,85 @@ function dcRender() {
   let state;
   if (p) {
     const openR = (live - p.entry) / p.risk;
+    dcLevels = { entry: live, stop: p.stop, label: "current price and the current stop" };
     state = `<div><div class="muted">Status</div><div><span class="badge bull">IN A LONG</span></div></div>
       <div><div class="muted">Entry</div><div><b>${tlFmt(p.entry)}</b> <span class="neutral" style="font-size:11px">${new Date(p.entryT * 1000).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span></div></div>
       <div><div class="muted">Stop now</div><div><b>${tlFmt(p.stop)}</b> <span class="neutral" style="font-size:11px">${((p.stop - live) / live * 100).toFixed(2)}%</span></div></div>
       <div><div class="muted">Open result</div><div><b class="${openR >= 0 ? "bull" : "bear"}" style="background:none;border:0">${(openR >= 0 ? "+" : "") + openR.toFixed(2)}R</b></div></div>`;
   } else if (r.pending) {
+    dcLevels = { entry: live, stop: r.pending.stop, label: "the signal's entry and stop" };
     state = `<div><div class="muted">Status</div><div><span class="badge bull">BUY SIGNAL on the last 4H close</span></div></div>
       <div><div class="muted">Stop to place</div><div><b>${tlFmt(r.pending.stop)}</b></div></div>`;
   } else {
     const d = (r.hi20 - live) / live * 100;
+    const stop = Math.max(r.hi20, live) - 2 * r.atr;
+    dcLevels = { entry: Math.max(r.hi20, live), stop, label: "the breakout level and its 2×ATR stop" };
     state = `<div><div class="muted">Status</div><div><span class="badge neutral">no trade — waiting for a breakout</span></div></div>
       <div><div class="muted">Buy if a 4H candle closes above</div><div><b>${tlFmt(r.hi20)}</b> <span class="neutral" style="font-size:11px">${d >= 0 ? "+" : ""}${d.toFixed(2)}% from ${tlFmt(live)}</span></div></div>
-      <div><div class="muted">First stop would be about</div><div>${tlFmt(Math.max(r.hi20, live) - 2 * r.atr)} <span class="neutral" style="font-size:11px">(2×ATR)</span></div></div>`;
+      <div><div class="muted">First stop would be about</div><div>${tlFmt(stop)} <span class="neutral" style="font-size:11px">(2×ATR)</span></div></div>`;
   }
   box.innerHTML = `<div><div class="muted">Symbol</div><div class="big">${s.name}</div><div style="margin-top:4px">${tested}</div></div>` + state;
-  const tr = r.trades.slice(-6).reverse();
-  document.getElementById("dcTrades").innerHTML = tr.length ? tr.map((t) => `<tr><td>${new Date(t.t * 1000).toLocaleDateString()}</td><td>${t.dir > 0 ? "long" : "short"}</td><td>${tlFmt(t.entry)}</td><td>${tlFmt(t.exit)}</td><td><b class="${t.r > 0 ? "bull" : "bear"}" style="background:none;border:0">${(t.r >= 0 ? "+" : "") + t.r.toFixed(2)}R</b> <span class="neutral" style="font-size:11px">before fees</span></td></tr>`).join("") : `<tr><td colspan="5" class="neutral">No completed trades in the last ${Math.round(c.length / 6)} days</td></tr>`;
+
+  // paper trading since the chosen date
+  const sinceStr = document.getElementById("dcSince").value || "2026-10-27";
+  const since = Date.parse(sinceStr + "T00:00:00Z") / 1000;
+  const pp = DonchianCore.paper(r.trades, p, c[c.length - 1], since);
+  const firstT = c[0].t;
+  const cover = since < firstT ? `<div class="neutral" style="font-size:11px;flex-basis:100%">Only candles from ${new Date(firstT * 1000).toLocaleDateString()} are loaded, so older trades aren't counted.</div>` : "";
+  document.getElementById("dcPaper").innerHTML = `
+    <div><div class="muted">Closed trades</div><div class="big">${pp.n}</div></div>
+    <div><div class="muted">Wins</div><div class="big">${pp.n ? Math.round(pp.wins / pp.n * 100) + "%" : "—"}</div></div>
+    <div><div class="muted">Total</div><div class="big ${pp.total >= 0 ? "bull" : "bear"}" style="background:none;border:0">${pp.n ? (pp.total >= 0 ? "+" : "") + pp.total.toFixed(2) + "R" : "—"}</div></div>
+    <div><div class="muted">Open trade</div><div class="big">${pp.open ? `<span class="${pp.open.r >= 0 ? "bull" : "bear"}" style="background:none;border:0">${(pp.open.r >= 0 ? "+" : "") + pp.open.r.toFixed(2)}R</span>` : "—"}</div></div>${cover}`;
+  const tr = pp.closed.slice(-8).reverse();
+  document.getElementById("dcTrades").innerHTML = tr.length ? tr.map((t) => `<tr><td>${new Date(t.t * 1000).toLocaleDateString()}</td><td>${t.dir > 0 ? "long" : "short"}</td><td>${tlFmt(t.entry)}</td><td>${tlFmt(t.exit)}</td><td><b class="${t.net > 0 ? "bull" : "bear"}" style="background:none;border:0">${(t.net >= 0 ? "+" : "") + t.net.toFixed(2)}R</b></td></tr>`).join("") : `<tr><td colspan="5" class="neutral">No closed trades since ${new Date(since * 1000).toLocaleDateString()} yet — that's normal: this system trades a few times a month.</td></tr>`;
+  if (!ccTouched) ccFill(); else ccRender();
 }
+
+// ----- trade calculator -----
+let ccTouched = false;
+function ccFill() {
+  if (!dcLevels) return ccRender();
+  const r = (x) => +x.toPrecision(6);
+  document.getElementById("ccEntry").value = r(dcLevels.entry);
+  document.getElementById("ccStop").value = r(dcLevels.stop);
+  ccTouched = false;
+  ccRender();
+}
+function ccRender() {
+  const v = (id) => parseFloat(document.getElementById(id).value);
+  const acct = v("ccAcct"), risk = v("ccRisk"), lev = Math.max(1, v("ccLev") || 1), entry = v("ccEntry"), stop = v("ccStop");
+  const out = document.getElementById("ccOut");
+  if (!(entry > 0 && stop > 0) || entry === stop) { out.innerHTML = `<tr><td class="neutral">Enter an entry and a stop.</td></tr>`; return; }
+  const dir = stop < entry ? 1 : -1;
+  const z = DonchianCore.size({ account: acct, riskPct: risk, entry, stop, leverage: lev, dir });
+  if (!z) { out.innerHTML = `<tr><td class="neutral">Enter your account size and risk %.</td></tr>`; return; }
+  const s = tlSyms[tlActive];
+  const unit = s.sym.replace(/USDT$|USDC$/, "");
+  const warn = z.liqBeforeStop ? `<tr><td colspan="2"><b class="bear" style="background:none;border:0">⚠️ At ${lev}× you'd be liquidated near ${tlFmt(z.liq)} — before your stop. Lower the leverage.</b></td></tr>`
+    : z.tooBig ? `<tr><td colspan="2"><b class="bear" style="background:none;border:0">⚠️ Margin is larger than your account — raise leverage a little or lower the risk %.</b></td></tr>` : "";
+  out.innerHTML = `
+    <tr><td>Direction</td><td><b class="${dir > 0 ? "bull" : "bear"}" style="background:none;border:0">${dir > 0 ? "long" : "short"}</b> · stop ${z.stopPct.toFixed(2)}% away</td></tr>
+    <tr><td>Money at risk</td><td><b>${z.riskUSDT.toFixed(2)} USDT</b> (${risk}% of ${acct.toLocaleString()})</td></tr>
+    <tr><td>Position size</td><td><b>${+z.qty.toPrecision(4)} ${unit}</b> = ${z.notional.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDT</td></tr>
+    <tr><td>Margin at ${lev}×</td><td><b>${z.margin.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDT</b></td></tr>
+    <tr><td>Liquidation ≈</td><td>${lev > 1 ? tlFmt(z.liq) : "none (no leverage)"}</td></tr>
+    <tr><td>Fees ≈ (0.05% × 2)</td><td>${(z.notional * 0.001).toFixed(2)} USDT = ${(z.notional * 0.001 / z.riskUSDT).toFixed(2)}R</td></tr>${warn}
+    ${dcLevels && !ccTouched ? `<tr><td colspan="2" class="neutral" style="font-size:11px">Filled with ${dcLevels.label}.</td></tr>` : ""}`;
+}
+(function () {
+  const keep = { ccAcct: "1000", ccRisk: "1", ccLev: "5" };
+  for (const id of Object.keys(keep)) {
+    const el = document.getElementById(id);
+    el.value = load("tvdash." + id, keep[id]);
+    el.addEventListener("input", () => { save("tvdash." + id, el.value); ccRender(); });
+  }
+  for (const id of ["ccEntry", "ccStop"]) document.getElementById(id).addEventListener("input", () => { ccTouched = true; ccRender(); });
+  document.getElementById("ccFill").onclick = ccFill;
+  const since = document.getElementById("dcSince");
+  since.value = load("tvdash.dcSince", "2026-10-27");
+  since.addEventListener("change", () => { save("tvdash.dcSince", since.value); dcRender(); });
+})();
 
 function bsRender() {
   if (!tlData) return;
@@ -2034,7 +2170,7 @@ function bsCards(ov, vol, price, tfLabel, R) {
   const side = cf.dir > 0 ? "long (buy)" : "short (sell)";
   box.innerHTML = `<div class="msg" style="color:var(--text)"><b style="font-size:16px" class="${cf.dir > 0 ? "bull" : "bear"}" >${cf.score}/${cf.total}</b> &nbsp;${side} confluence on ${tfLabel}</div>` +
     `<table class="tt"><tbody>${cf.items.map((x) => `<tr><td style="width:26px">${x.ok ? `<b class="bull" style="background:none;border:0">✔</b>` : `<span class="neutral">✖</span>`}</td><td class="${x.ok ? "" : "neutral"}">${x.text}</td></tr>`).join("")}</tbody></table>` +
-    `<div class="msg">More ticks = more reasons agree. It is not a signal by itself — wait for your entry rule and always use a stop.</div>`;
+    `<div class="msg">Backtests on BTC and gold (2022–2026) found that trades with 5–6 ticks did <b>not</b> do better than trades with 0–2. Use this list to describe the chart, not to decide a trade. For trade signals use the tested Donchian 4H system at the top of this tab.</div>`;
 }
 
 ["bsRays", "bsHtf", "bsSw", "bsCh", "bsOb", "bsLiq", "bsVp", "bsFvg", "bsVol"].forEach((id) => {
@@ -2862,6 +2998,15 @@ document.querySelectorAll("#btModes button").forEach((b) => b.onclick = () => {
   btSyncModeButtons();
 });
 btSyncModeButtons();
+// one tap: the exact test that found the Donchian edge, on every symbol
+document.getElementById("btCoinCheck").onclick = () => {
+  if (btBusy) return;
+  const set = (id, v) => { const el = document.getElementById(id); if (el.type === "checkbox") el.checked = v; else el.value = v; save("tvdash." + id, v); };
+  set("btMode", "trend"); set("btPeriod", "60"); set("btTTf", "4h"); set("btSide", "long"); set("btFee", "0.05"); set("btFund", true); set("btRisk", "1");
+  btModeVis(); btCustomVis(); btShowSaved(); btSyncModeButtons();
+  document.getElementById("btRunAll").click();
+  setTimeout(() => document.getElementById("btTrendAll").scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+};
 
 // ================= Backtest view: Trend following mode =================
 const TBT_COL = { donchian: "#60a5fa", ema: "#a78bfa", smc: "#22c55e", hold: "#94a3b8" };

@@ -70,7 +70,44 @@
     };
   }
 
-  const api = { replay, atrSeries };
+  // result of a trade in R after Binance fees (both sides) and funding while it was open
+  function netR(t, o = {}) {
+    const fee = (o.feePct == null ? 0.05 : o.feePct) / 100, funding = (o.fundingPct == null ? 0.01 : o.fundingPct) / 100;
+    const risk = Math.abs(t.entry - t.stop0);
+    if (!(risk > 0)) return 0;
+    const exitT = t.exitT != null ? t.exitT : Date.now() / 1000;
+    const hours = Math.max(4, (exitT - t.t) / 3600 + 4);
+    const exit = t.exit != null ? t.exit : t.price;
+    return t.dir * (exit - t.entry) / risk - (fee * (t.entry + exit) + funding * (hours / 8) * t.entry) / risk;
+  }
+
+  // paper-trading scorecard: trades that started on/after sinceT (unix seconds)
+  function paper(trades, position, last, sinceT, o = {}) {
+    const closed = trades.filter((t) => t.t >= sinceT);
+    const rs = closed.map((t) => netR(t, o));
+    const total = rs.reduce((a, b) => a + b, 0);
+    let open = null;
+    if (position && position.entryT >= sinceT) {
+      open = { ...position, r: netR({ dir: position.dir, entry: position.entry, stop0: position.stop0, t: position.entryT, exit: last.c, exitT: last.t }, o) };
+    }
+    return { n: closed.length, wins: rs.filter((r) => r > 0).length, total, avg: closed.length ? total / closed.length : 0, open, closed: closed.map((t, i) => ({ ...t, net: rs[i] })) };
+  }
+
+  // position size for a given account, risk and leverage (isolated margin, rough liquidation estimate)
+  function size(o) {
+    const { account, riskPct, entry, stop, leverage = 1, dir = 1 } = o;
+    const dist = Math.abs(entry - stop);
+    if (!(account > 0 && riskPct > 0 && dist > 0)) return null;
+    const riskUSDT = account * riskPct / 100;
+    const qty = riskUSDT / dist;
+    const notional = qty * entry;
+    const margin = notional / leverage;
+    const liq = dir > 0 ? entry * (1 - 1 / leverage + 0.005) : entry * (1 + 1 / leverage - 0.005);
+    const liqBeforeStop = leverage > 1 && (dir > 0 ? liq >= stop : liq <= stop);
+    return { riskUSDT, qty, notional, margin, liq, liqBeforeStop, stopPct: dist / entry * 100, tooBig: margin > account };
+  }
+
+  const api = { replay, atrSeries, netR, paper, size };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.DonchianCore = api;
 })(typeof window !== "undefined" ? window : globalThis);
