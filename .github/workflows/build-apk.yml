@@ -3,6 +3,12 @@ name: Build Android APK
 on:
   push:
     branches: [ main, master ]
+    # alert settings and documents don't change the app — don't rebuild for them
+    paths-ignore:
+      - "alerts/**"
+      - "docs/**"
+      - "**/*.md"
+      - ".github/workflows/donchian-alerts.yml"
   workflow_dispatch:
 
 jobs:
@@ -18,18 +24,34 @@ jobs:
 
       - uses: android-actions/setup-android@v3
         with:
-             # the default list asks for the old "tools" package, which no longer exists
+          # the default list asks for the old "tools" package, which no longer exists
           packages: "platform-tools platforms;android-34 build-tools;34.0.0"
 
+      - name: Prepare signing key
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | tr -d ' \n\r' | base64 -d > "$RUNNER_TEMP/release.jks"
+            echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+            echo "Signing with your permanent release key"
+          else
+            echo "::warning title=Temporary signing key::No ANDROID_KEYSTORE_BASE64 secret — this APK uses a temporary key, so phones must uninstall the old app before installing it. See SIGNING.md."
+          fi
+
       - name: Build APK
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon --stacktrace
 
       - name: Rename APK
-        run: cp app/build/outputs/apk/release/app-release.apk SignalDashboard.apk
+        run: cp app/build/outputs/apk/release/app-release.apk AddisERP-Signals.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: SignalDashboard-apk
-          path: SignalDashboard.apk
+          name: AddisERP-Signals-apk
+          path: AddisERP-Signals.apk

@@ -2,14 +2,14 @@ name: Donchian 4H alerts
 
 on:
   schedule:
-    - cron: "*/15 * * * *"     # every 15 minutes (4H candles close at 00, 04, 08, 12, 16, 20 UTC = 03, 07, 11, 15, 19, 23 Addis Ababa)
+    - cron: "*/15 * * * *"     # backup only — GitHub often runs this hours late; cron-job.org (see alerts/README.md) does the real 15-min trigger. every 15 minutes (4H candles close at 00, 04, 08, 12, 16, 20 UTC = 03, 07, 11, 15, 19, 23 Addis Ababa)
   workflow_dispatch:
     inputs:
       mode:
-        description: "test = send the current status now"
+        description: "test = send the current status now · auto = normal check (used by cron-job.org)"
         type: choice
-        options: [test, auto, summary]
-        default: test
+        options: [auto, test, summary]
+        default: auto
 
 concurrency:
   group: donchian-alerts
