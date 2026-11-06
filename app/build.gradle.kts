@@ -10,8 +10,8 @@ android {
         applicationId = "com.addiserp.signals"
         minSdk = 24
         targetSdk = 34
-        versionCode = 17
-        versionName = "17.0"
+        versionCode = 18
+        versionName = "18.0"
     }
 
     // Permanent release key from GitHub secrets (see SIGNING.md). Without it the build falls back to
