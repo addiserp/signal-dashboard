@@ -239,36 +239,56 @@
   body.live > header, body.live #bosView, body.live #signalsView, body.live #btView, body.live .menu, body.live #menu{display:none!important}
   body.live #liveRoot{display:grid;position:fixed;inset:0;z-index:50;background:#0b0f16;color:#e6e9ef;font-size:1.65vh;
     grid-template-columns:27vw 1fr;grid-template-rows:7.2vh 1fr 5.6vh;grid-template-areas:"top top" "side main" "marq marq";gap:.7vh;padding:.7vh}
-  .lv-top{grid-area:top;display:flex;align-items:center;gap:2vh;padding:0 1.6vh;background:#121722;border:1px solid #232a38;border-radius:1vh;position:relative;overflow:hidden}
+  .lv-top{grid-area:top;display:flex;align-items:center;gap:1.4vh;white-space:nowrap;padding:0 1.6vh;background:#121722;border:1px solid #232a38;border-radius:1vh;position:relative;overflow:hidden}
   .lv-top img{height:4.4vh;width:4.4vh}
-  .lv-brand{font-weight:800;font-size:2.2vh;letter-spacing:.02em}
+  .lv-brand{font-weight:800;font-size:2vh;letter-spacing:.01em}
+  .lv-top > *{flex:none}
   .lv-live{background:#dc2626;color:#fff;font-weight:800;padding:.4vh 1vh;border-radius:.6vh;font-size:1.6vh;animation:lvpulse 2s infinite}
   @keyframes lvpulse{50%{opacity:.55}}
-  .lv-sym{font-size:3.4vh;font-weight:800;margin-left:1vh}
+  .lv-sym{font-size:3.2vh;font-weight:800;margin-left:.6vh}
   .lv-tf{color:#8a93a6;font-weight:700;font-size:1.9vh}
-  .lv-price{font-size:3.2vh;font-weight:800;font-variant-numeric:tabular-nums}
+  .lv-price{font-size:3vh;font-weight:800;font-variant-numeric:tabular-nums}
   .up{color:#22c55e}.dn{color:#ef4444}
   #lvChg{font-size:2vh;font-weight:700}
-  .lv-alerts{display:flex;gap:.8vh;flex-wrap:wrap}
+  .lv-alerts{display:flex;gap:.6vh;flex-wrap:nowrap;overflow:hidden;flex:0 1 auto!important;min-width:0}
   .lv-alerts span{padding:.4vh 1vh;border-radius:.6vh;font-weight:700;font-size:1.5vh;border:1px solid #2f6b3f;background:rgba(34,197,94,.12)}
   .lv-alerts span.go{background:#16a34a;color:#fff;border-color:#16a34a}
-  .lv-right{margin-left:auto;text-align:right;font-variant-numeric:tabular-nums}
+  .lv-nfa{margin-left:auto;font-weight:900;font-size:2.1vh;letter-spacing:.06em;color:#fde047;border:.25vh solid #f59e0b;background:rgba(245,158,11,.12);padding:.6vh 1.6vh;border-radius:.8vh;white-space:nowrap}
+  .lv-right{margin-left:2vh;text-align:right;font-variant-numeric:tabular-nums}
   #lvClock{font-size:2.4vh;font-weight:800}
-  #lvNext{color:#8a93a6;font-size:1.5vh}
+  #lvNext{color:#8a93a6;font-size:1.4vh}
   .lv-bar{position:absolute;left:0;bottom:0;height:.35vh;background:#2563eb;width:0}
   .lv-side{grid-area:side;display:flex;flex-direction:column;gap:.7vh;min-height:0}
-  .lv-box{background:#121722;border:1px solid #232a38;border-radius:1vh;padding:1.1vh 1.3vh;min-height:0}
-  .lv-box h3{margin:0 0 .8vh;font-size:1.5vh;color:#8a93a6;text-transform:uppercase;letter-spacing:.06em}
-  .lv-dxy{height:36vh;padding:.8vh;display:flex;flex-direction:column}
+  .lv-box{background:#121722;border:1px solid #232a38;border-radius:1vh;padding:.9vh 1.3vh;min-height:0}
+  .lv-box h3{margin:0 0 .6vh;font-size:1.5vh;color:#8a93a6;text-transform:uppercase;letter-spacing:.06em}
+  .lv-dxy{height:23vh;flex:none;padding:.8vh;display:flex;flex-direction:column}
+  .lv-sysbox,.lv-score,.lv-sess{flex:none}
+  .lv-score .tot{display:flex;gap:1.1vh;align-items:baseline;white-space:nowrap;font-size:1.55vh}
+  .lv-score .tot b{font-size:1.95vh}
+  .lv-score .tot span{color:#8a93a6;font-size:1.4vh}
+  .lv-score .per{margin-top:.4vh;font-size:1.3vh;color:#cbd5e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lv-sess .row{display:grid;grid-template-columns:7.5vh 9.5vh 1fr auto;gap:1vh;align-items:center;font-size:1.45vh;padding:.2vh 0}
+  .lv-sess .row small{color:#8a93a6;font-size:1.35vh}
+  .lv-sess .bar{height:.8vh;background:#1f2633;border-radius:.4vh;overflow:hidden}
+  .lv-sess .bar i{display:block;height:100%;background:#22c55e}
+  .lv-sess .row.off .bar i{background:#475569}
+  .lv-sess .st{font-weight:700;white-space:nowrap}
+  .lv-sess .row.on .st{color:#4ade80}.lv-sess .row.off .st{color:#8a93a6}
+  .lv-sess .note{font-size:1.3vh;color:#facc15;margin-top:.2vh;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lv-sess .mus{font-size:1.25vh;color:#8a93a6}
+  .lv-trow{display:flex;justify-content:space-between;gap:1vh;font-size:1.5vh;border-top:1px solid #1e2532;padding-top:.4vh}
+  .lv-trow span{color:#8a93a6}
+  .lv-marq .tag.tg{background:#229ed9;font-size:1.9vh}
+  .lv-musichint{position:fixed;right:2vh;bottom:8vh;z-index:60;background:#2563eb;color:#fff;font-weight:800;padding:1vh 1.6vh;border-radius:1vh;font-size:1.8vh}
   #lvDxy{flex:1;min-height:0}
   #lvDxy .tradingview-widget-container,#lvDxy .tradingview-widget-container__widget{height:100%!important;width:100%!important}
   .lv-sysbox{border-color:rgba(34,197,94,.5)}
-  .lv-st{display:inline-block;font-weight:800;font-size:2.2vh;padding:.5vh 1.2vh;border-radius:.8vh;margin-bottom:1vh}
+  .lv-st{display:inline-block;font-weight:800;font-size:2vh;padding:.4vh 1.1vh;border-radius:.8vh;margin-bottom:.7vh}
   .lv-st.wait{background:#1f2633;color:#cbd5e1}.lv-st.on{background:rgba(34,197,94,.18);color:#4ade80}.lv-st.go{background:#16a34a;color:#fff}
-  .lv-checks{display:grid;grid-template-columns:1fr 1fr;gap:.6vh 1vh;font-size:1.85vh;font-weight:600;margin-bottom:.6vh}
+  .lv-checks{display:grid;grid-template-columns:1fr 1fr;gap:.4vh 1vh;font-size:1.7vh;font-weight:600;margin-bottom:.4vh}
   .lv-checks small{color:#8a93a6;font-weight:500}
   .lv-plus{color:#facc15}
-  .lv-kv{display:flex;justify-content:space-between;gap:1vh;padding:.45vh 0;border-top:1px solid #1e2532;font-size:1.65vh}
+  .lv-kv{display:flex;justify-content:space-between;gap:1vh;padding:.35vh 0;border-top:1px solid #1e2532;font-size:1.55vh}
   .lv-kv span{color:#8a93a6;white-space:nowrap}.lv-kv b{text-align:right;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
   .lv-ana{flex:1;overflow:hidden}
   .lv-main{grid-area:main;position:relative;min-height:0;background:#161b24;border:1px solid #232a38;border-radius:1vh;overflow:hidden}
@@ -338,16 +358,20 @@
     <span class="lv-sym" id="lvSym">—</span><span class="lv-tf" id="lvTf">4H</span>
     <span class="lv-price" id="lvPrice">—</span><span id="lvChg"></span>
     <div class="lv-alerts" id="lvAlerts"></div>
+    <div class="lv-nfa">⚠ NOT FINANCIAL ADVICE</div>
     <div class="lv-right"><div id="lvClock">—</div><div id="lvNext"></div></div>
     <div class="lv-bar" id="lvBar"></div>
   </div>
   <div class="lv-side">
     <div class="lv-box lv-dxy"><h3>DXY · U.S. Dollar Index · reference</h3><div id="lvDxy"></div></div>
     <div class="lv-box lv-sysbox"><h3>addis-4H system</h3><div id="lvSys"></div></div>
+    <div class="lv-box lv-score"><h3 id="lvScoreH">📒 addis-4H live paper results</h3><div id="lvScore"><span class="neutral">Loading…</span></div></div>
+    <div class="lv-box lv-sess"><h3>Market sessions · EAT</h3><div id="lvSess"></div></div>
     <div class="lv-box lv-ana"><h3>Chart analysis</h3><div id="lvAna"></div></div>
   </div>
   <div class="lv-main"><div id="lvChart"></div><div class="lv-banner" id="lvBanner"></div></div>
-  <div class="lv-marq"><div class="tag">ANALYSIS</div><div class="lv-mwrap"><div id="lvMarqText"></div></div></div>
+  <div class="lv-marq"><div class="tag">ANALYSIS</div><div class="lv-mwrap"><div id="lvMarqText"></div></div><div class="tag tg" id="lvTg">📲 Free alerts on Telegram: @addistrading</div></div>
+  <div class="lv-musichint" id="lvMusicHint" hidden>🔊 Click anywhere to start the music</div>
 </div>
 
 <div id="bosView" hidden>
@@ -3793,6 +3817,8 @@ if (view !== "signals") setView(view); else { buildGrid(); lazyMover(); }
 if (LIVE_MODE) (function liveMode() {
   const P = new URLSearchParams(location.search);
   const ROT_MIN = Math.max(1, +(P.get("rotate") || 5));
+  const TG = (P.get("tg") || "addistrading").replace(/^@/, "");
+  const SINCE = Math.floor(Date.parse((P.get("since") || "2026-11-06") + "T00:00:00Z") / 1000);
   const want = (P.get("syms") || "BTCUSDT,ETHUSDT,ZECUSDT,XAUUSDT,CLUSDT").split(",").map((x) => x.trim().toUpperCase()).filter(Boolean);
   const F = DonchianFilters, NEED = 2 | 8 | 32, PLUS = 1;
   // a different timeframe each minute of a symbol's turn (30m and 5m are added for Live mode only)
@@ -3817,6 +3843,8 @@ if (LIVE_MODE) (function liveMode() {
   const $ = (id) => document.getElementById(id);
   document.body.classList.add("live");
   const logo = document.querySelector(".brandname img"); if (logo) $("lvLogo").src = logo.src;
+  $("lvTg").textContent = `📲 Free alerts on Telegram: @${TG}`;
+  $("lvScoreH").textContent = `📒 addis-4H live paper results · since ${new Date(SINCE * 1000).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}`;
   // the analysis chart and its legend move into the broadcast layout
   $("lvChart").appendChild($("bsChart")); $("lvChart").appendChild($("bsLegend"));
   // all layers on
@@ -3840,7 +3868,8 @@ if (LIVE_MODE) (function liveMode() {
     const r = F.replayFilters(F.context({ "4h": c, "1d": d }, "4h"), { need: NEED, plus: PLUS, sides: "long" });
     const n = [r.now.rays, r.now.volume, r.now.osc].filter(Boolean).length;
     const state = r.pending ? "signal" : r.position ? "trade" : "wait";
-    return { r, n, ck: r.now, state, aplus: r.pending ? r.pending.aplus : r.position ? r.position.aplus : r.now.structure && n === 3, stop: r.pending ? r.pending.stop : r.position ? r.position.stop : null, sigT: r.pending ? c[c.length - 1].t : null };
+    const pp = DonchianCore.paper(r.trades, r.position, c[c.length - 1], SINCE);
+    return { r, n, ck: r.now, state, pp, aplus: r.pending ? r.pending.aplus : r.position ? r.position.aplus : r.now.structure && n === 3, stop: r.pending ? r.pending.stop : r.position ? r.position.stop : null, sigT: r.pending ? c[c.length - 1].t : null };
   }
 
   function go(i) {
@@ -3872,7 +3901,7 @@ if (LIVE_MODE) (function liveMode() {
     $("lvChg").className = chg == null ? "" : chg >= 0 ? "up" : "dn";
     // the addis-4H system
     const S = system(tlData);
-    if (S) scan[tlActive] = { ...S, at: Date.now() };
+    if (S) { scan[tlActive] = { ...S, at: Date.now() }; scoreRender(); }
     let html = "";
     if (!S) html = `<div class="neutral">Not enough history for ${s.name}.</div>`;
     else {
@@ -3880,8 +3909,9 @@ if (LIVE_MODE) (function liveMode() {
         : S.state === "trade" ? `<span class="lv-st on">${S.aplus ? "⭐ A+ " : ""}IN A LONG</span>`
         : `<span class="lv-st wait">WAITING · ${S.n}/3 agree</span>`;
       const p = S.r.position;
-      const extra = S.state === "trade" ? `<div class="lv-kv"><span>Entry</span><b>${tlFmt(p.entry)}</b></div><div class="lv-kv"><span>Stop now</span><b>${tlFmt(p.stop)}</b></div><div class="lv-kv"><span>Open</span><b class="${(price - p.entry) >= 0 ? "up" : "dn"}">${((price - p.entry) / p.risk >= 0 ? "+" : "") + ((price - p.entry) / p.risk).toFixed(2)}R</b></div>`
-        : S.state === "signal" ? `<div class="lv-kv"><span>Stop</span><b>${tlFmt(S.stop)}</b></div>` : "";
+      const oR = p ? (price - p.entry) / p.risk : 0;
+      const extra = S.state === "trade" ? `<div class="lv-trow"><div><span>Entry</span> <b>${tlFmt(p.entry)}</b></div><div><span>Stop</span> <b>${tlFmt(p.stop)}</b></div><div><span>Open</span> <b class="${oR >= 0 ? "up" : "dn"}">${(oR >= 0 ? "+" : "") + oR.toFixed(2)}R</b></div></div>`
+        : S.state === "signal" ? `<div class="lv-trow"><div><span>Stop to place</span> <b>${tlFmt(S.stop)}</b></div></div>` : "";
       html = `${st}
         <div class="lv-checks"><div>${tick(S.ck.rays)} Trend lines</div><div>${tick(S.ck.volume)} Volume</div><div>${tick(S.ck.osc)} Oscillators <small>${F.oscLabel(S.ck.oscRating)}</small></div><div class="lv-plus">${tick(S.ck.structure)} Structure <small>(A+)</small></div></div>${extra}`;
     }
@@ -3903,7 +3933,7 @@ if (LIVE_MODE) (function liveMode() {
     const me = S ? `addis-4H: ${S.state === "signal" ? (S.aplus ? "⭐ A+ BUY SETUP" : "BUY SIGNAL") + " — stop " + tlFmt(S.stop) : S.state === "trade" ? "in a long, stop " + tlFmt(S.r.position.stop) : S.n + " of 3 filters agree"} (Trend lines ${tick(S.ck.rays)} · Volume ${tick(S.ck.volume)} · Oscillators ${tick(S.ck.osc)} ${F.oscLabel(S.ck.oscRating)} · Structure ${tick(S.ck.structure)})` : "";
     const others = list.filter((i) => i !== tlActive && scan[i]).map((i) => { const o = scan[i]; return `${tlSyms[i].name}: ${o.state === "signal" ? (o.aplus ? "⭐ A+ BUY" : "🟢 BUY") : o.state === "trade" ? "in a long" : o.n + "/3"}`; });
     const mq = [`${s.name} ${TFL} · ${tlFmt(price)}${chg == null ? "" : " (" + pctTxt(chg) + " 24h)"}`, `Bias ${txt("bsBias")}`, `${TFL} structure ${txt("bsTf")}`, `Trend rays: ${txt("bsRaySetup")}`, me,
-      `Liquidity above ${lq(above)} · below ${lq(below)}`, others.length ? "Watchlist — " + others.join(" · ") : "", "DXY top-left for reference", "Not financial advice · Addis-Trading Signals"].filter(Boolean).join("   ◆   ");
+      `Liquidity above ${lq(above)} · below ${lq(below)}`, others.length ? "Watchlist — " + others.join(" · ") : "", "DXY top-left for reference", `📲 Free alerts on Telegram: @${TG}`, "Not financial advice · Addis-Trading Signals"].filter(Boolean).join("   ◆   ");
     if (lastMqSym !== tlActive + "|" + tlTf) { lastMqSym = tlActive + "|" + tlTf; setMarq(mq); mqPending = null; $("lvMarqText").dataset.on = "1"; } else marquee(mq);
     // zoom in on the latest candles after switching symbol (after the follow-up refresh has drawn too)
     if (zoomFor === tlActive && bsChart) { zoomFor = null; const me = tlActive; [350, 1200, 3000].forEach((ms) => setTimeout(() => { if (tlActive === me) liveZoom(); }, ms)); }
@@ -3954,7 +3984,80 @@ if (LIVE_MODE) (function liveMode() {
   function alerts() {
     const act = list.filter((i) => scan[i] && scan[i].state !== "wait").map((i) => `<span class="${scan[i].state === "signal" ? "go" : "on"}">${scan[i].aplus ? "⭐" : scan[i].state === "signal" ? "🔔" : "●"} ${tlSyms[i].name}${scan[i].state === "trade" ? " in trade" : " signal"}</span>`);
     $("lvAlerts").innerHTML = act.join("");
+    scoreRender();
   }
+  // live scorecard: every addis-4H trade on the rotation symbols since SINCE, after fees + funding
+  function scoreRender() {
+    let n = 0, w = 0, tot = 0, open = 0, nOpen = 0, ap = 0, apN = 0;
+    const per = [];
+    for (const i of list) {
+      const o = scan[i]; if (!o || !o.pp) continue;
+      n += o.pp.n; w += o.pp.wins; tot += o.pp.total;
+      for (const t of o.pp.closed) if (t.aplus) { apN++; ap += t.net; }
+      if (o.pp.open) { nOpen++; open += o.pp.open.r; }
+      per.push(`${tlSyms[i].name.replace("USDT", "")} ${o.pp.n ? (o.pp.total >= 0 ? "+" : "") + o.pp.total.toFixed(1) + "R" : "0"}${o.pp.open ? ` (open ${(o.pp.open.r >= 0 ? "+" : "") + o.pp.open.r.toFixed(1)}R)` : ""}`);
+    }
+    const R = (x) => `<b class="${x >= 0 ? "up" : "dn"}">${(x >= 0 ? "+" : "") + x.toFixed(2)}R</b>`;
+    $("lvScore").innerHTML = `<div class="tot"><div>${n} <span>trades</span></div><div>${n ? Math.round(w / n * 100) + "%" : "—"} <span>wins</span></div><div>${n ? R(tot) : "<b>—</b>"} <span>total</span></div><div>${nOpen ? R(open) : "<b>—</b>"} <span>open</span></div></div>
+      <div class="per">${per.join("<span>·</span>") || "no trades yet"}${apN ? ` · ⭐ A+: ${apN} trades ${(ap >= 0 ? "+" : "") + ap.toFixed(1)}R` : ""}</div>`;
+    window.__liveScore = { n, w, tot, open };
+  }
+
+  // market sessions (local opening hours, shown in EAT)
+  const SESS = [["Tokyo", "Asia/Tokyo", 9, 18], ["London", "Europe/London", 8, 17], ["New York", "America/New_York", 8, 17]];
+  const offMin = (tz, d) => { const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" }).formatToParts(d).map((x) => [x.type, x.value])); return Math.round((Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute, +p.second) - d.getTime()) / 60000); };
+  const hm = (m) => `${String(Math.floor(((m % 1440) + 1440) % 1440 / 60)).padStart(2, "0")}:${String(((m % 60) + 60) % 60).padStart(2, "0")}`;
+  const dur = (m) => m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
+  function sessRender() {
+    const now = new Date(), open = [];
+    const rows = SESS.map(([name, tz, a, b]) => {
+      const off = offMin(tz, now), loc = (now.getTime() / 60000 + off), day = new Date(loc * 60000).getUTCDay();
+      const minOfDay = ((Math.floor(loc) % 1440) + 1440) % 1440;
+      const weekday = day >= 1 && day <= 5;
+      const on = weekday && minOfDay >= a * 60 && minOfDay < b * 60;
+      if (on) open.push(name);
+      const eatA = a * 60 - off + 180, eatB = b * 60 - off + 180;
+      let st, pct;
+      if (on) { st = `OPEN · ${dur(b * 60 - minOfDay)} left`; pct = (minOfDay - a * 60) / ((b - a) * 60) * 100; }
+      else {
+        let toOpen = minOfDay < a * 60 ? a * 60 - minOfDay : 1440 - minOfDay + a * 60;
+        let d = day; let m = toOpen; const nd = (x) => (x + 1) % 7;
+        if (minOfDay >= a * 60) d = nd(d);
+        while (d === 0 || d === 6) { m += 1440; d = nd(d); }
+        st = `opens in ${dur(m)}`; pct = 0;
+      }
+      return `<div class="row ${on ? "on" : "off"}"><b>${name}</b><small>${hm(eatA)}–${hm(eatB)}</small><div class="bar"><i style="width:${pct.toFixed(0)}%"></i></div><span class="st">${on ? "● " : "○ "}${st}</span></div>`;
+    });
+    const note = open.includes("London") && open.includes("New York") ? "🔥 London + New York overlap — usually the busiest hours" : open.length ? `${open.join(" + ")} open` : "Main markets closed — crypto still trades 24/7";
+    $("lvSess").innerHTML = rows.join("") + `<div class="note">${note}</div><div class="mus" id="lvMus"></div>`;
+    musicLabel();
+  }
+
+  // music by trend: music/bullish-1.mp3 … music/bearish-1.mp3 … music/neutral-1.mp3 … (downloaded from the YouTube Audio Library)
+  const MUSIC_ON = P.get("music") !== "0", MDIR = P.get("musicdir") || "music", VOL = Math.min(1, Math.max(0, +(P.get("vol") || 0.25)));
+  const au = new Audio(); au.volume = VOL; au.preload = "auto";
+  let mood = null, track = 0, playingMood = null, failures = 0, musicNote = "";
+  const moodOf = () => { const t = tlRes && tlRes.overall && tlRes.overall.trend; return t === "Up" ? "bullish" : t === "Down" ? "bearish" : "neutral"; };
+  function musicLabel() { const el = $("lvMus"); if (el) el.textContent = musicNote; }
+  function playNext(newMood) {
+    if (!MUSIC_ON) return;
+    if (newMood && newMood !== playingMood) { playingMood = newMood; track = 0; }
+    track++;
+    au.src = `${MDIR}/${playingMood}-${track}.mp3`;
+    au.play().then(() => { failures = 0; $("lvMusicHint").hidden = true; musicNote = `♪ ${playingMood} mood · track ${track}`; musicLabel(); })
+      .catch((e) => { if (e && e.name === "NotAllowedError") { $("lvMusicHint").hidden = false; track--; } });
+  }
+  au.addEventListener("ended", () => playNext(moodOf()));
+  au.addEventListener("error", () => {
+    // no file with this number: start this mood again from 1, or fall back to neutral; stop after a few misses
+    failures++;
+    if (failures > 3) { musicNote = MUSIC_ON ? `♪ no music files found in “${MDIR}/” — see LIVE.md` : ""; musicLabel(); return; }
+    if (track > 1) { track = 0; playNext(); } else if (playingMood !== "neutral") { playingMood = "neutral"; track = 0; playNext(); }
+    else { musicNote = `♪ no music files found in “${MDIR}/” — see LIVE.md`; musicLabel(); }
+  });
+  document.addEventListener("click", () => { if (MUSIC_ON && au.paused) { if (au.src) au.play().then(() => { $("lvMusicHint").hidden = true; }).catch(() => {}); else playNext(moodOf()); } });
+  // a mood change takes effect when the current track ends (fades nicely, no sudden cut)
+  setInterval(() => { mood = moodOf(); if (MUSIC_ON && !playingMood && tlRes) playNext(mood); }, 3000);
   let bannerTimer = null;
   function banner(name, aplus, stop, price) {
     const b = $("lvBanner");
@@ -3978,6 +4081,7 @@ if (LIVE_MODE) (function liveMode() {
     $("lvBar").style.width = (100 - left / (ROT_MIN * 60) * 100).toFixed(1) + "%";
     if (list.length > 1 && left === 0) go((pos + 1) % list.length);
     if (Date.now() - lastScan > 5 * 60e3) scanAll();
+    if (new Date().getSeconds() % 15 === 0 || !$("lvSess").innerHTML) sessRender();
   }, 1000);
   if (P.get("test") === "banner") setTimeout(() => banner(tlSyms[list[0]].name, true, 0, 0), 5000);
   go(0);

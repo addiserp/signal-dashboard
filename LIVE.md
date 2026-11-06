@@ -7,6 +7,11 @@
 - the **addis-4H** panel: status (waiting / 🟢 BUY / ⭐ A+ / in a long), the ✅/❌ checks and the stop
 - a chart-analysis summary (bias, 4H structure, trend rays, nearest liquidity)
 - a scrolling **ANALYSIS** marquee at the bottom, refreshed every minute, with the watchlist and "Not financial advice"
+- a bold **⚠ NOT FINANCIAL ADVICE** box in the top bar
+- a **live scorecard**: every addis-4H trade on the rotation symbols since 6 Nov 2026 (trades, wins, total R after fees and funding, open R, per symbol, and ⭐ A+ trades separately)
+- a **market-session clock**: Tokyo, London and New York with their hours in EAT, open/closed, time left, and the London + New York overlap
+- a **Telegram** tag in the bottom-right corner (and in the marquee): *📲 Free alerts on Telegram: @addistrading*
+- **music that follows the trend** (bullish / bearish / sideways) — see *Music* below
 - a new symbol every **5 minutes**, with a countdown in the top-right corner
 - a **signal banner** (🔔 BUY SIGNAL or ⭐ A+ BUY SETUP) that drops in for 60 seconds when any symbol in the rotation gets a new signal; the chart jumps to that symbol. All symbols are checked every 5 minutes.
 
@@ -24,9 +29,28 @@ Options, added to the link with `&`:
 | `rotate` | `&rotate=5` | minutes per symbol (the timeframes share this time equally) |
 | `tfs` | `&tfs=4h,1h,30m,15m,5m` | timeframes shown during each symbol's turn, in order |
 | `dxy` | `&dxy=CAPITALCOM:DXY` | the dollar-index symbol for the TradingView chart (default `CAPITALCOM:DXY`; TradingView doesn't allow `TVC:DXY` in embedded charts) |
+| `tg` | `&tg=addistrading` | the Telegram name shown on screen |
+| `since` | `&since=2026-11-06` | start date of the live scorecard |
+| `music` | `&music=0` | turn the music off |
+| `vol` | `&vol=0.25` | music volume, 0 to 1 |
+| `musicdir` | `&musicdir=music` | folder with the music files, next to the page |
 | `test=banner` | `&test=banner` | shows a sample A+ banner after 5 seconds — to check the layout in OBS |
 
 Opening Live mode does not change your normal app settings.
+
+## Music (YouTube Audio Library)
+
+The page plays music that matches the current symbol's top-down trend: **bullish** when the trend is up, **bearish** when it is down, **neutral** when it is sideways. A mood change waits until the current track ends, so the music never cuts off suddenly.
+
+1. **YouTube Studio → Audio library** (left menu). Filter: **Attribution not required** (so you don't have to credit anyone).
+2. Pick tracks by **Mood**: *Bright / Happy / Inspirational* for bullish, *Dark / Dramatic* for bearish, *Calm* for neutral. Genres like Ambient, Cinematic or Electronic work well behind a chart. Download about 3–5 of each.
+3. Make a folder called **`music`** next to the page file and rename the downloads exactly like this:
+   `bullish-1.mp3`, `bullish-2.mp3`, … · `bearish-1.mp3`, `bearish-2.mp3`, … · `neutral-1.mp3`, `neutral-2.mp3`, …
+   (numbers 1, 2, 3 … with no gaps). The page loops through each mood's tracks.
+4. Use the downloaded page file in OBS (Browser source → the `file:///…/Addis-Trading-Signals.html?live=1` link) so it finds the `music` folder. Don't upload the music to the public GitHub repository.
+5. In OBS, tick **Control audio via OBS** on the browser source, and set its volume in the OBS audio mixer. In a normal browser, click once on the page to start the music (browsers block autoplay with sound).
+
+The session box shows which mood and track is playing. If no files are found, the page simply stays silent.
 
 ## OBS Studio → YouTube (one time, ~10 minutes)
 
