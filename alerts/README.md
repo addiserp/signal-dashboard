@@ -85,7 +85,7 @@ The backtest says the system earned about +0.15R to +0.25R per trade. The scorec
 
 - `system` — `"filters"` (default, described above) or `"donchian"` (the older Donchian breakout alerts).
 - `filters` — the filters that must agree for a BUY (default `["rays", "volume", "osc"]`); `aplus` — the extra filters for ⭐ A+ (default `["structure"]`). Names: `structure`, `rays`, `liquidity`, `volume`, `fib`, `osc`.
-- `enabled` — turn a symbol on or off. BTCUSDT and crude oil are on; ETH and gold are off (gold lost money in the 4H backtest). To check other coins, open the app → **Backtest → ✅ Check Donchian 4H on all coins**; turn a coin on only if Donchian breakout shows at least +0.10R per trade over 60+ trades.
+- `enabled` — turn a symbol on or off. BTC, ZEC and ETH are on; gold (no edge in the backtest) and crude oil (too little history) are off. Before turning a coin on, run it in the app: **Backtest → Trend following → Six filters only** with Trend lines + Volume + Oscillators switched on; turn it on only with 60+ trades and +0.15R or more per trade.
 - `sides` — `"long"` (buy signals only — **the tested system**) or `"both"` (also sell signals when a candle closes below the 20-candle low; shorts were not backtested positive, and the message says so).
 - `accountUSDT` + `riskPct` — set your account size (e.g. `1000`) to get a position size in every buy message.
 - `leverage` — the leverage you use on Binance futures (e.g. `5`). The buy message shows the margin needed and the rough liquidation price, and warns if liquidation would come **before** your stop (lower the leverage if it does).
