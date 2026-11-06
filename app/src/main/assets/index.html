@@ -303,13 +303,13 @@
   </details>
 
   <section class="tv-card" id="dcCard">
-    <div class="card-title">✅ Tested system: Donchian 4H <small>the only system that tested positive (BTC 4H, 2022–2026, after fees + funding) · same rules as your Telegram alerts</small></div>
+    <div class="card-title">✅ Tested system: addis-4H <small>Trend lines + Volume + Oscillators · ⭐ A+ when the 1D structure agrees · same rules as your Telegram alerts</small></div>
     <div class="tv-top" id="dcTop"></div>
     <div class="dc-grid">
       <div>
-        <div class="card-sub">📒 Paper trading since <input type="date" id="dcSince" value="2026-10-27"> <small class="neutral">(after fees + funding)</small></div>
+        <div class="card-sub">📒 Paper trading since <input type="date" id="dcSince" value="2026-11-06"> <small class="neutral">(after fees + funding)</small></div>
         <div class="tv-top" id="dcPaper"></div>
-        <div style="overflow-x:auto"><table class="tt"><thead><tr><th>Entry</th><th>Side</th><th>Entry price</th><th>Exit price</th><th>Result</th></tr></thead><tbody id="dcTrades"></tbody></table></div>
+        <div style="overflow-x:auto"><table class="tt"><thead><tr><th>Entry</th><th>Setup</th><th>Entry price</th><th>Exit price</th><th>Result</th></tr></thead><tbody id="dcTrades"></tbody></table></div>
       </div>
       <div>
         <div class="card-sub">🧮 Trade calculator <small class="neutral">Binance USDT-M, isolated margin</small></div>
@@ -324,7 +324,7 @@
         <table class="tt"><tbody id="ccOut"></tbody></table>
       </div>
     </div>
-    <div class="msg">Rules: buy when a 4H candle closes above the highest high of the previous 20 candles; first stop 2×ATR below; then move the stop up to the lowest low of the last 10 candles. Paper results replay the same rules on the candles since the date above (up to the last ~5 months the app loads). Telegram alerts: <b>alerts/README.md</b> in your GitHub repository. Not financial advice.</div>
+    <div class="msg">Rules (long only): <b>buy</b> when Trend lines (above the 4H down ray, up ray holding), Volume (above its 20-candle average) and the Oscillators summary (Buy or Strong buy) all agree on a closed 4H candle; it is an <b>⭐ A+ setup</b> when the 1D Structure is bullish too. First stop 2×ATR below the close, then move it up to the lowest low of the last 10 candles; exit only at the stop. Backtest after fees: BTC 2018–2026 ≈ +0.46R per trade, A+ ≈ +0.60R. Paper results replay the same rules on the candles since the date above (up to the last ~5 months the app loads). Telegram alerts: <b>alerts/README.md</b> in your GitHub repository. Not financial advice.</div>
   </section>
 
   <section class="tv-card">
@@ -1820,34 +1820,41 @@ function dcRender() {
   }
   const nowS = Date.now() / 1000;
   const c = all.filter((x) => x.t + 14400 <= nowS);            // closed candles only
-  const r = DonchianCore.replay(c, { sides: "long" });
+  const d = ((tlData && tlData["1d"]) || []).filter((x) => x.t + 86400 <= nowS);
+  const F = DonchianFilters, NEED = 2 | 8 | 32, PLUS = 1;       // Trend lines + Volume + Oscillators; A+ = Structure
+  const r = F.replayFilters(F.context({ "4h": c, "1d": d }, "4h"), { need: NEED, plus: PLUS, sides: "long" });
+  r.hi20 = null;
   const live = all[all.length - 1].c;
   const p = r.position;
-  const tested = s.sym === "BTCUSDT" ? `<span class="badge bull">backtested: positive</span>` : s.sym === "XAUUSDT" ? `<span class="badge bear">backtest: lost money on gold</span>` : `<span class="badge neutral">not backtested on this symbol</span>`;
+  const T = { BTCUSDT: ["bull", "backtest 2018–2026: +0.46R/trade · A+ +0.60R"], ZECUSDT: ["bull", "backtest 2019–2026: +0.30R/trade · A+ +0.40R"], ETHUSDT: ["neutral", "tested long+short only: +0.28R/trade"], XAUUSDT: ["bear", "backtest: no edge on gold"] }[s.sym] || ["neutral", "not backtested on this symbol"];
+  const tested = `<span class="badge ${T[0]}">${T[1]}</span>`;
+  const tick = (ok) => ok ? "✅" : "❌";
+  const chk = (ck) => `${tick(ck.rays)} Trend lines · ${tick(ck.volume)} Volume · ${tick(ck.osc)} Oscillators <span class="neutral">· A+:</span> ${tick(ck.structure)} Structure`;
   let state;
   if (p) {
     const openR = (live - p.entry) / p.risk;
     dcLevels = { entry: live, stop: p.stop, label: "current price and the current stop" };
-    state = `<div><div class="muted">Status</div><div><span class="badge bull">IN A LONG</span></div></div>
+    state = `<div><div class="muted">Status</div><div><span class="badge bull">${p.aplus ? "⭐ A+ " : ""}IN A LONG</span></div></div>
       <div><div class="muted">Entry</div><div><b>${tlFmt(p.entry)}</b> <span class="neutral" style="font-size:11px">${new Date(p.entryT * 1000).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span></div></div>
       <div><div class="muted">Stop now</div><div><b>${tlFmt(p.stop)}</b> <span class="neutral" style="font-size:11px">${((p.stop - live) / live * 100).toFixed(2)}%</span></div></div>
       <div><div class="muted">Open result</div><div><b class="${openR >= 0 ? "bull" : "bear"}" style="background:none;border:0">${(openR >= 0 ? "+" : "") + openR.toFixed(2)}R</b></div></div>`;
   } else if (r.pending) {
     dcLevels = { entry: live, stop: r.pending.stop, label: "the signal's entry and stop" };
-    state = `<div><div class="muted">Status</div><div><span class="badge bull">BUY SIGNAL on the last 4H close</span></div></div>
-      <div><div class="muted">Stop to place</div><div><b>${tlFmt(r.pending.stop)}</b></div></div>`;
+    state = `<div><div class="muted">Status</div><div><span class="badge bull">${r.pending.aplus ? "⭐ A+ BUY SETUP" : "BUY SIGNAL"} on the last 4H close</span></div></div>
+      <div><div class="muted">Stop to place</div><div><b>${tlFmt(r.pending.stop)}</b></div></div>
+      <div style="flex-basis:100%"><div class="muted">Checks</div><div>${chk(r.now)}</div></div>`;
   } else {
-    const d = (r.hi20 - live) / live * 100;
-    const stop = Math.max(r.hi20, live) - 2 * r.atr;
-    dcLevels = { entry: Math.max(r.hi20, live), stop, label: "the breakout level and its 2×ATR stop" };
-    state = `<div><div class="muted">Status</div><div><span class="badge neutral">no trade — waiting for a breakout</span></div></div>
-      <div><div class="muted">Buy if a 4H candle closes above</div><div><b>${tlFmt(r.hi20)}</b> <span class="neutral" style="font-size:11px">${d >= 0 ? "+" : ""}${d.toFixed(2)}% from ${tlFmt(live)}</span></div></div>
+    const stop = live - 2 * r.atr;
+    const n = [r.now.rays, r.now.volume, r.now.osc].filter(Boolean).length;
+    dcLevels = { entry: live, stop, label: "the current price and a 2×ATR stop" };
+    state = `<div><div class="muted">Status</div><div><span class="badge neutral">no trade — waiting for the filters (${n}/3 agree)</span></div></div>
+      <div style="flex:1;min-width:240px"><div class="muted">Last 4H close</div><div>${chk(r.now)}</div></div>
       <div><div class="muted">First stop would be about</div><div>${tlFmt(stop)} <span class="neutral" style="font-size:11px">(2×ATR)</span></div></div>`;
   }
   box.innerHTML = `<div><div class="muted">Symbol</div><div class="big">${s.name}</div><div style="margin-top:4px">${tested}</div></div>` + state;
 
   // paper trading since the chosen date
-  const sinceStr = document.getElementById("dcSince").value || "2026-10-27";
+  const sinceStr = document.getElementById("dcSince").value || "2026-11-06";
   const since = Date.parse(sinceStr + "T00:00:00Z") / 1000;
   const pp = DonchianCore.paper(r.trades, p, c[c.length - 1], since);
   const firstT = c[0].t;
@@ -1858,7 +1865,8 @@ function dcRender() {
     <div><div class="muted">Total</div><div class="big ${pp.total >= 0 ? "bull" : "bear"}" style="background:none;border:0">${pp.n ? (pp.total >= 0 ? "+" : "") + pp.total.toFixed(2) + "R" : "—"}</div></div>
     <div><div class="muted">Open trade</div><div class="big">${pp.open ? `<span class="${pp.open.r >= 0 ? "bull" : "bear"}" style="background:none;border:0">${(pp.open.r >= 0 ? "+" : "") + pp.open.r.toFixed(2)}R</span>` : "—"}</div></div>${cover}`;
   const tr = pp.closed.slice(-8).reverse();
-  document.getElementById("dcTrades").innerHTML = tr.length ? tr.map((t) => `<tr><td>${new Date(t.t * 1000).toLocaleDateString()}</td><td>${t.dir > 0 ? "long" : "short"}</td><td>${tlFmt(t.entry)}</td><td>${tlFmt(t.exit)}</td><td><b class="${t.net > 0 ? "bull" : "bear"}" style="background:none;border:0">${(t.net >= 0 ? "+" : "") + t.net.toFixed(2)}R</b></td></tr>`).join("") : `<tr><td colspan="5" class="neutral">No closed trades since ${new Date(since * 1000).toLocaleDateString()} yet — that's normal: this system trades a few times a month.</td></tr>`;
+  document.getElementById("dcTrades").innerHTML = tr.length ? tr.map((t) => `<tr><td>${new Date(t.t * 1000).toLocaleDateString()}</td><td>${t.aplus ? "⭐ A+" : "normal"}</td><td>${tlFmt(t.entry)}</td><td>${tlFmt(t.exit)}</td><td><b class="${t.net > 0 ? "bull" : "bear"}" style="background:none;border:0">${(t.net >= 0 ? "+" : "") + t.net.toFixed(2)}R</b></td></tr>`).join("") : `<tr><td colspan="5" class="neutral">No closed trades since ${new Date(since * 1000).toLocaleDateString()} yet — that's normal: this system trades a few times a month.</td></tr>`;
+  document.getElementById("dcTrades").dataset.sys = "addis-4H";
   if (!ccTouched) ccFill(); else ccRender();
 }
 
@@ -1903,13 +1911,13 @@ function ccRender() {
   for (const id of ["ccEntry", "ccStop"]) document.getElementById(id).addEventListener("input", () => { ccTouched = true; ccRender(); });
   document.getElementById("ccFill").onclick = ccFill;
   const since = document.getElementById("dcSince");
-  since.value = load("tvdash.dcSince", "2026-10-27");
-  since.addEventListener("change", () => { save("tvdash.dcSince", since.value); dcRender(); });
+  since.value = load("tvdash.a4Since", "2026-11-06");
+  since.addEventListener("change", () => { save("tvdash.a4Since", since.value); dcRender(); });
 })();
 
 function bsRender() {
   if (!tlData) return;
-  try { dcRender(); } catch (e) { console.warn("Donchian card:", e); }
+  try { dcRender(); } catch (e) { console.warn("addis-4H card:", e); }
   if (bsEnsureChart() === false) { window.addEventListener("load", () => bsRender(), { once: true }); return; }
   document.getElementById("bsLoading").hidden = true;
   bsRes = StructureEngine.analyze(tlData, TrendEngine.ORDER);
@@ -2994,6 +3002,62 @@ function bsCards(ov, vol, price, tfLabel, R) {
     return trades;
   }
 
+  // live replay of the filters-only system (trailing-stop exit) for the Telegram alerts.
+  // need = filters that must all agree to signal; plus = extra filters that make it an A+ setup.
+  // Same rules as runFiltersOnly(…, "trail"), plus the events the alerts need.
+  function replayFilters(X, opts = {}) {
+    const { c } = X;
+    const need = opts.need, plus = opts.plus || 0, sides = opts.sides || "long", warm = opts.warm == null ? 210 : opts.warm;
+    const M = masks(X, sides);
+    const mk = (k, dir) => dir > 0 ? M.L[k] : M.S[k];
+    const ok = (k, dir) => (mk(k, dir) & need) === need;
+    const events = [], trades = [];
+    let pos = null, pending = null;
+    const closePos = (k, price, how) => {
+      const r = pos.dir * (price - pos.entry) / pos.risk;
+      trades.push({ dir: pos.dir, t: c[pos.entryIdx].t, exitT: c[k].t, entry: pos.entry, stop0: pos.stop0, exit: price, how, r, aplus: pos.aplus });
+      events.push({ k, t: c[k].t, type: "exit", dir: pos.dir, price, entry: pos.entry, r, how, aplus: pos.aplus });
+      pos = null;
+    };
+    for (let k = 1; k < c.length; k++) {
+      const x = c[k];
+      if (pending && !pos) {
+        if (pending.dir > 0 ? x.o > pending.stop : x.o < pending.stop) {
+          pos = { dir: pending.dir, entry: x.o, entryIdx: k, stop: pending.stop, stop0: pending.stop, risk: Math.abs(x.o - pending.stop), aplus: pending.aplus };
+          events.push({ k, t: x.t, type: "filled", dir: pos.dir, price: x.o, stop: pos.stop });
+        } else events.push({ k, t: x.t, type: "skipped", dir: pending.dir, price: x.o, stop: pending.stop });
+        pending = null;
+      }
+      if (pos) {
+        if (pos.dir > 0 && x.l <= pos.stop) closePos(k, Math.min(x.o, pos.stop), "stop");
+        else if (pos.dir < 0 && x.h >= pos.stop) closePos(k, Math.max(x.o, pos.stop), "stop");
+      }
+      if (k < warm) continue;
+      const A = X.atr[k];
+      if (pos) {
+        let lo = Infinity, hi = -Infinity;
+        for (let m = k - 9; m <= k; m++) { lo = Math.min(lo, c[m].l); hi = Math.max(hi, c[m].h); }
+        const next = pos.dir > 0 ? Math.max(pos.stop, lo) : Math.min(pos.stop, hi);
+        if (next !== pos.stop) { events.push({ k, t: x.t, type: "stop", dir: pos.dir, from: pos.stop, stop: next, price: x.c }); pos.stop = next; }
+        continue;
+      }
+      for (const dir of sides === "both" ? [1, -1] : [1]) {
+        if (!ok(k, dir) || ok(k - 1, dir)) continue;
+        const ck = checks(X, k, dir);
+        const aplus = plus ? (mk(k, dir) & plus) === plus : false;
+        pending = { dir, stop: dir > 0 ? x.c - 2 * A : x.c + 2 * A, aplus };
+        events.push({ k, t: x.t, type: "signal", dir, price: x.c, stop: pending.stop, atr: A, checks: ck, aplus });
+        break;
+      }
+    }
+    const k = c.length - 1;
+    return {
+      events, trades, pending, last: c[k], atr: X.atr[k],
+      position: pos ? { dir: pos.dir, entry: pos.entry, entryT: c[pos.entryIdx].t, stop: pos.stop, stop0: pos.stop0, risk: pos.risk, aplus: pos.aplus, openR: pos.dir * (c[k].c - pos.entry) / pos.risk } : null,
+      now: checks(X, k, 1),
+    };
+  }
+
   function summarize(trades, riskPct) {
     const n = trades.length;
     if (!n) return { n: 0 };
@@ -3027,7 +3091,7 @@ function bsCards(ov, vol, price, tfLabel, R) {
     return { combos, pass, base, trades: lastTrades, hasVol: X.hasVol, ctx: X, only, on };
   }
 
-  const api = { FILTERS, KEYS, study, checks, context, runDonchian, runFiltersOnly, masks, oscRating, oscLabel, summarize, maskOf };
+  const api = { FILTERS, KEYS, study, checks, context, runDonchian, runFiltersOnly, replayFilters, masks, oscRating, oscLabel, summarize, maskOf };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.DonchianFilters = api;
 })(typeof window !== "undefined" ? window : globalThis);
