@@ -22,6 +22,7 @@ Options, added to the link with `&`:
 | --- | --- | --- |
 | `syms` | `&syms=BTCUSDT,ETHUSDT,ZECUSDT,XAUUSDT,CLUSDT` | symbols to rotate (the default list) |
 | `rotate` | `&rotate=5` | minutes per symbol |
+| `dxy` | `&dxy=CAPITALCOM:DXY` | the dollar-index symbol for the TradingView chart (default `CAPITALCOM:DXY`; TradingView doesn't allow `TVC:DXY` in embedded charts) |
 | `test=banner` | `&test=banner` | shows a sample A+ banner after 5 seconds — to check the layout in OBS |
 
 Opening Live mode does not change your normal app settings.
