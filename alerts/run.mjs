@@ -1,4 +1,7 @@
-// AddisERP Signals — Donchian 4H alerts to Telegram.
+// AddisERP Signals — 4H alerts to Telegram.
+// System "filters" (default): BUY when Trend lines + Volume + Oscillators agree on a closed 4H candle,
+// ⭐ A+ when the 1D Structure agrees too. Stop 2×ATR, trailed to the 10-candle low.
+// System "donchian": the older Donchian breakout (set "system": "donchian" in config.json).
 // Runs on GitHub Actions (every 15 min when triggered by cron-job.org; GitHub's own schedule is often
 // hours late). For each enabled symbol it downloads recent 4H candles, replays the Donchian system
 // (same rules as the app's backtest) and sends a Telegram message for every signal, stop move or
@@ -16,7 +19,14 @@ import { createRequire } from "node:module";
 const here = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 const D = require("./donchian-core.js");
+
 const cfg = JSON.parse(readFileSync(join(here, "config.json"), "utf8"));
+const F = require("./dfilters.js");
+const SYSTEM = cfg.system || "filters";
+const bits = (names) => (names || []).reduce((m, n) => { const b = F.KEYS.indexOf(n); if (b < 0) throw new Error(`unknown filter "${n}" in config.json (use ${F.KEYS.join(", ")})`); return m | (1 << b); }, 0);
+const NEED = bits(cfg.filters || ["rays", "volume", "osc"]), PLUS = bits(cfg.aplus || ["structure"]);
+const NEED_NAMES = F.KEYS.filter((k, b) => NEED & (1 << b)).map((k) => F.FILTERS[k].name);
+const SYS_NAME = SYSTEM === "filters" ? "4H Filters" : "4H Donchian";
 const MODE = (process.env.MODE || "auto").toLowerCase();
 // trim spaces / line breaks that sneak in when pasting secrets
 const TOKEN = (process.env.TELEGRAM_BOT_TOKEN || "").trim();
@@ -51,7 +61,13 @@ async function binance(kind, symbol) {
     try {
       const j = await getJSON(u);
       if (!Array.isArray(j)) throw new Error(j && j.msg ? j.msg : "bad data");
-      const all = j.map((k) => ({ t: Math.floor(k[0] / 1000), o: +k[1], h: +k[2], l: +k[3], c: +k[4] }));
+      const all = j.map((k) => ({ t: Math.floor(k[0] / 1000), o: +k[1], h: +k[2], l: +k[3], c: +k[4], v: +k[5] }));
+      if (SYSTEM === "filters") {
+        const du = u.replace("interval=4h", "interval=1d").replace(/limit=\d+/, "limit=500");
+        const dj = await getJSON(du);
+        const day = dj.map((k) => ({ t: Math.floor(k[0] / 1000), o: +k[1], h: +k[2], l: +k[3], c: +k[4], v: +k[5] })).filter((x) => x.t + 86400 <= now);
+        return { closed: closedOnly(all), live: openCandle(all), daily: day };
+      }
       return { closed: closedOnly(all), live: openCandle(all) };
     } catch (e) { err = e; }
   }
@@ -64,15 +80,18 @@ async function yahoo(symbol) {
   const r = j && j.chart && j.chart.result && j.chart.result[0];
   if (!r || !r.timestamp) throw new Error("no Yahoo data");
   const q = r.indicators.quote[0];
-  const out = [];
+  const out = [], day = [];
+  const group = (arr, sec, ts, o, h, l, c, v) => {
+    const b = Math.floor(ts / sec) * sec, L = arr[arr.length - 1];
+    if (L && L.t === b) { L.h = Math.max(L.h, h); L.l = Math.min(L.l, l); L.c = c; L.v += v; }
+    else arr.push({ t: b, o, h, l, c, v });
+  };
   r.timestamp.forEach((ts, i) => {
-    const o = q.open[i], h = q.high[i], l = q.low[i], c = q.close[i];
-    if ([o, h, l, c].some((v) => v == null)) return;
-    const b = Math.floor(ts / TF_SEC) * TF_SEC, L = out[out.length - 1];
-    if (L && L.t === b) { L.h = Math.max(L.h, h); L.l = Math.min(L.l, l); L.c = c; }
-    else out.push({ t: b, o, h, l, c });
+    const o = q.open[i], h = q.high[i], l = q.low[i], c = q.close[i], v = (q.volume && q.volume[i]) || 0;
+    if ([o, h, l, c].some((x) => x == null)) return;
+    group(out, TF_SEC, ts, o, h, l, c, v); group(day, 86400, ts, o, h, l, c, v);
   });
-  return { closed: closedOnly(out), live: openCandle(out) };
+  return { closed: closedOnly(out), live: openCandle(out), daily: day.filter((x) => x.t + 86400 <= now) };
 }
 
 async function candles(sym) {
@@ -81,7 +100,7 @@ async function candles(sym) {
     try {
       const d = s.type === "yahoo" ? await yahoo(s.symbol) : await binance(s.type, s.symbol);
       if (d.closed.length < 240) throw new Error(`only ${d.closed.length} candles`);
-      return { c: d.closed, live: d.live, source: `${s.type === "yahoo" ? "Yahoo" : "Binance"} ${s.symbol}` };
+      return { c: d.closed, live: d.live, daily: d.daily, source: `${s.type === "yahoo" ? "Yahoo" : "Binance"} ${s.symbol}` };
     } catch (e) { errors.push(`${s.type} ${s.symbol}: ${e.message}`); }
   }
   throw new Error(errors.join(" | "));
@@ -115,11 +134,11 @@ function recordPaper(state, sym, res) {
   state.ledger = state.ledger || {};
   for (const t of res.trades) {
     if (t.t < LIVE_SINCE) continue;
-    state.ledger[`${sym.name}|${t.t}`] = { sym: sym.name, dir: t.dir, t: t.t, exitT: t.exitT, entry: t.entry, stop0: t.stop0, exit: t.exit, net: D.netR(t, COST) };
+    state.ledger[`${sym.name}|${SYSTEM}|${t.t}`] = { sym: sym.name, sys: SYSTEM, dir: t.dir, t: t.t, exitT: t.exitT, entry: t.entry, stop0: t.stop0, exit: t.exit, net: D.netR(t, COST) };
   }
 }
 function paperOf(state, name) {
-  const trades = Object.values(state.ledger || {}).filter((x) => x.sym === name);
+  const trades = Object.values(state.ledger || {}).filter((x) => x.sym === name && (x.sys || "donchian") === SYSTEM);
   const total = trades.reduce((a, x) => a + x.net, 0);
   return { n: trades.length, wins: trades.filter((x) => x.net > 0).length, total };
 }
@@ -145,11 +164,29 @@ function lateSignalAdvice(ev, res, livePrice) {
   return `\n✅ <b>Still OK to enter:</b> ${where}`;
 }
 
+const tick = (ok) => ok ? "✅" : "❌";
+function checksLine(ck) {
+  const main = F.KEYS.filter((k, b) => NEED & (1 << b)).map((k) => `${tick(ck[k])} ${F.FILTERS[k].name}`).join(" · ");
+  const plus = F.KEYS.filter((k, b) => PLUS & (1 << b)).map((k) => `${tick(ck[k])} ${F.FILTERS[k].name}`).join(" · ");
+  return main + (plus ? `\nA+ check: ${plus}` : "");
+}
 function eventMessage(sym, ev, res, source, livePrice) {
-  const tag = `<b>${sym.name} · 4H Donchian</b>`;
+  const tag = `<b>${sym.name} · ${SYS_NAME}</b>`;
   const closeT = ev.t + TF_SEC;
   const late = now - closeT > LATE_SEC;
   const lateHead = late ? `⏰ <b>Late alert</b> — the 4H candle closed at ${eat(closeT)}, ${ago(closeT)} ago.\n` : "";
+  if (ev.type === "signal" && SYSTEM === "filters") {
+    const side = ev.dir > 0 ? "BUY" : "SELL";
+    const short = ev.dir < 0 ? `\n⚠️ Short trades tested weaker — long only is the tested system.` : "";
+    const head = ev.aplus ? `⭐ <b>A+ ${side} setup</b> — all filters agree, including the 1D structure` : `<b>${side} signal</b> — ${NEED_NAMES.join(" + ")} agree`;
+    return `${lateHead}${ev.dir > 0 ? "🟢" : "🔻"} ${tag} — ${head}
+${checksLine(ev.checks)}
+Close <b>${fmt(ev.price)}</b> · oscillators ${F.oscLabel(ev.checks.oscRating)}
+${late ? `Planned entry: next candle open at ${eat(closeT)}` : `Enter: market order now (next candle opened ${eat(closeT)})`}
+Stop: <b>${fmt(ev.stop)}</b> (2×ATR, ${pct(ev.stop, ev.price)}), then trail to the 10-candle low${sizeLine(ev.price, ev.stop, ev.dir)}${late ? lateSignalAdvice(ev, res, livePrice) : ""}${short}
+${sym.tested ? `Backtest ${sym.tested.replace(/^Backtest /, "")}` : ""}
+<i>${source} · candle ${when(ev.t)}</i>`;
+  }
   if (ev.type === "signal") {
     const side = ev.dir > 0 ? "BUY" : "SELL";
     const short = ev.dir < 0 ? `\n⚠️ Short trades were not backtested positive — long only is the tested system.` : "";
@@ -171,7 +208,7 @@ New 10-candle ${ev.dir > 0 ? "low" : "high"} after the ${eat(closeT)} close; pri
     const net = tr ? D.netR(tr, COST) : ev.r;
     const p = paperOf(state, sym.name);
     return `${lateHead}🔴 ${tag} — <b>stop hit at ${fmt(ev.price)}</b>
-Trade closed: <b>${R(net)}</b> after fees and funding (${R(ev.r)} before), entry ${fmt(ev.entry)}. Waiting for the next breakout.
+Trade closed: <b>${R(net)}</b> after fees and funding (${R(ev.r)} before), entry ${fmt(ev.entry)}. Waiting for the next ${SYSTEM === "filters" ? "signal" : "breakout"}.
 📒 Paper trading since ${sinceText}: ${p.n} trade${p.n === 1 ? "" : "s"}, ${p.wins} win${p.wins === 1 ? "" : "s"}, <b>${R(p.total)}</b>
 <i>${source} · candle ${when(ev.t)}</i>`;
   }
@@ -181,7 +218,7 @@ Trade closed: <b>${R(net)}</b> after fees and funding (${R(ev.r)} before), entry
 function earlyMessage(sym, res, live, source) {
   const closeT = live.t + TF_SEC;
   const mins = Math.max(0, Math.round((closeT - now) / 60));
-  return `⚡ <b>${sym.name} · 4H Donchian</b> — <b>breakout forming</b>
+  return `⚡ <b>${sym.name} · ${SYS_NAME}</b> — <b>breakout forming</b>
 Price ${fmt(live.c)} is above the 20-candle high (${fmt(res.hi20)}) while the 4H candle is still open.
 It becomes a BUY signal only if the candle <b>closes</b> above ${fmt(res.hi20)} at ${eat(closeT)} (in about ${mins >= 60 ? Math.floor(mins / 60) + "h " : ""}${mins % 60} min).
 Don't buy yet — wait for the close message.
@@ -190,7 +227,12 @@ Don't buy yet — wait for the close message.
 
 function statusLine(sym, res, source) {
   const p = res.position;
-  if (p) return `• <b>${sym.name}</b>: in a ${p.dir > 0 ? "long" : "short"} since ${when(p.entryT)} — entry ${fmt(p.entry)}, stop <b>${fmt(p.stop)}</b>, now ${fmt(res.last.c)} (${R(p.openR)})`;
+  if (SYSTEM === "filters" && !p && !res.pending) {
+    const ck = res.now;
+    const n = F.KEYS.filter((k, b) => NEED & (1 << b)).filter((k) => ck[k]).length;
+    return `• <b>${sym.name}</b>: no trade, price ${fmt(res.last.c)}. Filters now: ${F.KEYS.filter((k, b) => (NEED | PLUS) & (1 << b)).map((k) => `${tick(ck[k])} ${F.FILTERS[k].name}`).join(" · ")} (${n}/${NEED_NAMES.length} needed agree)`;
+  }
+  if (p) return `• <b>${sym.name}</b>: ${p.aplus ? "⭐ A+ " : ""}in a ${p.dir > 0 ? "long" : "short"} since ${when(p.entryT)} — entry ${fmt(p.entry)}, stop <b>${fmt(p.stop)}</b>, now ${fmt(res.last.c)} (${R(p.openR)})`;
   if (res.pending) return `• <b>${sym.name}</b>: signal on the last candle — enter at market, stop ${fmt(res.pending.stop)}`;
   return `• <b>${sym.name}</b>: no trade. Buy signal if a 4H candle closes above <b>${fmt(res.hi20)}</b> (${pct(res.hi20, res.last.c)} away); price ${fmt(res.last.c)}`;
 }
@@ -265,7 +307,12 @@ for (const sym of cfg.symbols.filter((s) => s.enabled)) {
   let data;
   try { data = await candles(sym); }
   catch (e) { problems.push(`${sym.name}: ${e.message}`); console.error(`${sym.name}: ${e.message}`); continue; }
-  const res = D.replay(data.c, { sides: sym.sides || "long" });
+  let res;
+  if (SYSTEM === "filters") {
+    if (!data.daily || data.daily.length < 40) { problems.push(`${sym.name}: not enough daily candles for the filters`); continue; }
+    const X = F.context({ "4h": data.c, "1d": data.daily }, "4h");
+    res = F.replayFilters(X, { need: NEED, plus: PLUS, sides: sym.sides || "long" });
+  } else res = D.replay(data.c, { sides: sym.sides || "long" });
   recordPaper(state, sym, res);
   status.push(statusLine(sym, res, data.source));
   opens[sym.name] = res.position && res.position.entryT >= LIVE_SINCE ? D.netR({ dir: res.position.dir, entry: res.position.entry, stop0: res.position.stop0, t: res.position.entryT, exit: res.last.c, exitT: res.last.t }, COST) : null;
@@ -274,7 +321,7 @@ for (const sym of cfg.symbols.filter((s) => s.enabled)) {
   console.log(`${sym.name}: ${data.c.length} candles from ${data.source}, last closed ${when(res.last.t)}${fresh ? "" : " (stale)"}`);
   if (MODE !== "auto" || !fresh) continue;
   // early warning: the live (still open) candle is above the breakout level — once per candle
-  if (cfg.earlyWarning !== false && data.live && !res.position && !res.pending && data.live.h > res.hi20 && data.live.c > res.hi20) {
+  if (SYSTEM !== "filters" && cfg.earlyWarning !== false && data.live && !res.position && !res.pending && data.live.h > res.hi20 && data.live.c > res.hi20) {
     const key = `${sym.name}|early|${data.live.t}`;
     if (!state.sent[key]) { await send(earlyMessage(sym, res, data.live, data.source)); state.sent[key] = now; sentCount++; }
   }
@@ -300,7 +347,7 @@ const today = new Date().toISOString().slice(0, 10);
 const hourUTC = new Date().getUTCHours();
 const wantSummary = MODE === "test" || MODE === "summary" || (MODE === "auto" && hourUTC >= cfg.dailySummaryHourUTC && state.summaryDay !== today);
 if (wantSummary) {
-  const head = MODE === "test" ? "✅ <b>AddisERP Signals alerts are working</b>" : "☀️ <b>Daily status · 4H Donchian</b>";
+  const head = MODE === "test" ? "✅ <b>AddisERP Signals alerts are working</b>" : "☀️ <b>Daily status · ${SYS_NAME}</b>";
   const body = status.length ? status.join("\n") : "No symbol could be loaded.";
   // paper-trading scorecard (net of fees and funding)
   const names = cfg.symbols.filter((s) => s.enabled).map((s) => s.name);

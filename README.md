@@ -5,7 +5,7 @@ The one backtested system (Donchian 4H breakout) with paper-trading log and posi
 - `docs/` – installable web app (PWA). Turn on GitHub Pages (Settings → Pages → Branch `main`, folder `/docs`) to host it, then open the link on your phone and choose **Install app** / **Add to Home Screen**.
 - Android app (WebView) – the rest of this repository. GitHub Actions builds `AddisERP-Signals.apk` on every push: **Actions → Build Android APK → latest run → Artifacts**.
 
-- `alerts/` – Telegram alerts for the Donchian 4H system (BTC + crude oil), run by GitHub every 15 minutes, with a live paper-trading scorecard. Setup: [alerts/README.md](alerts/README.md).
+- `alerts/` – Telegram alerts for the 4H filter system (Trend lines + Volume + Oscillators, ⭐ A+ when the 1D structure agrees), checked every 15 minutes, with a live paper-trading scorecard. Setup: [alerts/README.md](alerts/README.md).
 - **APK updates without uninstalling:** add the signing key once — see [SIGNING.md](SIGNING.md).
 
 To update the dashboard, replace `docs/index.html` and `app/src/main/assets/index.html` with the new version.

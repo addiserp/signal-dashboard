@@ -1,11 +1,19 @@
-# Donchian 4H alerts on Telegram
+# 4H filter alerts on Telegram
 
-Every 15 minutes (after step 5 below), GitHub checks the latest **closed 4H candle** for each enabled symbol and sends you a Telegram message when the Donchian system (the one that tested positive on BTC 4H):
+Every 15 minutes (after step 5 below), GitHub checks the latest **closed 4H candle** for each enabled symbol and sends you a Telegram message from the **filter system** built on the app's own indicators:
+
+- **🟢 BUY signal** — **Trend lines + Volume + Oscillators** all agree on a closed 4H candle (after they did not all agree on the candle before)
+  - Trend lines: price is above the 4H down ray and the 4H up ray still holds
+  - Volume: the candle's volume is above its 20-candle average
+  - Oscillators: the TradingView-style oscillators summary is Buy or Strong buy
+- **⭐ A+ setup** — the same, and the **1D Structure** agrees too (latest daily BOS/CHoCH is up)
+- Stop: 2×ATR below the close, then trailed up to the lowest low of the last 10 candles. Exit only at the stop.
+
+Backtest, long only, after fees and funding: BTC 2018–2026 ≈ +0.46R per trade (393 trades), A+ ≈ +0.60R (245 trades); ZEC 2019–2026 ≈ +0.30R, A+ ≈ +0.40R. Gold showed no edge, so it is off. Each message lists every check (✅/❌).
 
 | Message | When |
 | --- | --- |
-| ⚡ **Breakout forming** | early warning: the live price is above the 20-candle high while the 4H candle is still open (once per candle — don't buy yet) |
-| 🟢 **BUY signal** | a 4H candle closes above the highest high of the previous 20 candles — with the stop to place (2×ATR) |
+| 🟢 **BUY signal** / ⭐ **A+ BUY setup** | the filters agree on a closed 4H candle — with the stop to place and the size |
 | 🔼 **Move your stop** | while in a trade, the 10-candle low rises — the new stop level |
 | 🔴 **Stop hit** | the trade is closed, with the result in R after fees and funding, and the running paper-trading total |
 | ☀️ **Daily status** | once a day (05:00 UTC = 08:00 Addis Ababa): position, stop, or the breakout level to watch, plus the 📒 paper-trading scorecard |
@@ -75,6 +83,8 @@ The backtest says the system earned about +0.15R to +0.25R per trade. The scorec
 
 ## Settings (`alerts/config.json`)
 
+- `system` — `"filters"` (default, described above) or `"donchian"` (the older Donchian breakout alerts).
+- `filters` — the filters that must agree for a BUY (default `["rays", "volume", "osc"]`); `aplus` — the extra filters for ⭐ A+ (default `["structure"]`). Names: `structure`, `rays`, `liquidity`, `volume`, `fib`, `osc`.
 - `enabled` — turn a symbol on or off. BTCUSDT and crude oil are on; ETH and gold are off (gold lost money in the 4H backtest). To check other coins, open the app → **Backtest → ✅ Check Donchian 4H on all coins**; turn a coin on only if Donchian breakout shows at least +0.10R per trade over 60+ trades.
 - `sides` — `"long"` (buy signals only — **the tested system**) or `"both"` (also sell signals when a candle closes below the 20-candle low; shorts were not backtested positive, and the message says so).
 - `accountUSDT` + `riskPct` — set your account size (e.g. `1000`) to get a position size in every buy message.

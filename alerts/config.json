@@ -1,63 +1,100 @@
 {
+  "system": "filters",
+  "filters": [
+    "rays",
+    "volume",
+    "osc"
+  ],
+  "aplus": [
+    "structure"
+  ],
   "timeframe": "4h",
   "riskPct": 1,
   "accountUSDT": 0,
+  "leverage": 5,
+  "feePct": 0.05,
+  "fundingPct": 0.01,
+  "liveSince": "2026-11-06",
   "dailySummaryHourUTC": 5,
   "stopUpdates": true,
-  "earlyWarning": true,
+  "earlyWarning": false,
   "symbols": [
     {
       "name": "BTCUSDT",
       "enabled": true,
-      "sides": "both",
-      "tested": "Backtest 2022–2026: +0.15R to +0.25R per trade after fees and funding",
+      "sides": "long",
+      "tested": "Backtest 2018–2026 (long): +0.46R/trade, A+ +0.60R/trade",
       "sources": [
-        { "type": "binance-spot",
+        {
+          "type": "binance-spot",
           "symbol": "BTCUSDT"
         },
-        { "type": "yahoo",
+        {
+          "type": "yahoo",
           "symbol": "BTC-USD"
         }
       ]
     },
     {
-      "name": "Crude oil (WTI)",
+      "name": "ZECUSDT",
       "enabled": true,
-      "sides": "both",
-      "tested": "Not backtested yet (Binance CLUSDT exists only since April 2026) — use small size",
+      "sides": "long",
+      "tested": "Backtest 2019–2026 (long): +0.30R/trade, A+ +0.40R/trade",
       "sources": [
-        { "type": "binance-futures",
-          "symbol": "CLUSDT"
+        {
+          "type": "binance-spot",
+          "symbol": "ZECUSDT"
         },
-        { "type": "yahoo",
-          "symbol": "CL=F"
+        {
+          "type": "yahoo",
+          "symbol": "ZEC-USD"
         }
       ]
     },
     {
       "name": "ETHUSDT",
       "enabled": true,
-      "sides": "both",
-      "tested": "Run the trend backtest first",
+      "sides": "long",
+      "tested": "Backtest 2018–2026 (long+short): +0.28R/trade — long only not tested yet, trade small",
       "sources": [
-        { "type": "binance-spot",
+        {
+          "type": "binance-spot",
           "symbol": "ETHUSDT"
         },
-        { "type": "yahoo",
+        {
+          "type": "yahoo",
           "symbol": "ETH-USD"
         }
       ]
     },
     {
-      "name": "Gold (XAU)",
-      "enabled": true,
-      "sides": "both",
-      "tested": "Backtest: Donchian 4H lost money on gold — keep disabled",
+      "name": "Crude oil (WTI)",
+      "enabled": false,
+      "sides": "long",
+      "tested": "Only 6 months of history — too few trades to judge",
       "sources": [
-        { "type": "binance-futures",
+        {
+          "type": "binance-futures",
+          "symbol": "CLUSDT"
+        },
+        {
+          "type": "yahoo",
+          "symbol": "CL=F"
+        }
+      ]
+    },
+    {
+      "name": "Gold (XAU)",
+      "enabled": false,
+      "sides": "long",
+      "tested": "Backtest: no edge on gold (≈0R per trade) — keep off",
+      "sources": [
+        {
+          "type": "binance-futures",
           "symbol": "XAUUSDT"
         },
-        { "type": "yahoo",
+        {
+          "type": "yahoo",
           "symbol": "GC=F"
         }
       ]
