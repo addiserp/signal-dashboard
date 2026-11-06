@@ -335,7 +335,7 @@
 <div id="liveRoot">
   <div class="lv-top">
     <img id="lvLogo" alt=""><span class="lv-brand">AddisERP Signals</span><span class="lv-live">● LIVE</span>
-    <span class="lv-sym" id="lvSym">—</span><span class="lv-tf">4H</span>
+    <span class="lv-sym" id="lvSym">—</span><span class="lv-tf" id="lvTf">4H</span>
     <span class="lv-price" id="lvPrice">—</span><span id="lvChg"></span>
     <div class="lv-alerts" id="lvAlerts"></div>
     <div class="lv-right"><div id="lvClock">—</div><div id="lvNext"></div></div>
@@ -922,6 +922,8 @@ document.getElementById("saveBtn").onclick = () => {
     "4h":  { sec: 4 * 3600,      tail: 3, piv: 3, label: "4 hours" },
     "1h":  { sec: 3600,          tail: 3, piv: 3, label: "1 hour" },
     "15m": { sec: 900,           tail: 3, piv: 3, label: "15 min" },
+    "30m": { sec: 1800,          tail: 3, piv: 3, label: "30 min" },
+    "5m":  { sec: 300,           tail: 3, piv: 3, label: "5 min" },
   };
   const ORDER = ["1M", "1w", "1d", "4h", "1h", "15m"];
   const FIB = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
@@ -1214,7 +1216,7 @@ document.getElementById("saveBtn").onclick = () => {
 //  - CHoCH = the first close beyond a swing against the trend (change of character)
 (function (root) {
   "use strict";
-  const PIV = { "1M": 2, "1w": 2, "1d": 3, "4h": 4, "1h": 5, "15m": 5 };
+  const PIV = { "1M": 2, "1w": 2, "1d": 3, "4h": 4, "1h": 5, "30m": 5, "15m": 5, "5m": 5 };
 
   function analyzeTf(c, tf) {
     const p = PIV[tf] || 3;
@@ -1312,7 +1314,7 @@ const TL_TFS = [
   { key: "1M", label: "1M" }, { key: "1w", label: "1W" }, { key: "1d", label: "1D" },
   { key: "4h", label: "4H" }, { key: "1h", label: "1H" }, { key: "15m", label: "15m" },
 ];
-const TL_COLORS = { "1M": "#e879f9", "1w": "#a78bfa", "1d": "#60a5fa", "4h": "#22d3ee", "1h": "#34d399", "15m": "#f472b6" };
+const TL_COLORS = { "1M": "#e879f9", "1w": "#a78bfa", "1d": "#60a5fa", "4h": "#22d3ee", "1h": "#34d399", "30m": "#a3e635", "15m": "#f472b6", "5m": "#fb923c" };
 const TL_FIB_COLORS = { 0: "#94a3b8", 0.236: "#64748b", 0.382: "#38bdf8", 0.5: "#e2e8f0", 0.618: "#f59e0b", 0.786: "#fb923c", 1: "#94a3b8" };
 
 let tlSyms = load("tvdash.tlSyms", TL_DEFAULTS);
@@ -1368,7 +1370,7 @@ async function tlFetch(s, interval) {
 }
 
 const TL_CACHE = {};   // symbol -> timeframe -> {data, at}
-const TL_MAX_AGE = { "1M": 1800e3, "1w": 900e3, "1d": 300e3, "4h": 120e3, "1h": 50e3, "15m": 50e3 };
+const TL_MAX_AGE = { "1M": 1800e3, "1w": 900e3, "1d": 300e3, "4h": 120e3, "1h": 50e3, "30m": 50e3, "15m": 50e3, "5m": 40e3 };
 async function tlLoad() {
   if (tlBusy) return;
   tlBusy = true;
@@ -1439,7 +1441,7 @@ function tlFuture(lastT, tf, n) {
     const d = new Date(lastT * 1000);
     for (let i = 1; i <= n; i++) out.push(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + i, 1) / 1000);
   } else {
-    const sec = { "1w": 604800, "1d": 86400, "4h": 14400, "1h": 3600, "15m": 900 }[tf];
+    const sec = { "1w": 604800, "1d": 86400, "4h": 14400, "1h": 3600, "30m": 1800, "15m": 900, "5m": 300 }[tf];
     for (let i = 1; i <= n; i++) out.push(lastT + i * sec);
   }
   return out;
@@ -4313,6 +4315,204 @@ if (LIVE_MODE) (function liveMode() {
     const left = Math.max(0, Math.round((nextAt - Date.now()) / 1000));
     const nx = tlSyms[list[(pos + 1) % list.length]];
     $("lvNext").textContent = list.length > 1 ? `Next: ${nx.name} in ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}` : "";
+    $("lvBar").style.width = (100 - left / (ROT_MIN * 60) * 100).toFixed(1) + "%";
+    if (list.length > 1 && left === 0) go((pos + 1) % list.length);
+    if (Date.now() - lastScan > 5 * 60e3) scanAll();
+  }, 1000);
+  if (P.get("test") === "banner") setTimeout(() => banner(tlSyms[list[0]].name, true, 0, 0), 5000);
+  go(0);
+})();
+
+// ================= LIVE MODE (YouTube / OBS): index.html?live=1 =================
+// ?live=1                          broadcast layout 1920×1080, no buttons
+// &syms=BTCUSDT,ETHUSDT,ZECUSDT    symbols to rotate (Binance symbols; default below)
+// &rotate=5                        minutes per symbol
+// &test=banner                     shows a sample signal banner after 5 s (to check the layout in OBS)
+if (LIVE_MODE) (function liveMode() {
+  const P = new URLSearchParams(location.search);
+  const ROT_MIN = Math.max(1, +(P.get("rotate") || 5));
+  const want = (P.get("syms") || "BTCUSDT,ETHUSDT,ZECUSDT,XAUUSDT,CLUSDT").split(",").map((x) => x.trim().toUpperCase()).filter(Boolean);
+  const F = DonchianFilters, NEED = 2 | 8 | 32, PLUS = 1;
+  // a different timeframe each minute of a symbol's turn (30m and 5m are added for Live mode only)
+  const ord = TrendEngine.ORDER;
+  if (!ord.includes("30m")) ord.splice(ord.indexOf("1h") + 1, 0, "30m");
+  if (!ord.includes("5m")) ord.push("5m");
+  for (const [k, l] of [["30m", "30m"], ["5m", "5m"]]) if (!TL_TFS.some((x) => x.key === k)) TL_TFS.push({ key: k, label: l });
+  const TFS = (P.get("tfs") || "4h,1h,30m,15m,5m").split(",").map((x) => x.trim()).filter((x) => ord.includes(x));
+  if (!TFS.length) TFS.push("4h");
+  const tfName = (k) => (TL_TFS.find((x) => x.key === k) || { label: k }).label;
+  let tfIdx = 0, tfAt = 0;
+  const list = [];
+  for (const w of want) {
+    let i = tlSyms.findIndex((s) => s.sym === w || s.name.toUpperCase() === w);
+    if (i < 0) { const d = TL_DEFAULTS.find((s) => s.sym === w) || (w === "CLUSDT" ? { name: "WTI OIL", market: "futures", sym: "CLUSDT" } : null); if (d) { tlSyms.push({ ...d }); i = tlSyms.length - 1; } }
+    if (i >= 0 && !list.includes(i)) list.push(i);
+  }
+  if (!list.length) list.push(0);
+  let pos = 0, nextAt = Date.now() + ROT_MIN * 60e3, zoomFor = null, lastScan = 0;
+  const scan = {};              // sym index -> {n, ck, state, aplus, stop}
+  const shown = new Set();      // banners already shown
+  const $ = (id) => document.getElementById(id);
+  document.body.classList.add("live");
+  const logo = document.querySelector(".brandname img"); if (logo) $("lvLogo").src = logo.src;
+  // the analysis chart and its legend move into the broadcast layout
+  $("lvChart").appendChild($("bsChart")); $("lvChart").appendChild($("bsLegend"));
+  // all layers on
+  for (const id of ["bsRays", "bsHtf", "bsCh", "bsSw", "bsOb", "bsLiq", "bsFvg", "bsVol"]) { const el = $(id); if (el) el.checked = true; }
+  if ($("bsVp")) $("bsVp").checked = false;
+  if ($("bsFibMode")) $("bsFibMode").value = "bos";
+  tlTf = TFS[0];
+  // DXY reference chart (TradingView), zoomed to the last few days of 1H candles
+  embed($("lvDxy"), "embed-widget-advanced-chart.js", {
+    autosize: true, symbol: P.get("dxy") || "CAPITALCOM:DXY", interval: "60", range: "5D", timezone: "Africa/Nairobi", theme: "dark", style: "1", locale: "en",
+    hide_top_toolbar: true, hide_side_toolbar: true, hide_legend: false, hide_volume: true, allow_symbol_change: false, save_image: false,
+    backgroundColor: "rgba(22,27,36,1)", gridColor: "rgba(38,45,58,0.6)", support_host: "https://www.tradingview.com",
+  });
+
+  const tick = (ok) => ok ? "✅" : "❌";
+  const pctTxt = (x) => (x >= 0 ? "+" : "") + x.toFixed(2) + "%";
+  const closed = (arr, sec) => (arr || []).filter((x) => x.t + sec <= Date.now() / 1000);
+  function system(data) {
+    const c = closed(data["4h"], 14400), d = closed(data["1d"], 86400);
+    if (c.length < 240 || d.length < 40) return null;
+    const r = F.replayFilters(F.context({ "4h": c, "1d": d }, "4h"), { need: NEED, plus: PLUS, sides: "long" });
+    const n = [r.now.rays, r.now.volume, r.now.osc].filter(Boolean).length;
+    const state = r.pending ? "signal" : r.position ? "trade" : "wait";
+    return { r, n, ck: r.now, state, aplus: r.pending ? r.pending.aplus : r.position ? r.position.aplus : r.now.structure && n === 3, stop: r.pending ? r.pending.stop : r.position ? r.position.stop : null, sigT: r.pending ? c[c.length - 1].t : null };
+  }
+
+  function go(i) {
+    if (tlBusy) { setTimeout(() => go(i), 300); return; }   // let a load in progress finish first
+    pos = i; nextAt = Date.now() + ROT_MIN * 60e3;
+    tfIdx = 0; tlTf = TFS[0]; tfAt = Date.now() + ROT_MIN * 60e3 / TFS.length;
+    tlActive = list[pos]; tlRes = null; tlData = null; zoomFor = tlActive;
+    $("bsLoading").hidden = false; $("bsLoading").textContent = "Loading " + tlSyms[tlActive].name + "…";
+    tlLoad();
+  }
+
+  const _render = renderActive;
+  renderActive = function () { _render(); try { liveRender(); } catch (e) { console.warn("live:", e); } };
+
+  function liveRender() {
+    if (!tlData || !tlData["4h"]) return;
+    if (bsChart && !bsChart.__live) { bsChart.applyOptions({ layout: { fontSize: 14 } }); bsChart.__live = true; }
+    const s = tlSyms[tlActive];
+    const c4 = tlData["4h"], last = (tlData["15m"] || c4)[(tlData["15m"] || c4).length - 1];
+    const price = last.c;
+    const h1 = tlData["1h"] || [];
+    const ago = h1.length > 25 ? h1[h1.length - 25].c : null;
+    const chg = ago ? (price - ago) / ago * 100 : null;
+    $("lvSym").textContent = s.name;
+    const TFL = tfName(tlTf);
+    $("lvTf").textContent = TFL;
+    $("lvPrice").textContent = tlFmt(price);
+    $("lvChg").textContent = chg == null ? "" : pctTxt(chg) + " 24h";
+    $("lvChg").className = chg == null ? "" : chg >= 0 ? "up" : "dn";
+    // the addis-4H system
+    const S = system(tlData);
+    if (S) scan[tlActive] = { ...S, at: Date.now() };
+    let html = "";
+    if (!S) html = `<div class="neutral">Not enough history for ${s.name}.</div>`;
+    else {
+      const st = S.state === "signal" ? `<span class="lv-st go">${S.aplus ? "⭐ A+ BUY SETUP" : "🟢 BUY SIGNAL"}</span>`
+        : S.state === "trade" ? `<span class="lv-st on">${S.aplus ? "⭐ A+ " : ""}IN A LONG</span>`
+        : `<span class="lv-st wait">WAITING · ${S.n}/3 agree</span>`;
+      const p = S.r.position;
+      const extra = S.state === "trade" ? `<div class="lv-kv"><span>Entry</span><b>${tlFmt(p.entry)}</b></div><div class="lv-kv"><span>Stop now</span><b>${tlFmt(p.stop)}</b></div><div class="lv-kv"><span>Open</span><b class="${(price - p.entry) >= 0 ? "up" : "dn"}">${((price - p.entry) / p.risk >= 0 ? "+" : "") + ((price - p.entry) / p.risk).toFixed(2)}R</b></div>`
+        : S.state === "signal" ? `<div class="lv-kv"><span>Stop</span><b>${tlFmt(S.stop)}</b></div>` : "";
+      html = `${st}
+        <div class="lv-checks"><div>${tick(S.ck.rays)} Trend lines</div><div>${tick(S.ck.volume)} Volume</div><div>${tick(S.ck.osc)} Oscillators <small>${F.oscLabel(S.ck.oscRating)}</small></div><div class="lv-plus">${tick(S.ck.structure)} Structure <small>(A+)</small></div></div>${extra}`;
+    }
+    $("lvSys").innerHTML = html;
+    // analysis summary from the Analysis tab
+    const txt = (id) => (($(id) || {}).textContent || "—").replace(/\s+/g, " ").trim();
+    const liq = [...document.querySelectorAll("#bsLiqTable tr")].map((tr) => [...tr.children].map((td) => td.textContent.replace(/\s+/g, " ").trim()));
+    const ia = liq.findIndex((r) => /ABOVE PRICE/.test(r[0] || "")), ib = liq.findIndex((r) => /BELOW PRICE/.test(r[0] || ""));
+    const above = ia >= 0 && liq[ia + 1] && liq[ia + 1].length > 1 ? liq.slice(ia + 1, ib - 1).pop() : null;   // nearest above = last row before the price row
+    const below = ib >= 0 && liq[ib + 1] && liq[ib + 1].length > 1 ? liq[ib + 1] : null;
+    const lq = (r) => r ? `${(r[0] || "").replace(/(Buy-side|Sell-side|Previous|Equal)\b.*$/, "").trim()} ${r[1] || ""}`.trim() : "none nearby";
+    $("lvAna").innerHTML = `
+      <div class="lv-kv"><span>Bias 1M→15m</span><b>${txt("bsBias")}</b></div>
+      <div class="lv-kv"><span>${TFL} structure</span><b>${txt("bsTf")}</b></div>
+      <div class="lv-kv"><span>Trend rays</span><b>${txt("bsRaySetup")}</b></div>
+      <div class="lv-kv"><span>Liquidity above</span><b>${lq(above)}</b></div>
+      <div class="lv-kv"><span>Liquidity below</span><b>${lq(below)}</b></div>`;
+    // marquee: this symbol + the others in the rotation
+    const me = S ? `addis-4H: ${S.state === "signal" ? (S.aplus ? "⭐ A+ BUY SETUP" : "BUY SIGNAL") + " — stop " + tlFmt(S.stop) : S.state === "trade" ? "in a long, stop " + tlFmt(S.r.position.stop) : S.n + " of 3 filters agree"} (Trend lines ${tick(S.ck.rays)} · Volume ${tick(S.ck.volume)} · Oscillators ${tick(S.ck.osc)} ${F.oscLabel(S.ck.oscRating)} · Structure ${tick(S.ck.structure)})` : "";
+    const others = list.filter((i) => i !== tlActive && scan[i]).map((i) => { const o = scan[i]; return `${tlSyms[i].name}: ${o.state === "signal" ? (o.aplus ? "⭐ A+ BUY" : "🟢 BUY") : o.state === "trade" ? "in a long" : o.n + "/3"}`; });
+    const mq = [`${s.name} ${TFL} · ${tlFmt(price)}${chg == null ? "" : " (" + pctTxt(chg) + " 24h)"}`, `Bias ${txt("bsBias")}`, `${TFL} structure ${txt("bsTf")}`, `Trend rays: ${txt("bsRaySetup")}`, me,
+      `Liquidity above ${lq(above)} · below ${lq(below)}`, others.length ? "Watchlist — " + others.join(" · ") : "", "DXY top-left for reference", "Not financial advice · AddisERP Signals"].filter(Boolean).join("   ◆   ");
+    if (lastMqSym !== tlActive + "|" + tlTf) { lastMqSym = tlActive + "|" + tlTf; setMarq(mq); mqPending = null; $("lvMarqText").dataset.on = "1"; } else marquee(mq);
+    // zoom in on the latest candles after switching symbol (after the follow-up refresh has drawn too)
+    if (zoomFor === tlActive && bsChart) { zoomFor = null; const me = tlActive; [350, 1200, 3000].forEach((ms) => setTimeout(() => { if (tlActive === me) liveZoom(); }, ms)); }
+  }
+
+  // keep the newest candles clear of the price labels on the right (about 260 px of them)
+  function liveZoom() {
+    if (!bsChart || !tlData || !tlData[tlTf]) return;
+    const n = tlData[tlTf].length;
+    const W = bsChart.timeScale().width() || 1300, bars = 72, room = 260;
+    const r = Math.ceil(room * bars / Math.max(200, W - room));
+    try { bsChart.timeScale().setVisibleLogicalRange({ from: Math.max(0, n - bars), to: n + r }); } catch (e) {}
+  }
+
+  // marquee: swap the text only at the end of a loop, so it never jumps
+  let mqPending = null, lastMqSym = null;
+  $("lvMarqText").addEventListener("animationiteration", () => { if (mqPending) { setMarq(mqPending); mqPending = null; } });
+  function marquee(text) {
+    const el = $("lvMarqText");
+    if (!el.dataset.on) { setMarq(text); el.dataset.on = "1"; } else mqPending = text;
+  }
+  function setMarq(text) {
+    const el = $("lvMarqText");
+    el.innerHTML = `<span>${text}</span><span>${text}</span>`;
+    const w = el.firstChild.offsetWidth || 2000;
+    el.style.animationDuration = Math.max(30, w / 90) + "s";   // ~90 px per second
+  }
+
+  // every 5 minutes: check the whole rotation for new signals
+  async function scanAll() {
+    lastScan = Date.now();
+    for (const i of list) {
+      const s = tlSyms[i];
+      try {
+        const [c4, d1] = await Promise.all([tlFetch(s, "4h"), tlFetch(s, "1d")]);
+        const S = system({ "4h": c4, "1d": d1 });
+        if (!S) continue;
+        scan[i] = { ...S, at: Date.now() };
+        if (S.state === "signal") {
+          const key = `${s.sym}|${S.sigT}`;
+          if (!shown.has(key)) { shown.add(key); banner(s.name, S.aplus, S.stop, c4[c4.length - 1].c); if (i !== list[pos]) go(list.indexOf(i)); }
+        }
+      } catch (e) { /* network hiccup: try again next scan */ }
+      await new Promise((r) => setTimeout(r, 300));
+    }
+    alerts();
+  }
+  function alerts() {
+    const act = list.filter((i) => scan[i] && scan[i].state !== "wait").map((i) => `<span class="${scan[i].state === "signal" ? "go" : "on"}">${scan[i].aplus ? "⭐" : scan[i].state === "signal" ? "🔔" : "●"} ${tlSyms[i].name}${scan[i].state === "trade" ? " in trade" : " signal"}</span>`);
+    $("lvAlerts").innerHTML = act.join("");
+  }
+  let bannerTimer = null;
+  function banner(name, aplus, stop, price) {
+    const b = $("lvBanner");
+    b.className = "lv-banner show" + (aplus ? " aplus" : "");
+    b.innerHTML = `<div class="t">${aplus ? "⭐ A+ BUY SETUP" : "🔔 BUY SIGNAL"}</div><div class="s">${name} · 4H · price ${tlFmt(price)} · stop ${tlFmt(stop)}</div><div class="n">${aplus ? "Trend lines + Volume + Oscillators + 1D Structure agree" : "Trend lines + Volume + Oscillators agree"} · not financial advice</div>`;
+    clearTimeout(bannerTimer); bannerTimer = setTimeout(() => { b.className = "lv-banner"; }, 60e3);
+  }
+
+  // clock, rotation countdown, scans
+  setInterval(() => {
+    const now = new Date();
+    $("lvClock").textContent = now.toLocaleTimeString("en-GB", { timeZone: "Africa/Addis_Ababa", hour: "2-digit", minute: "2-digit", second: "2-digit" }) + " EAT";
+    const left = Math.max(0, Math.round((nextAt - Date.now()) / 1000));
+    const nx = tlSyms[list[(pos + 1) % list.length]];
+    const mmss = (sec) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+    if (tfIdx < TFS.length - 1 && Date.now() >= tfAt && !tlBusy && tlData) {
+      tfIdx++; tfAt += ROT_MIN * 60e3 / TFS.length; zoomFor = tlActive; tlSelectTf(TFS[tfIdx]);
+    }
+    const tfLeft = Math.max(0, Math.round((tfAt - Date.now()) / 1000));
+    $("lvNext").textContent = (tfIdx < TFS.length - 1 ? `Next: ${tfName(TFS[tfIdx + 1])} in ${mmss(tfLeft)} · ` : "") + (list.length > 1 ? `${nx.name} in ${mmss(left)}` : "");
     $("lvBar").style.width = (100 - left / (ROT_MIN * 60) * 100).toFixed(1) + "%";
     if (list.length > 1 && left === 0) go((pos + 1) % list.length);
     if (Date.now() - lastScan > 5 * 60e3) scanAll();

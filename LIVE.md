@@ -2,7 +2,7 @@
 
 **Live mode** is a full-screen 1920×1080 broadcast view of the app:
 
-- the 4H chart with all drawings (trend rays, BOS/CHoCH, swing labels, order blocks, HTF liquidity, FVG, Fib, volume), zoomed to the latest candles
+- the chart with all drawings (trend rays, BOS/CHoCH, swing labels, order blocks, HTF liquidity, FVG, Fib, volume), zoomed to about the last 70 candles — a different timeframe each minute of a symbol's turn: **4H → 1H → 30m → 15m → 5m**
 - **DXY · U.S. Dollar Index** (TradingView, 1H candles, last 5 days) top-left for reference
 - the **addis-4H** panel: status (waiting / 🟢 BUY / ⭐ A+ / in a long), the ✅/❌ checks and the stop
 - a chart-analysis summary (bias, 4H structure, trend rays, nearest liquidity)
@@ -21,7 +21,8 @@ Options, added to the link with `&`:
 | Option | Example | Meaning |
 | --- | --- | --- |
 | `syms` | `&syms=BTCUSDT,ETHUSDT,ZECUSDT,XAUUSDT,CLUSDT` | symbols to rotate (the default list) |
-| `rotate` | `&rotate=5` | minutes per symbol |
+| `rotate` | `&rotate=5` | minutes per symbol (the timeframes share this time equally) |
+| `tfs` | `&tfs=4h,1h,30m,15m,5m` | timeframes shown during each symbol's turn, in order |
 | `dxy` | `&dxy=CAPITALCOM:DXY` | the dollar-index symbol for the TradingView chart (default `CAPITALCOM:DXY`; TradingView doesn't allow `TVC:DXY` in embedded charts) |
 | `test=banner` | `&test=banner` | shows a sample A+ banner after 5 seconds — to check the layout in OBS |
 
