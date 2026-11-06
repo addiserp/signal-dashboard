@@ -49,9 +49,9 @@ jobs:
           ./gradlew assembleRelease --no-daemon --stacktrace
 
       - name: Rename APK
-        run: cp app/build/outputs/apk/release/app-release.apk AddisERP-Signals.apk
+        run: cp app/build/outputs/apk/release/app-release.apk Addis-Trading-Signals.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: AddisERP-Signals-apk
-          path: AddisERP-Signals.apk
+          name: Addis-Trading-Signals-apk
+          path: Addis-Trading-Signals.apk

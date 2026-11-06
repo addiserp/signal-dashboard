@@ -1,4 +1,4 @@
-# YouTube live with AddisERP Signals
+# YouTube live with Addis-Trading Signals
 
 **Live mode** is a full-screen 1920×1080 broadcast view of the app:
 
@@ -14,7 +14,7 @@
 
 `https://addiserp.github.io/signal-dashboard/?live=1`  (needs GitHub Pages on: Settings → Pages → Branch `main`, folder `/docs`)
 
-or the downloaded file: `file:///C:/path/to/AddisERP-Signals.html?live=1`
+or the downloaded file: `file:///C:/path/to/Addis-Trading-Signals.html?live=1`
 
 Options, added to the link with `&`:
 
