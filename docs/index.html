@@ -233,6 +233,63 @@
     .full .w{height:420px}
     .chart{height:320px}
   }
+  /* ---------- LIVE MODE (?live=1) ---------- */
+  #liveRoot{display:none}
+  body.live{overflow:hidden;background:#0b0f16}
+  body.live > header, body.live #bosView, body.live #signalsView, body.live #btView, body.live .menu, body.live #menu{display:none!important}
+  body.live #liveRoot{display:grid;position:fixed;inset:0;z-index:50;background:#0b0f16;color:#e6e9ef;font-size:1.65vh;
+    grid-template-columns:27vw 1fr;grid-template-rows:7.2vh 1fr 5.6vh;grid-template-areas:"top top" "side main" "marq marq";gap:.7vh;padding:.7vh}
+  .lv-top{grid-area:top;display:flex;align-items:center;gap:2vh;padding:0 1.6vh;background:#121722;border:1px solid #232a38;border-radius:1vh;position:relative;overflow:hidden}
+  .lv-top img{height:4.4vh;width:4.4vh}
+  .lv-brand{font-weight:800;font-size:2.2vh;letter-spacing:.02em}
+  .lv-live{background:#dc2626;color:#fff;font-weight:800;padding:.4vh 1vh;border-radius:.6vh;font-size:1.6vh;animation:lvpulse 2s infinite}
+  @keyframes lvpulse{50%{opacity:.55}}
+  .lv-sym{font-size:3.4vh;font-weight:800;margin-left:1vh}
+  .lv-tf{color:#8a93a6;font-weight:700;font-size:1.9vh}
+  .lv-price{font-size:3.2vh;font-weight:800;font-variant-numeric:tabular-nums}
+  .up{color:#22c55e}.dn{color:#ef4444}
+  #lvChg{font-size:2vh;font-weight:700}
+  .lv-alerts{display:flex;gap:.8vh;flex-wrap:wrap}
+  .lv-alerts span{padding:.4vh 1vh;border-radius:.6vh;font-weight:700;font-size:1.5vh;border:1px solid #2f6b3f;background:rgba(34,197,94,.12)}
+  .lv-alerts span.go{background:#16a34a;color:#fff;border-color:#16a34a}
+  .lv-right{margin-left:auto;text-align:right;font-variant-numeric:tabular-nums}
+  #lvClock{font-size:2.4vh;font-weight:800}
+  #lvNext{color:#8a93a6;font-size:1.5vh}
+  .lv-bar{position:absolute;left:0;bottom:0;height:.35vh;background:#2563eb;width:0}
+  .lv-side{grid-area:side;display:flex;flex-direction:column;gap:.7vh;min-height:0}
+  .lv-box{background:#121722;border:1px solid #232a38;border-radius:1vh;padding:1.1vh 1.3vh;min-height:0}
+  .lv-box h3{margin:0 0 .8vh;font-size:1.5vh;color:#8a93a6;text-transform:uppercase;letter-spacing:.06em}
+  .lv-dxy{height:36vh;padding:.8vh;display:flex;flex-direction:column}
+  #lvDxy{flex:1;min-height:0}
+  #lvDxy .tradingview-widget-container,#lvDxy .tradingview-widget-container__widget{height:100%!important;width:100%!important}
+  .lv-sysbox{border-color:rgba(34,197,94,.5)}
+  .lv-st{display:inline-block;font-weight:800;font-size:2.2vh;padding:.5vh 1.2vh;border-radius:.8vh;margin-bottom:1vh}
+  .lv-st.wait{background:#1f2633;color:#cbd5e1}.lv-st.on{background:rgba(34,197,94,.18);color:#4ade80}.lv-st.go{background:#16a34a;color:#fff}
+  .lv-checks{display:grid;grid-template-columns:1fr 1fr;gap:.6vh 1vh;font-size:1.85vh;font-weight:600;margin-bottom:.6vh}
+  .lv-checks small{color:#8a93a6;font-weight:500}
+  .lv-plus{color:#facc15}
+  .lv-kv{display:flex;justify-content:space-between;gap:1vh;padding:.45vh 0;border-top:1px solid #1e2532;font-size:1.65vh}
+  .lv-kv span{color:#8a93a6;white-space:nowrap}.lv-kv b{text-align:right;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  .lv-ana{flex:1;overflow:hidden}
+  .lv-main{grid-area:main;position:relative;min-height:0;background:#161b24;border:1px solid #232a38;border-radius:1vh;overflow:hidden}
+  #lvChart{position:absolute;inset:0}
+  body.live #bsChart{height:100%!important}
+  body.live #bsLegend{position:absolute;left:1vh;top:.8vh;z-index:5;background:rgba(11,15,22,.72);padding:.4vh .8vh;border-radius:.6vh;font-size:1.35vh;max-width:70%}
+  body.live #bsLoading{font-size:2vh}
+  .lv-marq{grid-area:marq;background:#121722;border:1px solid #232a38;border-radius:1vh;overflow:hidden;display:flex;align-items:center}
+  .lv-marq .tag{flex:none;background:#2563eb;color:#fff;font-weight:800;height:100%;display:flex;align-items:center;padding:0 1.6vh;font-size:1.8vh}
+  .lv-mwrap{overflow:hidden;flex:1;white-space:nowrap}
+  #lvMarqText{display:inline-flex;animation:lvmarq 60s linear infinite;font-size:2.1vh;font-weight:600}
+  #lvMarqText span{padding-right:6vh}
+  @keyframes lvmarq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  .lv-banner{position:absolute;left:50%;top:2vh;transform:translate(-50%,-140%);transition:transform .5s;z-index:20;background:linear-gradient(135deg,#15803d,#16a34a);color:#fff;
+    border-radius:1.4vh;padding:1.6vh 3.4vh;text-align:center;box-shadow:0 1vh 4vh rgba(0,0,0,.6);min-width:45%}
+  .lv-banner.show{transform:translate(-50%,0);animation:lvglow 1.6s infinite}
+  .lv-banner.aplus{background:linear-gradient(135deg,#b45309,#f59e0b);color:#111}
+  @keyframes lvglow{50%{box-shadow:0 0 5vh rgba(250,204,21,.6)}}
+  .lv-banner .t{font-size:4.2vh;font-weight:900;letter-spacing:.02em}
+  .lv-banner .s{font-size:2.4vh;font-weight:800;margin-top:.4vh}
+  .lv-banner .n{font-size:1.6vh;margin-top:.4vh;opacity:.9}
 </style>
 </head>
 <body>
@@ -274,6 +331,24 @@
   <div class="symtabs" id="symtabs"></div>
   <div class="tape" id="tape"></div>
 </header>
+
+<div id="liveRoot">
+  <div class="lv-top">
+    <img id="lvLogo" alt=""><span class="lv-brand">AddisERP Signals</span><span class="lv-live">● LIVE</span>
+    <span class="lv-sym" id="lvSym">—</span><span class="lv-tf">4H</span>
+    <span class="lv-price" id="lvPrice">—</span><span id="lvChg"></span>
+    <div class="lv-alerts" id="lvAlerts"></div>
+    <div class="lv-right"><div id="lvClock">—</div><div id="lvNext"></div></div>
+    <div class="lv-bar" id="lvBar"></div>
+  </div>
+  <div class="lv-side">
+    <div class="lv-box lv-dxy"><h3>DXY · U.S. Dollar Index · reference</h3><div id="lvDxy"></div></div>
+    <div class="lv-box lv-sysbox"><h3>addis-4H system</h3><div id="lvSys"></div></div>
+    <div class="lv-box lv-ana"><h3>Chart analysis</h3><div id="lvAna"></div></div>
+  </div>
+  <div class="lv-main"><div id="lvChart"></div><div class="lv-banner" id="lvBanner"></div></div>
+  <div class="lv-marq"><div class="tag">ANALYSIS</div><div class="lv-mwrap"><div id="lvMarqText"></div></div></div>
+</div>
 
 <div id="bosView" hidden>
   <div class="tv-row">
@@ -528,6 +603,7 @@
 </dialog>
 
 <script>
+const LIVE_MODE = new URLSearchParams(location.search).has("live");
 const DEFAULTS = ["BINANCE:BTCUSDT","BINANCE:ETHUSDT","OANDA:XAUUSD","TVC:USOIL","NASDAQ:SPCX","BINANCE:ZECUSDT","BINANCE:HYPEUSDT","BINANCE:NEARUSDT"];
 const REFRESH_SEC = 60;
 const TF_ORDER = ["1m","5m","15m","30m","1h","4h","1D"];
@@ -558,7 +634,7 @@ const TAPE = [
 ];
 
 function load(key, fallback){ try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } }
-function save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+function save(key, val){ if (LIVE_MODE && /^tvdash\.(view|tlTf|tlActive|tlSyms)$/.test(key)) return; try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
 
 let symbols  = load("tvdash.symbols", DEFAULTS);
 const DATA_VER = load("tvdash.ver", 4);
@@ -1259,10 +1335,16 @@ if (load("tvdash.ver", 9) < 15) {   // v15: crude oil (Binance CLUSDT perpetual,
   save("tvdash.ver", 15);
 }
 let tlActive = Math.min(load("tvdash.tlActive", 0), tlSyms.length - 1);
+if (LIVE_MODE) {   // start the broadcast on the first symbol of the rotation
+  const first = (new URLSearchParams(location.search).get("syms") || "BTCUSDT").split(",")[0].trim().toUpperCase();
+  const fi = tlSyms.findIndex((s) => s.sym === first || s.name.toUpperCase() === first);
+  if (fi >= 0) tlActive = fi;
+}
 let tlTf = load("tvdash.tlTf", "15m");
 let tlData = null, tlRes = null, tlBusy = false, tlChart = null, tlSeries = [], tlCandles = null, tlVolume = null, tlLastKey = "";
 let view = load("tvdash.view", "signals");
 if (view === "trend") view = "bos";
+if (LIVE_MODE) view = "bos";
 
 function tlUrls(s, interval) {
   const q = `symbol=${encodeURIComponent(s.sym)}&interval=${interval}&limit=1000`;
@@ -3701,6 +3783,181 @@ if (view !== "signals") setView(view); else { buildGrid(); lazyMover(); }
   window.addEventListener("appinstalled", () => { btn.hidden = true; });
 })();
 
+// ================= LIVE MODE (YouTube / OBS): index.html?live=1 =================
+// ?live=1                          broadcast layout 1920×1080, no buttons
+// &syms=BTCUSDT,ETHUSDT,ZECUSDT    symbols to rotate (Binance symbols; default below)
+// &rotate=5                        minutes per symbol
+// &test=banner                     shows a sample signal banner after 5 s (to check the layout in OBS)
+if (LIVE_MODE) (function liveMode() {
+  const P = new URLSearchParams(location.search);
+  const ROT_MIN = Math.max(1, +(P.get("rotate") || 5));
+  const want = (P.get("syms") || "BTCUSDT,ETHUSDT,ZECUSDT,XAUUSDT,CLUSDT").split(",").map((x) => x.trim().toUpperCase()).filter(Boolean);
+  const F = DonchianFilters, NEED = 2 | 8 | 32, PLUS = 1;
+  const list = [];
+  for (const w of want) {
+    let i = tlSyms.findIndex((s) => s.sym === w || s.name.toUpperCase() === w);
+    if (i < 0) { const d = TL_DEFAULTS.find((s) => s.sym === w) || (w === "CLUSDT" ? { name: "WTI OIL", market: "futures", sym: "CLUSDT" } : null); if (d) { tlSyms.push({ ...d }); i = tlSyms.length - 1; } }
+    if (i >= 0 && !list.includes(i)) list.push(i);
+  }
+  if (!list.length) list.push(0);
+  let pos = 0, nextAt = Date.now() + ROT_MIN * 60e3, zoomFor = null, lastScan = 0;
+  const scan = {};              // sym index -> {n, ck, state, aplus, stop}
+  const shown = new Set();      // banners already shown
+  const $ = (id) => document.getElementById(id);
+  document.body.classList.add("live");
+  const logo = document.querySelector(".brandname img"); if (logo) $("lvLogo").src = logo.src;
+  // the analysis chart and its legend move into the broadcast layout
+  $("lvChart").appendChild($("bsChart")); $("lvChart").appendChild($("bsLegend"));
+  // all layers on
+  for (const id of ["bsRays", "bsHtf", "bsCh", "bsSw", "bsOb", "bsLiq", "bsFvg", "bsVol"]) { const el = $(id); if (el) el.checked = true; }
+  if ($("bsVp")) $("bsVp").checked = false;
+  if ($("bsFibMode")) $("bsFibMode").value = "bos";
+  tlTf = "4h";
+  // DXY reference chart (TradingView), zoomed to the last few days of 1H candles
+  embed($("lvDxy"), "embed-widget-advanced-chart.js", {
+    autosize: true, symbol: "TVC:DXY", interval: "60", range: "5D", timezone: "Africa/Nairobi", theme: "dark", style: "1", locale: "en",
+    hide_top_toolbar: true, hide_side_toolbar: true, hide_legend: false, hide_volume: true, allow_symbol_change: false, save_image: false,
+    backgroundColor: "rgba(22,27,36,1)", gridColor: "rgba(38,45,58,0.6)", support_host: "https://www.tradingview.com",
+  });
+
+  const tick = (ok) => ok ? "✅" : "❌";
+  const pctTxt = (x) => (x >= 0 ? "+" : "") + x.toFixed(2) + "%";
+  const closed = (arr, sec) => (arr || []).filter((x) => x.t + sec <= Date.now() / 1000);
+  function system(data) {
+    const c = closed(data["4h"], 14400), d = closed(data["1d"], 86400);
+    if (c.length < 240 || d.length < 40) return null;
+    const r = F.replayFilters(F.context({ "4h": c, "1d": d }, "4h"), { need: NEED, plus: PLUS, sides: "long" });
+    const n = [r.now.rays, r.now.volume, r.now.osc].filter(Boolean).length;
+    const state = r.pending ? "signal" : r.position ? "trade" : "wait";
+    return { r, n, ck: r.now, state, aplus: r.pending ? r.pending.aplus : r.position ? r.position.aplus : r.now.structure && n === 3, stop: r.pending ? r.pending.stop : r.position ? r.position.stop : null, sigT: r.pending ? c[c.length - 1].t : null };
+  }
+
+  function go(i) {
+    if (tlBusy) { setTimeout(() => go(i), 300); return; }   // let a load in progress finish first
+    pos = i; nextAt = Date.now() + ROT_MIN * 60e3;
+    tlActive = list[pos]; tlRes = null; tlData = null; zoomFor = tlActive;
+    $("bsLoading").hidden = false; $("bsLoading").textContent = "Loading " + tlSyms[tlActive].name + "…";
+    tlLoad();
+  }
+
+  const _render = renderActive;
+  renderActive = function () { _render(); try { liveRender(); } catch (e) { console.warn("live:", e); } };
+
+  function liveRender() {
+    if (!tlData || !tlData["4h"]) return;
+    if (bsChart && !bsChart.__live) { bsChart.applyOptions({ layout: { fontSize: 14 } }); bsChart.__live = true; }
+    const s = tlSyms[tlActive];
+    const c4 = tlData["4h"], last = (tlData["15m"] || c4)[(tlData["15m"] || c4).length - 1];
+    const price = last.c;
+    const h1 = tlData["1h"] || [];
+    const ago = h1.length > 25 ? h1[h1.length - 25].c : null;
+    const chg = ago ? (price - ago) / ago * 100 : null;
+    $("lvSym").textContent = s.name;
+    $("lvPrice").textContent = tlFmt(price);
+    $("lvChg").textContent = chg == null ? "" : pctTxt(chg) + " 24h";
+    $("lvChg").className = chg == null ? "" : chg >= 0 ? "up" : "dn";
+    // the addis-4H system
+    const S = system(tlData);
+    if (S) scan[tlActive] = { ...S, at: Date.now() };
+    let html = "";
+    if (!S) html = `<div class="neutral">Not enough history for ${s.name}.</div>`;
+    else {
+      const st = S.state === "signal" ? `<span class="lv-st go">${S.aplus ? "⭐ A+ BUY SETUP" : "🟢 BUY SIGNAL"}</span>`
+        : S.state === "trade" ? `<span class="lv-st on">${S.aplus ? "⭐ A+ " : ""}IN A LONG</span>`
+        : `<span class="lv-st wait">WAITING · ${S.n}/3 agree</span>`;
+      const p = S.r.position;
+      const extra = S.state === "trade" ? `<div class="lv-kv"><span>Entry</span><b>${tlFmt(p.entry)}</b></div><div class="lv-kv"><span>Stop now</span><b>${tlFmt(p.stop)}</b></div><div class="lv-kv"><span>Open</span><b class="${(price - p.entry) >= 0 ? "up" : "dn"}">${((price - p.entry) / p.risk >= 0 ? "+" : "") + ((price - p.entry) / p.risk).toFixed(2)}R</b></div>`
+        : S.state === "signal" ? `<div class="lv-kv"><span>Stop</span><b>${tlFmt(S.stop)}</b></div>` : "";
+      html = `${st}
+        <div class="lv-checks"><div>${tick(S.ck.rays)} Trend lines</div><div>${tick(S.ck.volume)} Volume</div><div>${tick(S.ck.osc)} Oscillators <small>${F.oscLabel(S.ck.oscRating)}</small></div><div class="lv-plus">${tick(S.ck.structure)} Structure <small>(A+)</small></div></div>${extra}`;
+    }
+    $("lvSys").innerHTML = html;
+    // analysis summary from the Analysis tab
+    const txt = (id) => (($(id) || {}).textContent || "—").replace(/\s+/g, " ").trim();
+    const liq = [...document.querySelectorAll("#bsLiqTable tr")].map((tr) => [...tr.children].map((td) => td.textContent.replace(/\s+/g, " ").trim()));
+    const ia = liq.findIndex((r) => /ABOVE PRICE/.test(r[0] || "")), ib = liq.findIndex((r) => /BELOW PRICE/.test(r[0] || ""));
+    const above = ia >= 0 && liq[ia + 1] && liq[ia + 1].length > 1 ? liq.slice(ia + 1, ib - 1).pop() : null;   // nearest above = last row before the price row
+    const below = ib >= 0 && liq[ib + 1] && liq[ib + 1].length > 1 ? liq[ib + 1] : null;
+    const lq = (r) => r ? `${(r[0] || "").replace(/(Buy-side|Sell-side|Previous|Equal)\b.*$/, "").trim()} ${r[1] || ""}`.trim() : "none nearby";
+    $("lvAna").innerHTML = `
+      <div class="lv-kv"><span>Bias 1M→15m</span><b>${txt("bsBias")}</b></div>
+      <div class="lv-kv"><span>4H structure</span><b>${txt("bsTf")}</b></div>
+      <div class="lv-kv"><span>Trend rays</span><b>${txt("bsRaySetup")}</b></div>
+      <div class="lv-kv"><span>Liquidity above</span><b>${lq(above)}</b></div>
+      <div class="lv-kv"><span>Liquidity below</span><b>${lq(below)}</b></div>`;
+    // marquee: this symbol + the others in the rotation
+    const me = S ? `addis-4H: ${S.state === "signal" ? (S.aplus ? "⭐ A+ BUY SETUP" : "BUY SIGNAL") + " — stop " + tlFmt(S.stop) : S.state === "trade" ? "in a long, stop " + tlFmt(S.r.position.stop) : S.n + " of 3 filters agree"} (Trend lines ${tick(S.ck.rays)} · Volume ${tick(S.ck.volume)} · Oscillators ${tick(S.ck.osc)} ${F.oscLabel(S.ck.oscRating)} · Structure ${tick(S.ck.structure)})` : "";
+    const others = list.filter((i) => i !== tlActive && scan[i]).map((i) => { const o = scan[i]; return `${tlSyms[i].name}: ${o.state === "signal" ? (o.aplus ? "⭐ A+ BUY" : "🟢 BUY") : o.state === "trade" ? "in a long" : o.n + "/3"}`; });
+    const mq = [`${s.name} 4H · ${tlFmt(price)}${chg == null ? "" : " (" + pctTxt(chg) + " 24h)"}`, `Bias ${txt("bsBias")}`, `4H structure ${txt("bsTf")}`, `Trend rays: ${txt("bsRaySetup")}`, me,
+      `Liquidity above ${lq(above)} · below ${lq(below)}`, others.length ? "Watchlist — " + others.join(" · ") : "", "DXY top-left for reference", "Not financial advice · AddisERP Signals"].filter(Boolean).join("   ◆   ");
+    if (lastMqSym !== tlActive) { lastMqSym = tlActive; setMarq(mq); mqPending = null; $("lvMarqText").dataset.on = "1"; } else marquee(mq);
+    // zoom in on the latest candles after switching symbol
+    if (zoomFor === tlActive && bsChart) {
+      const n = (tlData["4h"] || []).length;
+      try { bsChart.timeScale().setVisibleLogicalRange({ from: Math.max(0, n - 130), to: n + 8 }); } catch (e) {}
+      zoomFor = null;
+    }
+  }
+
+  // marquee: swap the text only at the end of a loop, so it never jumps
+  let mqPending = null, lastMqSym = null;
+  $("lvMarqText").addEventListener("animationiteration", () => { if (mqPending) { setMarq(mqPending); mqPending = null; } });
+  function marquee(text) {
+    const el = $("lvMarqText");
+    if (!el.dataset.on) { setMarq(text); el.dataset.on = "1"; } else mqPending = text;
+  }
+  function setMarq(text) {
+    const el = $("lvMarqText");
+    el.innerHTML = `<span>${text}</span><span>${text}</span>`;
+    const w = el.firstChild.offsetWidth || 2000;
+    el.style.animationDuration = Math.max(30, w / 90) + "s";   // ~90 px per second
+  }
+
+  // every 5 minutes: check the whole rotation for new signals
+  async function scanAll() {
+    lastScan = Date.now();
+    for (const i of list) {
+      const s = tlSyms[i];
+      try {
+        const [c4, d1] = await Promise.all([tlFetch(s, "4h"), tlFetch(s, "1d")]);
+        const S = system({ "4h": c4, "1d": d1 });
+        if (!S) continue;
+        scan[i] = { ...S, at: Date.now() };
+        if (S.state === "signal") {
+          const key = `${s.sym}|${S.sigT}`;
+          if (!shown.has(key)) { shown.add(key); banner(s.name, S.aplus, S.stop, c4[c4.length - 1].c); if (i !== list[pos]) go(list.indexOf(i)); }
+        }
+      } catch (e) { /* network hiccup: try again next scan */ }
+      await new Promise((r) => setTimeout(r, 300));
+    }
+    alerts();
+  }
+  function alerts() {
+    const act = list.filter((i) => scan[i] && scan[i].state !== "wait").map((i) => `<span class="${scan[i].state === "signal" ? "go" : "on"}">${scan[i].aplus ? "⭐" : scan[i].state === "signal" ? "🔔" : "●"} ${tlSyms[i].name}${scan[i].state === "trade" ? " in trade" : " signal"}</span>`);
+    $("lvAlerts").innerHTML = act.join("");
+  }
+  let bannerTimer = null;
+  function banner(name, aplus, stop, price) {
+    const b = $("lvBanner");
+    b.className = "lv-banner show" + (aplus ? " aplus" : "");
+    b.innerHTML = `<div class="t">${aplus ? "⭐ A+ BUY SETUP" : "🔔 BUY SIGNAL"}</div><div class="s">${name} · 4H · price ${tlFmt(price)} · stop ${tlFmt(stop)}</div><div class="n">${aplus ? "Trend lines + Volume + Oscillators + 1D Structure agree" : "Trend lines + Volume + Oscillators agree"} · not financial advice</div>`;
+    clearTimeout(bannerTimer); bannerTimer = setTimeout(() => { b.className = "lv-banner"; }, 60e3);
+  }
+
+  // clock, rotation countdown, scans
+  setInterval(() => {
+    const now = new Date();
+    $("lvClock").textContent = now.toLocaleTimeString("en-GB", { timeZone: "Africa/Addis_Ababa", hour: "2-digit", minute: "2-digit", second: "2-digit" }) + " EAT";
+    const left = Math.max(0, Math.round((nextAt - Date.now()) / 1000));
+    const nx = tlSyms[list[(pos + 1) % list.length]];
+    $("lvNext").textContent = list.length > 1 ? `Next: ${nx.name} in ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}` : "";
+    $("lvBar").style.width = (100 - left / (ROT_MIN * 60) * 100).toFixed(1) + "%";
+    if (list.length > 1 && left === 0) go((pos + 1) % list.length);
+    if (Date.now() - lastScan > 5 * 60e3) scanAll();
+  }, 1000);
+  if (P.get("test") === "banner") setTimeout(() => banner(tlSyms[list[0]].name, true, 0, 0), 5000);
+  go(0);
+})();
 </script>
 </body>
 </html>

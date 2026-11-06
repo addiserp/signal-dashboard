@@ -10,4 +10,6 @@ The one backtested system (Donchian 4H breakout) with paper-trading log and posi
 
 To update the dashboard, replace `docs/index.html` and `app/src/main/assets/index.html` with the new version.
 
+- **YouTube live:** a 1920×1080 broadcast view (`?live=1`) with the chart, DXY, the addis-4H panel, a marquee and signal banners — see [LIVE.md](LIVE.md).
+
 Not financial advice.
