@@ -33,6 +33,7 @@ Options, added to the link with `&`:
 | `since` | `&since=2026-11-06` | start date of the live scorecard |
 | `music` | `&music=0` | turn the music off |
 | `vol` | `&vol=0.25` | music volume, 0 to 1 |
+| `shuffle` | `&shuffle=all` | ignore the trend and shuffle every track of all moods together |
 | `musicdir` | `&musicdir=music` | folder with the music files, next to the page |
 | `test=banner` | `&test=banner` | shows a sample A+ banner after 5 seconds — to check the layout in OBS |
 
@@ -46,7 +47,7 @@ The page plays music that matches the current symbol's top-down trend: **bullish
 2. Pick tracks by **Mood**: *Bright / Happy / Inspirational* for bullish, *Dark / Dramatic* for bearish, *Calm* for neutral. Genres like Ambient, Cinematic or Electronic work well behind a chart. Download about 3–5 of each.
 3. Make a folder called **`music`** next to the page file and rename the downloads exactly like this:
    `bullish-1.mp3`, `bullish-2.mp3`, … · `bearish-1.mp3`, `bearish-2.mp3`, … · `neutral-1.mp3`, `neutral-2.mp3`, …
-   (numbers 1, 2, 3 … with no gaps). The page loops through each mood's tracks.
+   (numbers 1 to 60; gaps are fine). The page **shuffles** each mood: every track plays once in random order before any repeats, then it reshuffles. New files are picked up every 30 minutes (or refresh the source).
 4. Use the downloaded page file in OBS (Browser source → the `file:///…/Addis-Trading-Signals.html?live=1` link) so it finds the `music` folder. Don't upload the music to the public GitHub repository.
 5. In OBS, tick **Control audio via OBS** on the browser source, and set its volume in the OBS audio mixer. In a normal browser, click once on the page to start the music (browsers block autoplay with sound).
 

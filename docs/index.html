@@ -4033,31 +4033,60 @@ if (LIVE_MODE) (function liveMode() {
     musicLabel();
   }
 
-  // music by trend: music/bullish-1.mp3 … music/bearish-1.mp3 … music/neutral-1.mp3 … (downloaded from the YouTube Audio Library)
+  // music by trend, shuffled: music/bullish-N.mp3, music/bearish-N.mp3, music/neutral-N.mp3 (N = 1…60, gaps are fine)
+  // Every file of a mood plays once in random order before any repeats; a mood change waits for the track to end.
   const MUSIC_ON = P.get("music") !== "0", MDIR = P.get("musicdir") || "music", VOL = Math.min(1, Math.max(0, +(P.get("vol") || 0.25)));
+  const MIX = P.get("shuffle") === "all";            // &shuffle=all: ignore the trend, shuffle every track
+  const MOODS = ["bullish", "bearish", "neutral"];
+  const LIB = { bullish: [], bearish: [], neutral: [] }, BAG = { bullish: [], bearish: [], neutral: [], all: [] };
   const au = new Audio(); au.volume = VOL; au.preload = "auto";
-  let mood = null, track = 0, playingMood = null, failures = 0, musicNote = "";
+  let mood = null, playingMood = null, lastUrl = "", musicNote = "", libReady = false, nowName = "";
   const moodOf = () => { const t = tlRes && tlRes.overall && tlRes.overall.trend; return t === "Up" ? "bullish" : t === "Down" ? "bearish" : "neutral"; };
   function musicLabel() { const el = $("lvMus"); if (el) el.textContent = musicNote; }
+  const exists = (url) => new Promise((res) => {
+    const a = new Audio(); a.preload = "metadata"; let done = false;
+    const fin = (v) => { if (done) return; done = true; a.removeAttribute("src"); try { a.load(); } catch (e) {} res(v); };
+    a.onloadedmetadata = () => fin(true); a.onerror = () => fin(false); setTimeout(() => fin(false), 5000); a.src = url;
+  });
+  async function scanLibrary() {
+    for (const m of MOODS) {
+      const found = await Promise.all(Array.from({ length: 60 }, (_, i) => `${MDIR}/${m}-${i + 1}.mp3`).map(async (u) => (await exists(u)) ? u : null));
+      LIB[m] = found.filter(Boolean);
+      BAG[m] = BAG[m].filter((u) => LIB[m].includes(u));
+    }
+    libReady = true;
+    const total = MOODS.reduce((n, m) => n + LIB[m].length, 0);
+    console.log(`[music] found ${total} tracks — bullish ${LIB.bullish.length}, bearish ${LIB.bearish.length}, neutral ${LIB.neutral.length}`);
+    if (!total) { musicNote = `♪ no music files found in “${MDIR}/” — see LIVE.md`; musicLabel(); }
+  }
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  function pick(m) {
+    const all = MOODS.flatMap((x) => LIB[x]);
+    let pool = MIX ? all : LIB[m];
+    let key = MIX ? "all" : m;
+    if (!pool.length) { pool = LIB.neutral.length ? LIB.neutral : all; key = LIB.neutral.length ? "neutral" : "all"; }   // no tracks for this mood yet
+    if (!pool.length) return null;
+    if (!BAG[key].length) { BAG[key] = shuffle(pool.slice()); if (BAG[key].length > 1 && BAG[key][0] === lastUrl) BAG[key].push(BAG[key].shift()); }
+    return { url: BAG[key].shift(), key };
+  }
   function playNext(newMood) {
-    if (!MUSIC_ON) return;
-    if (newMood && newMood !== playingMood) { playingMood = newMood; track = 0; }
-    track++;
-    au.src = `${MDIR}/${playingMood}-${track}.mp3`;
-    au.play().then(() => { failures = 0; $("lvMusicHint").hidden = true; musicNote = `♪ ${playingMood} mood · track ${track}`; musicLabel(); })
-      .catch((e) => { if (e && e.name === "NotAllowedError") { $("lvMusicHint").hidden = false; track--; } });
+    if (!MUSIC_ON || !libReady) return;
+    playingMood = newMood || playingMood || moodOf();
+    const t = pick(playingMood);
+    if (!t) return;
+    lastUrl = t.url; nowName = t.url.split("/").pop();
+    au.src = t.url;
+    au.play().then(() => {
+      $("lvMusicHint").hidden = true;
+      const pool = t.key === "all" ? MOODS.reduce((n, x) => n + LIB[x].length, 0) : LIB[t.key].length;
+      musicNote = `♪ ${MIX ? "shuffle all" : playingMood + " mood"} · ${nowName} · ${pool - BAG[t.key].length}/${pool}`; musicLabel();
+    }).catch((e) => { if (e && e.name === "NotAllowedError") { $("lvMusicHint").hidden = false; BAG[t.key].unshift(t.url); } });
   }
   au.addEventListener("ended", () => playNext(moodOf()));
-  au.addEventListener("error", () => {
-    // no file with this number: start this mood again from 1, or fall back to neutral; stop after a few misses
-    failures++;
-    if (failures > 3) { musicNote = MUSIC_ON ? `♪ no music files found in “${MDIR}/” — see LIVE.md` : ""; musicLabel(); return; }
-    if (track > 1) { track = 0; playNext(); } else if (playingMood !== "neutral") { playingMood = "neutral"; track = 0; playNext(); }
-    else { musicNote = `♪ no music files found in “${MDIR}/” — see LIVE.md`; musicLabel(); }
-  });
+  au.addEventListener("error", () => { if (au.src) setTimeout(() => playNext(moodOf()), 500); });   // skip a broken file
   document.addEventListener("click", () => { if (MUSIC_ON && au.paused) { if (au.src) au.play().then(() => { $("lvMusicHint").hidden = true; }).catch(() => {}); else playNext(moodOf()); } });
-  // a mood change takes effect when the current track ends (fades nicely, no sudden cut)
-  setInterval(() => { mood = moodOf(); if (MUSIC_ON && !playingMood && tlRes) playNext(mood); }, 3000);
+  if (MUSIC_ON) { scanLibrary().then(() => { if (tlRes) playNext(moodOf()); }); setInterval(scanLibrary, 30 * 60e3); }   // new files are picked up every 30 min
+  setInterval(() => { mood = moodOf(); if (MUSIC_ON && libReady && !lastUrl && tlRes) playNext(mood); }, 3000);
   let bannerTimer = null;
   function banner(name, aplus, stop, price) {
     const b = $("lvBanner");
