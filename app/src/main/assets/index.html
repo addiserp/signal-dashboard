@@ -4112,6 +4112,11 @@ if (LIVE_MODE) (function liveMode() {
     if (Date.now() - lastScan > 5 * 60e3) scanAll();
     if (new Date().getSeconds() % 15 === 0 || !$("lvSess").innerHTML) sessRender();
   }, 1000);
+  // fresh start every few hours (default 4) so a 20-hour stream doesn't slowly fill the memory; waits until no banner is showing
+  const RELOAD_H = +(P.get("reload") || 4);
+  if (RELOAD_H > 0) setInterval(() => {
+    if (performance.now() > RELOAD_H * 3600e3 && !$("lvBanner").classList.contains("show") && au.paused !== false || performance.now() > RELOAD_H * 3600e3 + 15 * 60e3) location.reload();
+  }, 60e3);
   if (P.get("test") === "banner") setTimeout(() => banner(tlSyms[list[0]].name, true, 0, 0), 5000);
   go(0);
 })();

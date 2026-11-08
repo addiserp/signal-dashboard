@@ -35,6 +35,7 @@ Options, added to the link with `&`:
 | `vol` | `&vol=0.25` | music volume, 0 to 1 |
 | `shuffle` | `&shuffle=all` | ignore the trend and shuffle every track of all moods together |
 | `musicdir` | `&musicdir=music` | folder with the music files, next to the page |
+| `reload` | `&reload=4` | refresh the page every N hours (keeps long streams light; `0` = never) |
 | `test=banner` | `&test=banner` | shows a sample A+ banner after 5 seconds — to check the layout in OBS |
 
 Opening Live mode does not change your normal app settings.
@@ -60,6 +61,8 @@ The session box shows which mood and track is playing. If no files are found, th
 3. In **Sources** click **+ → Browser**: URL = the link above, Width **1920**, Height **1080**. Tick *Refresh browser when scene becomes active*.
 4. **YouTube Studio → Create → Go live → Stream**: copy the **stream key**. In OBS **Settings → Stream**: Service *YouTube – RTMPS*, paste the key.
 5. Press **Start streaming**, then check the preview in YouTube Studio.
+
+**Long streams:** YouTube may not save a replay of a stream longer than 12 hours, so for 24/7 streaming stop and start a new stream about every 11 hours. The page refreshes itself every 4 hours so it doesn't slowly fill the memory. In OBS turn on **Settings → Advanced → Automatically reconnect**.
 
 Add your webcam, voice or logo in OBS on top of the browser source if you like. Keep the PC awake (power settings: never sleep) for long streams. If the page ever looks stuck, right-click the browser source → **Refresh**.
 
