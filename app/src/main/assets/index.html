@@ -370,7 +370,7 @@
     <div class="lv-box lv-ana"><h3>Chart analysis</h3><div id="lvAna"></div></div>
   </div>
   <div class="lv-main"><div id="lvChart"></div><div class="lv-banner" id="lvBanner"></div></div>
-  <div class="lv-marq"><div class="tag">ANALYSIS</div><div class="lv-mwrap"><div id="lvMarqText"></div></div><div class="tag tg" id="lvTg">📲 Free alerts on Telegram: @addistrading</div></div>
+  <div class="lv-marq"><div class="tag">ANALYSIS</div><div class="lv-mwrap"><div id="lvMarqText"></div></div><div class="tag tg" id="lvTg">📲 Free alerts on Telegram: @addistrad</div></div>
   <div class="lv-musichint" id="lvMusicHint" hidden>🔊 Click anywhere to start the music</div>
 </div>
 
@@ -3817,7 +3817,7 @@ if (view !== "signals") setView(view); else { buildGrid(); lazyMover(); }
 if (LIVE_MODE) (function liveMode() {
   const P = new URLSearchParams(location.search);
   const ROT_MIN = Math.max(1, +(P.get("rotate") || 5));
-  const TG = (P.get("tg") || "addistrading").replace(/^@/, "");
+  const TG = (P.get("tg") || "addistrad").replace(/^@/, "");
   const SINCE = Math.floor(Date.parse((P.get("since") || "2026-11-06") + "T00:00:00Z") / 1000);
   const want = (P.get("syms") || "BTCUSDT,ETHUSDT,ZECUSDT,XAUUSDT,CLUSDT").split(",").map((x) => x.trim().toUpperCase()).filter(Boolean);
   const F = DonchianFilters, NEED = 2 | 8 | 32, PLUS = 1;

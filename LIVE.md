@@ -10,7 +10,7 @@
 - a bold **⚠ NOT FINANCIAL ADVICE** box in the top bar
 - a **live scorecard**: every addis-4H trade on the rotation symbols since 6 Nov 2026 (trades, wins, total R after fees and funding, open R, per symbol, and ⭐ A+ trades separately)
 - a **market-session clock**: Tokyo, London and New York with their hours in EAT, open/closed, time left, and the London + New York overlap
-- a **Telegram** tag in the bottom-right corner (and in the marquee): *📲 Free alerts on Telegram: @addistrading*
+- a **Telegram** tag in the bottom-right corner (and in the marquee): *📲 Free alerts on Telegram: @addistrad*
 - **music that follows the trend** (bullish / bearish / sideways) — see *Music* below
 - a new symbol every **5 minutes**, with a countdown in the top-right corner
 - a **signal banner** (🔔 BUY SIGNAL or ⭐ A+ BUY SETUP) that drops in for 60 seconds when any symbol in the rotation gets a new signal; the chart jumps to that symbol. All symbols are checked every 5 minutes.
@@ -29,7 +29,7 @@ Options, added to the link with `&`:
 | `rotate` | `&rotate=5` | minutes per symbol (the timeframes share this time equally) |
 | `tfs` | `&tfs=4h,1h,30m,15m,5m` | timeframes shown during each symbol's turn, in order |
 | `dxy` | `&dxy=CAPITALCOM:DXY` | the dollar-index symbol for the TradingView chart (default `CAPITALCOM:DXY`; TradingView doesn't allow `TVC:DXY` in embedded charts) |
-| `tg` | `&tg=addistrading` | the Telegram name shown on screen |
+| `tg` | `&tg=addistrad` | the Telegram name shown on screen |
 | `since` | `&since=2026-11-06` | start date of the live scorecard |
 | `music` | `&music=0` | turn the music off |
 | `vol` | `&vol=0.25` | music volume, 0 to 1 |
