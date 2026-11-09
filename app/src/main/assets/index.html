@@ -401,30 +401,6 @@
     </div>
   </details>
 
-  <section class="tv-card" id="dcCard">
-    <div class="card-title">✅ Tested system: addis-4H <small>Trend lines + Volume + Oscillators · ⭐ A+ when the 1D structure agrees · same rules as your Telegram alerts</small></div>
-    <div class="tv-top" id="dcTop"></div>
-    <div class="dc-grid">
-      <div>
-        <div class="card-sub">📒 Paper trading since <input type="date" id="dcSince" value="2026-11-06"> <small class="neutral">(after fees + funding)</small></div>
-        <div class="tv-top" id="dcPaper"></div>
-        <div style="overflow-x:auto"><table class="tt"><thead><tr><th>Entry</th><th>Setup</th><th>Entry price</th><th>Exit price</th><th>Result</th></tr></thead><tbody id="dcTrades"></tbody></table></div>
-      </div>
-      <div>
-        <div class="card-sub">🧮 Trade calculator <small class="neutral">Binance USDT-M, isolated margin</small></div>
-        <div class="calc">
-          <label>Account (USDT)<input type="number" id="ccAcct" min="0" step="10" value="1000"></label>
-          <label>Risk per trade (%)<input type="number" id="ccRisk" min="0.1" max="10" step="0.1" value="1"></label>
-          <label>Leverage (×)<input type="number" id="ccLev" min="1" max="125" step="1" value="5"></label>
-          <label>Entry<input type="number" id="ccEntry" step="any"></label>
-          <label>Stop<input type="number" id="ccStop" step="any"></label>
-          <button type="button" id="ccFill">Use the system's levels</button>
-        </div>
-        <table class="tt"><tbody id="ccOut"></tbody></table>
-      </div>
-    </div>
-    <div class="msg">Rules (long only): <b>buy</b> when Trend lines (above the 4H down ray, up ray holding), Volume (above its 20-candle average) and the Oscillators summary (Buy or Strong buy) all agree on a closed 4H candle; it is an <b>⭐ A+ setup</b> when the 1D Structure is bullish too. First stop 2×ATR below the close, then move it up to the lowest low of the last 10 candles; exit only at the stop. Backtest after fees: BTC 2018–2026 ≈ +0.46R per trade, A+ ≈ +0.60R. Paper results replay the same rules on the candles since the date above (up to the last ~5 months the app loads). Telegram alerts: <b>alerts/README.md</b> in your GitHub repository. Not financial advice.</div>
-  </section>
 
   <section class="tv-card">
     <div class="tv-top">
@@ -455,6 +431,30 @@
       <table class="tt"><tbody id="bsLevels"></tbody></table>
     </section>
   </div>
+  <section class="tv-card" id="dcCard">
+    <div class="card-title">✅ Tested system: addis-4H <small>Trend lines + Volume + Oscillators · ⭐ A+ when the 1D structure agrees · same rules as your Telegram alerts</small></div>
+    <div class="tv-top" id="dcTop"></div>
+    <div class="dc-grid">
+      <div>
+        <div class="card-sub">📒 Paper trading since <input type="date" id="dcSince" value="2026-11-06"> <small class="neutral">(after fees + funding)</small></div>
+        <div class="tv-top" id="dcPaper"></div>
+        <div style="overflow-x:auto"><table class="tt"><thead><tr><th>Entry</th><th>Setup</th><th>Entry price</th><th>Exit price</th><th>Result</th></tr></thead><tbody id="dcTrades"></tbody></table></div>
+      </div>
+      <div>
+        <div class="card-sub">🧮 Trade calculator <small class="neutral">Binance USDT-M, isolated margin</small></div>
+        <div class="calc">
+          <label>Account (USDT)<input type="number" id="ccAcct" min="0" step="10" value="1000"></label>
+          <label>Risk per trade (%)<input type="number" id="ccRisk" min="0.1" max="10" step="0.1" value="1"></label>
+          <label>Leverage (×)<input type="number" id="ccLev" min="1" max="125" step="1" value="5"></label>
+          <label>Entry<input type="number" id="ccEntry" step="any"></label>
+          <label>Stop<input type="number" id="ccStop" step="any"></label>
+          <button type="button" id="ccFill">Use the system's levels</button>
+        </div>
+        <table class="tt"><tbody id="ccOut"></tbody></table>
+      </div>
+    </div>
+    <div class="msg">Rules (long only): <b>buy</b> when Trend lines (above the 4H down ray, up ray holding), Volume (above its 20-candle average) and the Oscillators summary (Buy or Strong buy) all agree on a closed 4H candle; it is an <b>⭐ A+ setup</b> when the 1D Structure is bullish too. First stop 2×ATR below the close, then move it up to the lowest low of the last 10 candles; exit only at the stop. Backtest after fees: BTC 2018–2026 ≈ +0.46R per trade, A+ ≈ +0.60R. Paper results replay the same rules on the candles since the date above (up to the last ~5 months the app loads). Telegram alerts: <b>alerts/README.md</b> in your GitHub repository. Not financial advice.</div>
+  </section>
   <div class="tv-grid">
     <section class="tv-card">
       <div class="card-title">HTF liquidity <small>PDH/PDL · PWH/PWL · PMH/PML · equal highs/lows · untaken 4H/1D swings</small></div>
@@ -475,7 +475,7 @@
       <table class="tt"><tbody id="bsFibTable"></tbody></table>
     </section>
   </div>
-  <div class="msg" style="border:1px solid rgba(245,158,11,.4);border-radius:10px;background:rgba(245,158,11,.06);color:var(--text)"><b>What the backtests showed (2022–2026, after fees):</b> the setups on this tab — trend-ray bounce, BOS + OTE, liquidity sweeps, order blocks and the confluence score — did <b>not</b> make money as automatic rules on 15m, 1h or 4h; before fees they were about break-even. Use them to <i>read</i> the chart (trend, structure, levels). The only system that tested positive is the <b>Donchian 4H</b> card at the top. Re-test anytime in the Backtest tab.</div>
+  <div class="msg" style="border:1px solid rgba(245,158,11,.4);border-radius:10px;background:rgba(245,158,11,.06);color:var(--text)"><b>What the backtests showed (2022–2026, after fees):</b> the setups on this tab — trend-ray bounce, BOS + OTE, liquidity sweeps, order blocks and the confluence score — did <b>not</b> make money as automatic rules on 15m, 1h or 4h; before fees they were about break-even. Use them to <i>read</i> the chart (trend, structure, levels). The tested system is the <b>addis-4H</b> card under the chart and the top-down table. Re-test anytime in the Backtest tab.</div>
   <div class="msg"><b>Trend rays</b> follow the top-down method (1M → 15m): the first down ray starts at the highest high, the first up ray at the lowest low, price may not cut through a ray, and each new ray starts at the previous one's last touch. Thick rays belong to the selected timeframe. "At line" = possible bounce entry, "Broken" = a candle closed through it (exit).<br><br><b>Order blocks</b> (blue = bullish demand, purple = bearish supply) are the last opposite candle before the move that broke structure; "fresh" = price hasn't come back yet, "tested" = it has. A zone is removed once a candle closes through it.<br><br>How to read the rest: swing highs/lows are confirmed pivots. <b>BOS</b> (break of structure) = a candle <i>closes</i> beyond the last swing in the trend's direction — the trend continues (uptrend: close above the last swing high; downtrend: close below the last swing low). <b>CHoCH</b> (change of character) = the first close beyond a swing <i>against</i> the trend — an early reversal warning. Dashed lines are the levels that would print the next break. Higher-timeframe structure is stronger; a BOS that agrees with the 4H/1D bias is the higher-probability one.<br><br><b>Fibonacci</b> is drawn on the leg that printed the last break: after a bullish BOS, buyers look for price to pull back into <i>discount</i> (below 50%), ideally the <b>OTE</b> zone 61.8–78.6%; after a bearish BOS, sellers look for <i>premium</i>. <b>Liquidity</b>: stops rest above old highs (buy-side, blue) and below old lows (sell-side, pink) — equal highs/lows are the strongest pools. A <b>sweep</b> (yellow) is a wick through a level that closes back inside, often before a move the other way. <b>Yellow volume bars</b> = 2× normal volume. <b>POC</b> = price with the most volume in the last 200 candles. <b>FVG</b> = an imbalance gap that price often returns to fill. Not financial advice.</div>
 </div>
 
@@ -3830,7 +3830,7 @@ if (LIVE_MODE) (function liveMode() {
   const ROT_MIN = Math.max(1, +(P.get("rotate") || 5));
   const TG = (P.get("tg") || "addistrad").replace(/^@/, "");
   const SINCE = Math.floor(Date.parse((P.get("since") || "2026-11-06") + "T00:00:00Z") / 1000);
-  const want = (P.get("syms") || "BTCUSDT,ETHUSDT,ZECUSDT,XAUUSDT,CLUSDT").split(",").map((x) => x.trim().toUpperCase()).filter(Boolean);
+  const want = (P.get("syms") || "BTCUSDT,XAUUSDT,NVDAUSDT,SPCXUSDT,NEARUSDT").split(",").map((x) => x.trim().toUpperCase()).filter(Boolean);
   const F = DonchianFilters, NEED = 2 | 8 | 32, PLUS = 1;
   // a different timeframe each minute of a symbol's turn (30m and 5m are added for Live mode only)
   const ord = TrendEngine.ORDER;
@@ -3844,7 +3844,8 @@ if (LIVE_MODE) (function liveMode() {
   const list = [];
   for (const w of want) {
     let i = tlSyms.findIndex((s) => s.sym === w || s.name.toUpperCase() === w);
-    if (i < 0) { const d = TL_DEFAULTS.find((s) => s.sym === w) || (w === "CLUSDT" ? { name: "WTI OIL", market: "futures", sym: "CLUSDT" } : null); if (d) { tlSyms.push({ ...d }); i = tlSyms.length - 1; } }
+    const EXTRA = { CLUSDT: { name: "WTI OIL", market: "futures", sym: "CLUSDT" }, NVDAUSDT: { name: "NVIDIA", market: "futures", sym: "NVDAUSDT" }, METAUSDT: { name: "META", market: "futures", sym: "METAUSDT" }, GOOGLUSDT: { name: "GOOGLE", market: "futures", sym: "GOOGLUSDT" }, TSLAUSDT: { name: "TESLA", market: "futures", sym: "TSLAUSDT" } };
+    if (i < 0) { const d = TL_DEFAULTS.find((s) => s.sym === w) || EXTRA[w] || (/^[A-Z0-9]+USDT$/.test(w) ? { name: w, market: "futures", sym: w } : null); if (d) { tlSyms.push({ ...d }); i = tlSyms.length - 1; } }
     if (i >= 0 && !list.includes(i)) list.push(i);
   }
   if (!list.length) list.push(0);

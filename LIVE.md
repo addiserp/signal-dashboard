@@ -25,7 +25,7 @@ Options, added to the link with `&`:
 
 | Option | Example | Meaning |
 | --- | --- | --- |
-| `syms` | `&syms=BTCUSDT,ETHUSDT,ZECUSDT,XAUUSDT,CLUSDT` | symbols to rotate (the default list) |
+| `syms` | `&syms=BTCUSDT,XAUUSDT,NVDAUSDT,SPCXUSDT,NEARUSDT` | symbols to rotate (the default list; any Binance USDT-M symbol works, e.g. METAUSDT, TSLAUSDT) |
 | `rotate` | `&rotate=5` | minutes per symbol (the timeframes share this time equally) |
 | `tfs` | `&tfs=4h,1h,30m,15m,5m` | timeframes shown during each symbol's turn, in order |
 | `dxy` | `&dxy=CAPITALCOM:DXY` | the dollar-index symbol for the TradingView chart (default `CAPITALCOM:DXY`; TradingView doesn't allow `TVC:DXY` in embedded charts) |
