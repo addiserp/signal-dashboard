@@ -318,6 +318,7 @@
       }
       for (const dir of sides === "both" ? [1, -1] : [1]) {
         if (!ok(k, dir) || ok(k - 1, dir)) continue;
+        if (opts.allow && !opts.allow(k, dir)) continue;          // e.g. only above the 200-day average
         const ck = checks(X, k, dir);
         const aplus = plus ? (mk(k, dir) & plus) === plus : false;
         pending = { dir, stop: dir > 0 ? x.c - 2 * A : x.c + 2 * A, aplus };

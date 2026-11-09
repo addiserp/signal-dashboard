@@ -94,6 +94,18 @@ async function yahoo(symbol) {
   return { closed: closedOnly(out), live: openCandle(out), daily: day.filter((x) => x.t + 86400 <= now) };
 }
 
+// 200-day average of a daily reference series (gold: Binance spot PAXGUSDT, reachable from GitHub's servers)
+async function trend200(ref) {
+  const j = await getJSON(`https://data-api.binance.vision/api/v3/klines?symbol=${ref}&interval=1d&limit=400`);
+  if (!Array.isArray(j)) throw new Error("no daily data for " + ref);
+  const d = j.map((k) => ({ t: Math.floor(k[0] / 1000), c: +k[4] })).filter((x) => x.t + 86400 <= now);
+  const sma = []; let sum = 0;
+  d.forEach((x, i) => { sum += x.c; if (i >= 200) sum -= d[i - 200].c; sma.push(i >= 199 ? sum / 200 : null); });
+  // state known at time t: the last daily candle that had closed by then
+  const at = (t) => { let a = -1; for (let i = d.length - 1; i >= 0; i--) if (d[i].t + 86400 <= t) { a = i; break; } return a >= 0 && sma[a] != null ? { above: d[a].c > sma[a], close: d[a].c, sma: sma[a] } : null; };
+  return { at, ref };
+}
+
 async function candles(sym) {
   const errors = [];
   for (const s of sym.sources) {
@@ -184,7 +196,7 @@ ${checksLine(ev.checks)}
 Close <b>${fmt(ev.price)}</b> · oscillators ${F.oscLabel(ev.checks.oscRating)}
 ${late ? `Planned entry: next candle open at ${eat(closeT)}` : `Enter: market order now (next candle opened ${eat(closeT)})`}
 Stop: <b>${fmt(ev.stop)}</b> (2×ATR, ${pct(ev.stop, ev.price)}), then trail to the 10-candle low${sizeLine(ev.price, ev.stop, ev.dir)}${late ? lateSignalAdvice(ev, res, livePrice) : ""}${short}
-${sym.tested ? `Backtest ${sym.tested.replace(/^Backtest /, "")}` : ""}
+${ev.trend ? `📈 Above its 200-day average (${fmt(ev.trend.close)} vs ${fmt(ev.trend.sma)}) ✅\n` : ""}${sym.watchOnly ? `👀 <b>Watch-only:</b> ${sym.watchOnly}\n` : ""}${sym.tested ? `Backtest ${sym.tested.replace(/^Backtest /, "")}` : ""}
 <i>${source} · candle ${when(ev.t)}</i>`;
   }
   if (ev.type === "signal") {
@@ -229,6 +241,7 @@ function statusLine(sym, res, source) {
   const p = res.position;
   if (SYSTEM === "filters" && !p && !res.pending) {
     const ck = res.now;
+    if (res.trendNow && !res.trendNow.above) return `• <b>${sym.name}</b>: no trade, price ${fmt(res.last.c)}. Below its 200-day average (${fmt(res.trendNow.sma)}) — no signals until it's back above.`;
     const n = F.KEYS.filter((k, b) => NEED & (1 << b)).filter((k) => ck[k]).length;
     return `• <b>${sym.name}</b>: no trade, price ${fmt(res.last.c)}. Filters now: ${F.KEYS.filter((k, b) => (NEED | PLUS) & (1 << b)).map((k) => `${tick(ck[k])} ${F.FILTERS[k].name}`).join(" · ")} (${n}/${NEED_NAMES.length} needed agree)`;
   }
@@ -311,7 +324,13 @@ for (const sym of cfg.symbols.filter((s) => s.enabled)) {
   if (SYSTEM === "filters") {
     if (!data.daily || data.daily.length < 40) { problems.push(`${sym.name}: not enough daily candles for the filters`); continue; }
     const X = F.context({ "4h": data.c, "1d": data.daily }, "4h");
-    res = F.replayFilters(X, { need: NEED, plus: PLUS, sides: sym.sides || "long" });
+    let allow = null, T2 = null;
+    if (sym.trend200) {
+      try { T2 = await trend200(sym.trend200); allow = (k) => { const st = T2.at(data.c[k].t + TF_SEC); return !!(st && st.above); }; }
+      catch (e) { problems.push(`${sym.name}: 200-day check failed (${e.message}) — no signals this run`); allow = () => false; }
+    }
+    res = F.replayFilters(X, { need: NEED, plus: PLUS, sides: sym.sides || "long", allow });
+    if (T2) { res.trendNow = T2.at(now); for (const ev of res.events) if (ev.type === "signal") ev.trend = T2.at(ev.t + TF_SEC); }
   } else res = D.replay(data.c, { sides: sym.sides || "long" });
   recordPaper(state, sym, res);
   status.push(statusLine(sym, res, data.source));

@@ -1916,6 +1916,14 @@ function bsWhen(t) {
   else root.DonchianCore = api;
 })(typeof window !== "undefined" ? window : globalThis);
 
+// Gold: addis-4H signals only while gold is above its 200-day average (watch-only — gold worked only in strong trends)
+const A4_TREND200 = new Set(["XAUUSDT", "PAXGUSDT"]);
+function a4Trend200(daily) {
+  const d = daily || []; const sma = []; let sum = 0;
+  d.forEach((x, i) => { sum += x.c; if (i >= 200) sum -= d[i - 200].c; sma.push(i >= 199 ? sum / 200 : null); });
+  const at = (t) => { let lo = 0, hi = d.length - 1, a = -1; while (lo <= hi) { const m = (lo + hi) >> 1; if (d[m].t + 86400 <= t) { a = m; lo = m + 1; } else hi = m - 1; } return a >= 0 && sma[a] != null ? { above: d[a].c > sma[a], sma: sma[a], close: d[a].c } : null; };
+  return at;
+}
 let dcLevels = null;   // entry/stop suggested by the system for the calculator
 function dcRender() {
   const box = document.getElementById("dcTop");
@@ -1930,14 +1938,16 @@ function dcRender() {
   const c = all.filter((x) => x.t + 14400 <= nowS);            // closed candles only
   const d = ((tlData && tlData["1d"]) || []).filter((x) => x.t + 86400 <= nowS);
   const F = DonchianFilters, NEED = 2 | 8 | 32, PLUS = 1;       // Trend lines + Volume + Oscillators; A+ = Structure
-  const r = F.replayFilters(F.context({ "4h": c, "1d": d }, "4h"), { need: NEED, plus: PLUS, sides: "long" });
+  const gold = A4_TREND200.has(s.sym), tAt = gold ? a4Trend200(d) : null;
+  const r = F.replayFilters(F.context({ "4h": c, "1d": d }, "4h"), { need: NEED, plus: PLUS, sides: "long", allow: tAt ? (k) => { const st = tAt(c[k].t + 14400); return !!(st && st.above); } : null });
   r.hi20 = null;
+  const tNow = tAt ? tAt(nowS) : null;
   const live = all[all.length - 1].c;
   const p = r.position;
-  const T = { BTCUSDT: ["bull", "backtest 2018–2026: +0.46R/trade · A+ +0.60R"], ZECUSDT: ["bull", "backtest 2019–2026: +0.30R/trade · A+ +0.40R"], ETHUSDT: ["neutral", "tested long+short only: +0.28R/trade"], XAUUSDT: ["bear", "backtest: no edge on gold"] }[s.sym] || ["neutral", "not backtested on this symbol"];
+  const T = { BTCUSDT: ["bull", "backtest 2018–2026: +0.46R/trade · A+ +0.60R"], ZECUSDT: ["bull", "backtest 2019–2026: +0.30R/trade · A+ +0.40R"], ETHUSDT: ["neutral", "tested long+short only: +0.28R/trade"], XAUUSDT: ["neutral", "watch-only · gold 2024–26 +0.37R/trade (above 200-day); 2020–23 lost"] }[s.sym] || ["neutral", "not backtested on this symbol"];
   const tested = `<span class="badge ${T[0]}">${T[1]}</span>`;
   const tick = (ok) => ok ? "✅" : "❌";
-  const chk = (ck) => `${tick(ck.rays)} Trend lines · ${tick(ck.volume)} Volume · ${tick(ck.osc)} Oscillators <span class="neutral">· A+:</span> ${tick(ck.structure)} Structure`;
+  const chk = (ck) => `${tick(ck.rays)} Trend lines · ${tick(ck.volume)} Volume · ${tick(ck.osc)} Oscillators <span class="neutral">· A+:</span> ${tick(ck.structure)} Structure` + (gold ? ` <span class="neutral">· 200-day:</span> ${tNow ? tick(tNow.above) : "—"}` : "");
   let state;
   if (p) {
     const openR = (live - p.entry) / p.risk;
@@ -1955,7 +1965,7 @@ function dcRender() {
     const stop = live - 2 * r.atr;
     const n = [r.now.rays, r.now.volume, r.now.osc].filter(Boolean).length;
     dcLevels = { entry: live, stop, label: "the current price and a 2×ATR stop" };
-    state = `<div><div class="muted">Status</div><div><span class="badge neutral">no trade — waiting for the filters (${n}/3 agree)</span></div></div>
+    state = `<div><div class="muted">Status</div><div><span class="badge neutral">${gold && tNow && !tNow.above ? "no trade — gold is below its 200-day average" : `no trade — waiting for the filters (${n}/3 agree)`}</span></div></div>
       <div style="flex:1;min-width:240px"><div class="muted">Last 4H close</div><div>${chk(r.now)}</div></div>
       <div><div class="muted">First stop would be about</div><div>${tlFmt(stop)} <span class="neutral" style="font-size:11px">(2×ATR)</span></div></div>`;
   }
@@ -3151,6 +3161,7 @@ function bsCards(ov, vol, price, tfLabel, R) {
       }
       for (const dir of sides === "both" ? [1, -1] : [1]) {
         if (!ok(k, dir) || ok(k - 1, dir)) continue;
+        if (opts.allow && !opts.allow(k, dir)) continue;          // e.g. only above the 200-day average
         const ck = checks(X, k, dir);
         const aplus = plus ? (mk(k, dir) & plus) === plus : false;
         pending = { dir, stop: dir > 0 ? x.c - 2 * A : x.c + 2 * A, aplus };
@@ -3862,10 +3873,12 @@ if (LIVE_MODE) (function liveMode() {
   const tick = (ok) => ok ? "✅" : "❌";
   const pctTxt = (x) => (x >= 0 ? "+" : "") + x.toFixed(2) + "%";
   const closed = (arr, sec) => (arr || []).filter((x) => x.t + sec <= Date.now() / 1000);
-  function system(data) {
+  function system(data, sym) {
     const c = closed(data["4h"], 14400), d = closed(data["1d"], 86400);
     if (c.length < 240 || d.length < 40) return null;
-    const r = F.replayFilters(F.context({ "4h": c, "1d": d }, "4h"), { need: NEED, plus: PLUS, sides: "long" });
+    const gold = !!(sym && A4_TREND200.has(sym.sym)), tAt = gold ? a4Trend200(d) : null;
+    const r = F.replayFilters(F.context({ "4h": c, "1d": d }, "4h"), { need: NEED, plus: PLUS, sides: "long", allow: tAt ? (k) => { const st = tAt(c[k].t + 14400); return !!(st && st.above); } : null });
+    r.gold = gold; r.t200 = tAt ? tAt(Date.now() / 1000) : null;
     const n = [r.now.rays, r.now.volume, r.now.osc].filter(Boolean).length;
     const state = r.pending ? "signal" : r.position ? "trade" : "wait";
     const pp = DonchianCore.paper(r.trades, r.position, c[c.length - 1], SINCE);
@@ -3900,20 +3913,21 @@ if (LIVE_MODE) (function liveMode() {
     $("lvChg").textContent = chg == null ? "" : pctTxt(chg) + " 24h";
     $("lvChg").className = chg == null ? "" : chg >= 0 ? "up" : "dn";
     // the addis-4H system
-    const S = system(tlData);
+    const S = system(tlData, s);
     if (S) { scan[tlActive] = { ...S, at: Date.now() }; scoreRender(); }
     let html = "";
     if (!S) html = `<div class="neutral">Not enough history for ${s.name}.</div>`;
     else {
       const st = S.state === "signal" ? `<span class="lv-st go">${S.aplus ? "⭐ A+ BUY SETUP" : "🟢 BUY SIGNAL"}</span>`
         : S.state === "trade" ? `<span class="lv-st on">${S.aplus ? "⭐ A+ " : ""}IN A LONG</span>`
+        : S.r.gold && S.r.t200 && !S.r.t200.above ? `<span class="lv-st wait">BELOW 200-DAY · no gold signals</span>`
         : `<span class="lv-st wait">WAITING · ${S.n}/3 agree</span>`;
       const p = S.r.position;
       const oR = p ? (price - p.entry) / p.risk : 0;
       const extra = S.state === "trade" ? `<div class="lv-trow"><div><span>Entry</span> <b>${tlFmt(p.entry)}</b></div><div><span>Stop</span> <b>${tlFmt(p.stop)}</b></div><div><span>Open</span> <b class="${oR >= 0 ? "up" : "dn"}">${(oR >= 0 ? "+" : "") + oR.toFixed(2)}R</b></div></div>`
         : S.state === "signal" ? `<div class="lv-trow"><div><span>Stop to place</span> <b>${tlFmt(S.stop)}</b></div></div>` : "";
       html = `${st}
-        <div class="lv-checks"><div>${tick(S.ck.rays)} Trend lines</div><div>${tick(S.ck.volume)} Volume</div><div>${tick(S.ck.osc)} Oscillators <small>${F.oscLabel(S.ck.oscRating)}</small></div><div class="lv-plus">${tick(S.ck.structure)} Structure <small>(A+)</small></div></div>${extra}`;
+        <div class="lv-checks"><div>${tick(S.ck.rays)} Trend lines</div><div>${tick(S.ck.volume)} Volume</div><div>${tick(S.ck.osc)} Oscillators <small>${F.oscLabel(S.ck.oscRating)}</small></div><div class="lv-plus">${tick(S.ck.structure)} Structure <small>(A+)</small></div>${S.r.gold ? `<div>${S.r.t200 ? tick(S.r.t200.above) : "—"} Above 200-day</div><div><small>👀 gold: watch-only</small></div>` : ""}</div>${extra}`;
     }
     $("lvSys").innerHTML = html;
     // analysis summary from the Analysis tab
@@ -3969,7 +3983,7 @@ if (LIVE_MODE) (function liveMode() {
       const s = tlSyms[i];
       try {
         const [c4, d1] = await Promise.all([tlFetch(s, "4h"), tlFetch(s, "1d")]);
-        const S = system({ "4h": c4, "1d": d1 });
+        const S = system({ "4h": c4, "1d": d1 }, s);
         if (!S) continue;
         scan[i] = { ...S, at: Date.now() };
         if (S.state === "signal") {

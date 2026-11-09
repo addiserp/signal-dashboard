@@ -85,7 +85,8 @@ The backtest says the system earned about +0.15R to +0.25R per trade. The scorec
 
 - `system` — `"filters"` (default, described above) or `"donchian"` (the older Donchian breakout alerts).
 - `filters` — the filters that must agree for a BUY (default `["rays", "volume", "osc"]`); `aplus` — the extra filters for ⭐ A+ (default `["structure"]`). Names: `structure`, `rays`, `liquidity`, `volume`, `fib`, `osc`.
-- `enabled` — turn a symbol on or off. BTC, ZEC and ETH are on; gold (no edge in the backtest) and crude oil (too little history) are off. Before turning a coin on, run it in the app: **Backtest → Trend following → Six filters only** with Trend lines + Volume + Oscillators switched on; turn it on only with 60+ trades and +0.15R or more per trade.
+- `enabled` — turn a symbol on or off. BTC, ZEC, ETH and gold are on; crude oil (too little history) is off. Before turning a coin on, run it in the app: **Backtest → Trend following → Six filters only** with Trend lines + Volume + Oscillators switched on; turn it on only with 60+ trades and +0.15R or more per trade.
+- `trend200` — only send signals while the symbol is above its 200-day average, measured on this Binance spot symbol (gold uses `PAXGUSDT`). Gold tested: 2020–2026 ≈ +0.14R per trade with this filter (2024–2026 ≈ +0.37R; 2020–2023 still lost), so gold messages are marked **watch-only** (`watchOnly` text).
 - `sides` — `"long"` (buy signals only — **the tested system**) or `"both"` (also sell signals when a candle closes below the 20-candle low; shorts were not backtested positive, and the message says so).
 - `accountUSDT` + `riskPct` — set your account size (e.g. `1000`) to get a position size in every buy message.
 - `leverage` — the leverage you use on Binance futures (e.g. `5`). The buy message shows the margin needed and the rough liquidation price, and warns if liquidation would come **before** your stop (lower the leverage if it does).

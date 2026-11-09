@@ -85,9 +85,9 @@
     },
     {
       "name": "Gold (XAU)",
-      "enabled": false,
+      "enabled": true,
       "sides": "long",
-      "tested": "Backtest: no edge on gold (≈0R per trade) — keep off",
+      "tested": "Backtest gold 2020–2026 (long, above the 200-day average): ≈ +0.14R per trade; 2024–2026 ≈ +0.37R",
       "sources": [
         {
           "type": "binance-futures",
@@ -97,7 +97,9 @@
           "type": "yahoo",
           "symbol": "GC=F"
         }
-      ]
+      ],
+      "trend200": "PAXGUSDT",
+      "watchOnly": "gold only worked in strong trends (2024–2026 ≈ +0.37R per trade; 2020–2023 lost money). Trade small or just watch."
     }
   ]
 }
