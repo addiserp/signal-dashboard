@@ -36,9 +36,21 @@ Options, added to the link with `&`:
 | `shuffle` | `&shuffle=all` | ignore the trend and shuffle every track of all moods together |
 | `musicdir` | `&musicdir=music` | folder with the music files, next to the page |
 | `reload` | `&reload=4` | refresh the page every N hours (keeps long streams light; `0` = never) |
+| `req` | `&req=5` | minutes a viewer request is shown |
 | `test=banner` | `&test=banner` | shows a sample A+ banner after 5 seconds — to check the layout in OBS |
 
 Opening Live mode does not change your normal app settings.
+
+## Viewer requests (show any coin or stock on demand)
+
+When someone in the chat asks for a coin, show it without leaving Live mode:
+
+1. In OBS, right-click the Live **Browser** source → **Interact**. A small window opens; click inside it once.
+2. Press **/** (or **R**). A box appears: type the name and press **Enter** — e.g. `SOL`, `ETH`, `GOLD`, `SILVER`, `OIL`, `NVDA`, `TSLA`, `META`, or any Binance symbol (`DOGEUSDT`). Add the viewer's name to credit them: `SOL @abebe`.
+3. The coin is shown with all drawings for 5 minutes (4H → 1H → 30m → 15m → 5m), a purple **🙋 Request · @name** label in the top bar, and a line in the marquee. Then the stream goes back to the normal rotation.
+4. Type more names while one is showing to **queue** them; they play one after another. **Esc** closes the box.
+
+Unknown names show "not found on Binance" in the box. Signal banners don't interrupt a request. Option: `&req=3` makes requests 3 minutes long.
 
 ## Music (YouTube Audio Library)
 
