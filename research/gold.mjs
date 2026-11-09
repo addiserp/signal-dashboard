@@ -60,3 +60,18 @@ const R = F.replayFilters(X, { need: B.structure | B.volume | B.osc, plus: B.ray
 console.log(`\nProposed gold rule now: ${R.pending ? "SIGNAL on the last candle" : R.position ? `in a long since ${new Date(R.position.entryT * 1000).toISOString().slice(0, 16)}Z entry ${R.position.entry.toFixed(2)} stop ${R.position.stop.toFixed(2)} (${R.position.openR.toFixed(2)}R)` : "no trade"}`);
 console.log("Last 5 trades of the proposed rule:");
 for (const t of R.trades.slice(-5)) console.log(`  ${new Date(t.t * 1000).toISOString().slice(0, 16)}Z → ${new Date(t.exitT * 1000).toISOString().slice(0, 16)}Z  entry ${t.entry.toFixed(2)} exit ${t.exit.toFixed(2)}  ${t.r >= 0 ? "+" : ""}${t.r.toFixed(2)}R${t.aplus ? " (A+)" : ""}`);
+
+// ---- regime test: only take trades when the last closed daily close is above its 200-day average ----
+{
+  const sma = []; let s = 0;
+  d1.forEach((x, i) => { s += x.c; if (i >= 200) s -= d1[i - 200].c; sma.push(i >= 199 ? s / 200 : null); });
+  const above = (t) => { let lo = 0, hi = d1.length - 1, a = -1; while (lo <= hi) { const m = (lo + hi) >> 1; if (d1[m].t + 86400 <= t) { a = m; lo = m + 1; } else hi = m - 1; } return a >= 0 && sma[a] != null && d1[a].c > sma[a]; };
+  const X = F.context({ "4h": c4, "1d": d1 }, "4h");
+  const o = { sides: "long", feePct: 0.05, fundingPct: 0.01, startT: c4[0].t };
+  for (const [name, m, ex] of [["BTC rule TL+Vol+Osc", B.rays | B.volume | B.osc, "trail"], ["Gold rule Structure+Vol+Osc", B.structure | B.volume | B.osc, "trail"], ["Structure+TL+Vol+Osc", B.structure | B.rays | B.volume | B.osc, "trail"], ["Plain Donchian", 0, "dc"]]) {
+    const tr = ex === "dc" ? F.runDonchian(X, o, 0) : F.runFiltersOnly(X, o, m, ex);
+    const keep = tr.filter((t) => above(t.t));
+    for (const [lab, from, to] of [["all", 0, Infinity], ["2020-23", 0, T(2024)], ["2024-now", T(2024), Infinity]])
+      console.log(`  200-day filter · ${name.padEnd(28)} ${lab.padEnd(8)} ${fmt(F.summarize(keep.filter((t) => t.t >= from && t.t < to), 1))}   (without filter: ${fmt(F.summarize(tr.filter((t) => t.t >= from && t.t < to), 1)).trim()})`);
+  }
+}
