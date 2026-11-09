@@ -9,6 +9,8 @@ on:
       - "docs/**"
       - "**/*.md"
       - ".github/workflows/donchian-alerts.yml"
+      - "research/**"
+      - ".github/workflows/research.yml"
   workflow_dispatch:
 
 jobs:
