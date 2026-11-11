@@ -5,6 +5,8 @@ on:
       shots:
         description: "symbol:timeframe list"
         default: "BTCUSDT:4h,BTCUSDT:1h,PAXGUSDT:4h,PAXGUSDT:1h,ETHUSDT:4h,SOLUSDT:4h"
+permissions:
+  contents: write
 jobs:
   snap:
     runs-on: ubuntu-latest
@@ -19,7 +21,9 @@ jobs:
         env:
           SHOTS: ${{ github.event.inputs.shots }}
         run: node research/snap.mjs
-      - uses: actions/upload-artifact@v4
-        with:
-          name: snaps
-          path: snaps/
+      - name: Save the screenshots to the "snaps" branch
+        run: |
+          mkdir -p /tmp/out && cp snaps/* /tmp/out/
+          git config user.name "snapshot-bot" && git config user.email "snapshot-bot@users.noreply.github.com"
+          git checkout --orphan snaps-tmp && git rm -rq --cached . && rm -rf ./*
+          cp /tmp/out/* . && git add *.jpg && git commit -qm "chart snapshots $(date -u +%F' '%H:%M)" && git push -fq origin HEAD:refs/heads/snaps
