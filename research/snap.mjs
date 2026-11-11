@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 mkdirSync("snaps", { recursive: true });
 const page0 = "file://" + resolve("docs/index.html");
 const shots = (process.env.SHOTS || "BTCUSDT:4h,BTCUSDT:1h,PAXGUSDT:4h,PAXGUSDT:1h,ETHUSDT:4h,SOLUSDT:4h").split(",");
-const b = await chromium.launch();
+const b = await chromium.launch({ channel: "chrome" });   // the Chrome that GitHub runners already have
 for (const s of shots) {
   const [sym, tf] = s.split(":");
   const ctx = await b.newContext({ viewport: { width: 1920, height: 1080 } });

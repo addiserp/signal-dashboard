@@ -14,7 +14,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - run: npm i --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
+      - run: npm i --no-save playwright@1.48.2
       - name: Take screenshots
         env:
           SHOTS: ${{ github.event.inputs.shots }}
