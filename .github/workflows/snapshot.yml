@@ -1,0 +1,25 @@
+name: Chart snapshots
+on:
+  workflow_dispatch:
+    inputs:
+      shots:
+        description: "symbol:timeframe list"
+        default: "BTCUSDT:4h,BTCUSDT:1h,PAXGUSDT:4h,PAXGUSDT:1h,ETHUSDT:4h,SOLUSDT:4h"
+jobs:
+  snap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm i --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
+      - name: Take screenshots
+        env:
+          SHOTS: ${{ github.event.inputs.shots }}
+        run: node research/snap.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: snaps
+          path: snaps/

@@ -11,6 +11,7 @@ on:
       - ".github/workflows/donchian-alerts.yml"
       - "research/**"
       - ".github/workflows/research.yml"
+      - ".github/workflows/snapshot.yml"
   workflow_dispatch:
 
 jobs:
