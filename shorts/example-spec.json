@@ -1,0 +1,94 @@
+{
+ "slug": "thursday-2026-11-12",
+ "day": "THURSDAY",
+ "date": "12 NOV 2026",
+ "hook": {
+  "title_html": "Thursday<br><span class=\"y\">market update</span>",
+  "sub_html": "Gold breaks below <b style=\"color:#fff\">$4,000</b><br>Bitcoin slips · dollar strong 💵",
+  "chart": "PAXGUSDT-4h"
+ },
+ "scenes": [
+  {
+   "type": "news",
+   "pill": "📰 NEWS",
+   "title_html": "Fed hike bets <span class=\"y\">firm</span>",
+   "sub_html": "~<b class=\"y\">90% odds</b> of a December<br>rate <b style=\"color:#f87171\">HIKE</b> (CME FedWatch)<br>US producer prices (PPI) up next",
+   "image": "BTCUSDT-4h-dxy",
+   "image_caption": "💵 Dollar index holds near 102.6",
+   "src": "Sources: CME FedWatch via Yahoo Finance, KuCoin market report"
+  },
+  {
+   "type": "asset",
+   "pill": "🥇 GOLD",
+   "pill_class": "amb",
+   "price": "$3,902",
+   "change": "−3.2%",
+   "up": false,
+   "sub_html": "Back under <b style=\"color:#fff\">$4,000</b> as the<br>dollar climbs on hike bets",
+   "chart": "PAXGUSDT-4h",
+   "levels": [
+    "⬆ PDH 4,059",
+    "⬇ SSL 3,894"
+   ],
+   "src": "Chart: Binance PAXGUSDT 4H (gold-backed token)"
+  },
+  {
+   "type": "asset",
+   "pill": "₿ BITCOIN",
+   "pill_class": "red",
+   "price": "$72,665",
+   "change": "−1.5%",
+   "up": false,
+   "sub_html": "Fear &amp; Greed <b style=\"color:#fff\">28</b> (fear) · spot ETFs<br>saw a 4th straight day of outflows",
+   "chart": "BTCUSDT-4h",
+   "levels": [
+    "⬆ BSL 74,812",
+    "⬇ BOS forming below 72,727"
+   ],
+   "src": "Chart: Binance BTCUSDT 4H"
+  },
+  {
+   "type": "system",
+   "pill": "📒 addis-4H · honest results",
+   "pill_class": "grn",
+   "title_html": "Our BTC trade<br>hits its <span style=\"color:#f87171\">stop</span>",
+   "image": "BTCUSDT-4h-sys",
+   "sub_html": "Entry 74,395 · stop 72,789<br>≈ <b style=\"color:#f87171\">−1R</b> loss, as planned<br><br>Small losses, big winners —<br>that is how the system works"
+  },
+  {
+   "type": "text",
+   "pill": "📉 STOCKS",
+   "title_html": "Tech <span style=\"color:#f87171\">wobbles</span>",
+   "body_html": "🔴 Nasdaq futures dip<br>after Wednesday's rally<br><br>🔴 Nvidia under pressure on<br>reports its board discussed<br>the CEO's future —<br>no decision announced",
+   "src": "Pre-market, TipRanks / Reuters report"
+  },
+  {
+   "type": "asset",
+   "pill": "Ξ ETH · ◎ SOL",
+   "pill_class": "red",
+   "price": "ETH $2,014",
+   "change": "−2.2%",
+   "up": false,
+   "sub_html": "<b style=\"color:#fff\">SOL $81.6</b> <span style=\"color:#f87171\">−3.5%</span><br>Both in a bearish 4H structure",
+   "chart": "ETHUSDT-4h",
+   "seconds": 5,
+   "src": "Chart: Binance ETHUSDT 4H"
+  }
+ ],
+ "cta": {
+  "line": "Every signal tracked honestly —<br>wins and losses"
+ },
+ "thumb": {
+  "title_html": "GOLD <span class=\"y\">&lt; $4K</span>",
+  "sub_html": "Fed hike bets 💵<br>Bitcoin · Gold · Nvidia",
+  "chart_top": "PAXGUSDT-4h",
+  "tag_top": "🥇 GOLD $3,902 −3.2%",
+  "tag_top_class": "amb",
+  "chart_bottom": "BTCUSDT-4h",
+  "tag_bottom": "₿ $72,665 −1.5%",
+  "tag_bottom_class": "red",
+  "cover_title_html": "GOLD<br><span class=\"y\">&lt; $4K</span>",
+  "cover_sub_html": "Fed hike bets 💵",
+  "cover_line": "🥇 $3,902 · ₿ $72,665 · 🔴 NVDA"
+ }
+}

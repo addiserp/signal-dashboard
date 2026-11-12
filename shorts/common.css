@@ -1,0 +1,9 @@
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,"DejaVu Sans",Arial,sans-serif;background:#070b12;color:#fff;overflow:hidden}
+.logo{display:flex;align-items:center;gap:18px;font-weight:800}
+.logo img{border-radius:22%}
+.live{display:inline-flex;align-items:center;gap:10px;background:#dc2626;color:#fff;font-weight:900;border-radius:14px;padding:8px 20px}
+.live:before{content:"";width:16px;height:16px;border-radius:50%;background:#fff}
+.y{color:#facc15}.g{color:#22c55e}.b{color:#38bdf8}
+.shot{border:3px solid #263247;border-radius:22px;box-shadow:0 30px 80px rgba(0,0,0,.7);display:block}
+.nfa{border:3px solid #f59e0b;color:#fde047;font-weight:900;border-radius:14px;padding:10px 22px;letter-spacing:.05em;background:rgba(245,158,11,.12)}
