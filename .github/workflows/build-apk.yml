@@ -10,6 +10,7 @@ on:
       - "**/*.md"
       - ".github/workflows/donchian-alerts.yml"
       - "research/**"
+      - "shorts/**"
       - ".github/workflows/research.yml"
       - ".github/workflows/snapshot.yml"
   workflow_dispatch:
