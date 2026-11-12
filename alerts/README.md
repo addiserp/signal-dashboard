@@ -22,12 +22,12 @@ Rules are exactly the app's backtest, so live alerts and backtest results match.
 
 ## One-time setup (about 5 minutes)
 
-1. **Create your bot.** In Telegram, open **@BotFather** → send `/newbot` → choose a name (e.g. *Addis-Trading Signals*) and a username ending in `bot`. BotFather replies with a **token** like `123456789:AA…`. Keep it secret.
+1. **Create your bot.** In Telegram, open **@BotFather** → send `/newbot` → choose a name (e.g. *Addis Chart Signals*) and a username ending in `bot`. BotFather replies with a **token** like `123456789:AA…`. Keep it secret.
 2. **Find your chat id.** Send any message to your new bot (press *Start*). Then open **@userinfobot** in Telegram — it replies with your **Id** (a number like `123456789`).
 3. **Add both to GitHub.** In your `signal-dashboard` repository: **Settings → Secrets and variables → Actions → New repository secret**
    - Name `TELEGRAM_BOT_TOKEN`, value = the token from step 1
    - Name `TELEGRAM_CHAT_ID`, value = the number from step 2
-4. **Send a test.** **Actions** tab → **Donchian 4H alerts** → **Run workflow** → choose mode **`test`** → **Run workflow**. Within a minute you should get "✅ Addis-Trading Signals alerts are working" with the current status of each symbol.
+4. **Send a test.** **Actions** tab → **Donchian 4H alerts** → **Run workflow** → choose mode **`test`** → **Run workflow**. Within a minute you should get "✅ Addis Chart Signals alerts are working" with the current status of each symbol.
 
 5. **Make it really run every 15 minutes (important).** GitHub's own schedule is unreliable on free accounts — in the first week it ran only every 4–7 hours, so alerts came hours late. A free outside timer fixes this:
    1. **Make a GitHub token.** Click your profile photo → **Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token**. Name `cron-job`, expiration: the longest offered, **Repository access → Only select repositories → signal-dashboard**, **Permissions → Repository permissions → Actions: Read and write**. Generate and copy the token (starts with `github_pat_`).

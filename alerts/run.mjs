@@ -1,4 +1,4 @@
-// Addis-Trading Signals — 4H alerts to Telegram.
+// Addis Chart Signals — 4H alerts to Telegram.
 // System "filters" (default): BUY when Trend lines + Volume + Oscillators agree on a closed 4H candle,
 // ⭐ A+ when the 1D Structure agrees too. Stop 2×ATR, trailed to the 10-candle low.
 // System "donchian": the older Donchian breakout (set "system": "donchian" in config.json).
@@ -42,7 +42,7 @@ const LIVE_SINCE = Math.floor(Date.parse((cfg.liveSince || "2026-10-27") + "T00:
 const now = Math.floor(Date.now() / 1000);
 
 // ---------- data ----------
-const UA = { "User-Agent": "Mozilla/5.0 (Addis-Trading Signals alerts)" };
+const UA = { "User-Agent": "Mozilla/5.0 (Addis Chart Signals alerts)" };
 async function getJSON(url) {
   const r = await fetch(url, { headers: UA });
   if (!r.ok) throw new Error(`HTTP ${r.status} from ${new URL(url).host}`);
@@ -366,7 +366,7 @@ const today = new Date().toISOString().slice(0, 10);
 const hourUTC = new Date().getUTCHours();
 const wantSummary = MODE === "test" || MODE === "summary" || (MODE === "auto" && hourUTC >= cfg.dailySummaryHourUTC && state.summaryDay !== today);
 if (wantSummary) {
-  const head = MODE === "test" ? "✅ <b>Addis-Trading Signals alerts are working</b>" : "☀️ <b>Daily status · ${SYS_NAME}</b>";
+  const head = MODE === "test" ? "✅ <b>Addis Chart Signals alerts are working</b>" : "☀️ <b>Daily status · ${SYS_NAME}</b>";
   const body = status.length ? status.join("\n") : "No symbol could be loaded.";
   // paper-trading scorecard (net of fees and funding)
   const names = cfg.symbols.filter((s) => s.enabled).map((s) => s.name);

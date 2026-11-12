@@ -49,7 +49,7 @@ h1{font-size:98px;font-weight:900;line-height:1.04;letter-spacing:-.01em}
 .src{position:absolute;left:60px;right:140px;top:1440px;font-size:24px;color:#64748b}
 .nfa{font-size:28px}.chg{font-size:64px}
 </style>'''
-TOP = f'<div class="top"><div class="logo"><img src="logo.png">Addis-Trading</div><span class="nfa">⚠ NOT FINANCIAL ADVICE</span></div><div class="day">{spec["day"]} · {spec["date"]}</div>'
+TOP = f'<div class="top"><div class="logo"><img src="logo.png">Addis Chart</div><span class="nfa">⚠ NOT FINANCIAL ADVICE</span></div><div class="day">{spec["day"]} · {spec["date"]}</div>'
 def page(inner, src=""): return f'<html><head>{CSS}</head><body>{TOP}<div class="zone">{inner}</div><div class="src">{src or ""}</div></body></html>'
 def chg(s): return f'<span class="chg" style="color:{"#4ade80" if s.get("up") else "#f87171"}">{s["change"]}</span>' if s.get("change") else ""
 
@@ -92,7 +92,7 @@ h1{{font-size:96px;line-height:.95;font-weight:900;margin-top:10px;white-space:n
 .sub{{margin-top:22px;font-size:40px;font-weight:900;line-height:1.15}}.nfa{{display:inline-block;margin-top:24px;font-size:22px;padding:6px 14px}}
 </style></head><body><div class="c1"></div><div class="c2"></div><div class="fade"></div>
 <div class="t1 {th.get("tag_top_class", "amb")}">{th["tag_top"]}</div><div class="t2 {th.get("tag_bottom_class", "red")}">{th["tag_bottom"]}</div>
-<div class="w"><div class="logo"><img src="logo.png">Addis-Trading Signals</div><div class="day">{spec["day"]} · {spec["date"].rsplit(" ", 1)[0]}</div>
+<div class="w"><div class="logo"><img src="logo.png">Addis Chart Signals</div><div class="day">{spec["day"]} · {spec["date"].rsplit(" ", 1)[0]}</div>
 <h1>{th["title_html"]}</h1><div class="sub">{th["sub_html"]}</div><span class="nfa">⚠ NOT FINANCIAL ADVICE</span></div></body></html>'''
 COVER = f'''<html><head><link rel="stylesheet" href="common.css"><style>
 body{{width:1080px;height:1920px;position:relative;background:#070b12}}
@@ -103,7 +103,7 @@ body{{width:1080px;height:1920px;position:relative;background:#070b12}}
 h1{{font-size:150px;line-height:.92;font-weight:900;margin-top:16px}}.sub{{font-size:58px;font-weight:900;margin-top:24px;line-height:1.15}}
 .b{{position:absolute;left:60px;top:1540px;right:140px;font-size:46px;font-weight:900;line-height:1.4}}
 </style></head><body><div class="bg"></div><div class="g"></div>
-<div class="w"><div class="logo"><img src="logo.png">Addis-Trading</div><div class="day">{spec["day"]} · {spec["date"].rsplit(" ", 1)[0]}</div>
+<div class="w"><div class="logo"><img src="logo.png">Addis Chart</div><div class="day">{spec["day"]} · {spec["date"].rsplit(" ", 1)[0]}</div>
 <h1>{th.get("cover_title_html", th["title_html"])}</h1><div class="sub">{th.get("cover_sub_html", "")}</div></div><div class="b">{th.get("cover_line", "")}</div></body></html>'''
 
 async def render():
