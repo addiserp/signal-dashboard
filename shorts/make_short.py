@@ -6,7 +6,7 @@ Usage:  python3 make_short.py spec.json SNAPS_DIR OUT_DIR [--music file.mp3 --mu
   spec.json: the day's content — see example-spec.json. Text fields are HTML (use <span class="y">…</span> for yellow,
              <b style="color:#f87171">…</b> for red, &lt; for <).
 Output: <slug>-short-youtube.mp4 (music if given), <slug>-short-tiktok.mp4 (silent), <slug>-thumbnail-youtube.png,
-        <slug>-cover-tiktok.png, and <slug>-sheet.png (all scenes side by side, for checking).
+        <slug>-cover-tiktok.png, <slug>-thumbnail-shorts.png (vertical, centred: YouTube Shorts crops a 16:9 thumbnail), and <slug>-sheet.png (all scenes side by side, for checking).
 Needs: python3 + playwright (pip) with Chromium, Pillow, ffmpeg.
 """
 import asyncio, json, os, shutil, subprocess, sys
@@ -106,6 +106,18 @@ h1{{font-size:150px;line-height:.92;font-weight:900;margin-top:16px}}.sub{{font-
 <div class="w"><div class="logo"><img src="logo.png">Addis Chart</div><div class="day">{spec["day"]} · {spec["date"].rsplit(" ", 1)[0]}</div>
 <h1>{th.get("cover_title_html", th["title_html"])}</h1><div class="sub">{th.get("cover_sub_html", "")}</div></div><div class="b">{th.get("cover_line", "")}</div></body></html>'''
 
+SHORTS = f'''<html><head><link rel="stylesheet" href="common.css"><style>
+body{{width:1080px;height:1920px;position:relative;background:#070b12;text-align:center}}
+.bg{{position:absolute;left:0;right:0;top:980px;height:600px;background:url({img(th["chart_top"] + "-chart")}) 62% 50%/cover;filter:saturate(1.3) contrast(1.1)}}
+.g{{position:absolute;inset:0;background:linear-gradient(180deg,#070b12 0%,#070b12 50%,rgba(7,11,18,.15) 57%,rgba(7,11,18,.15) 76%,#070b12 83%)}}
+.w{{position:absolute;left:110px;right:110px;top:300px}}.logo{{font-size:44px;justify-content:center}}.logo img{{width:84px;height:84px}}
+.day{{margin-top:34px;font-size:46px;font-weight:900;letter-spacing:.1em;color:#38bdf8}}
+h1{{font-size:190px;line-height:.9;font-weight:900;margin-top:20px}}.sub{{font-size:62px;font-weight:900;margin-top:30px;line-height:1.15}}
+.b{{position:absolute;left:110px;right:110px;top:1600px;font-size:50px;font-weight:900;line-height:1.3}}
+</style></head><body><div class="bg"></div><div class="g"></div>
+<div class="w"><div class="logo"><img src="logo.png">Addis Chart</div><div class="day">{spec["day"]} · {spec["date"].rsplit(" ", 1)[0]}</div>
+<h1>{th.get("cover_title_html", th["title_html"])}</h1><div class="sub">{th.get("cover_sub_html", "")}</div></div><div class="b">{th.get("cover_line", "")}</div></body></html>'''
+
 async def render():
     async with async_playwright() as p:
         b = await p.chromium.launch()
@@ -113,7 +125,7 @@ async def render():
         for i, h in enumerate(scenes, 1):
             fn = os.path.join(work, f"s{i}.html"); open(fn, "w").write(h)
             await pg.goto("file://" + fn); await pg.wait_for_timeout(350); await pg.screenshot(path=os.path.join(work, f"s{i}.png"))
-        for html, w, hh, name in [(THUMB, 1280, 720, "thumbnail-youtube"), (COVER, 1080, 1920, "cover-tiktok")]:
+        for html, w, hh, name in [(THUMB, 1280, 720, "thumbnail-youtube"), (COVER, 1080, 1920, "cover-tiktok"), (SHORTS, 1080, 1920, "thumbnail-shorts")]:
             fn = os.path.join(work, name + ".html"); open(fn, "w").write(html)
             q = await b.new_page(viewport={"width": w, "height": hh}); await q.goto("file://" + fn); await q.wait_for_timeout(500)
             await q.screenshot(path=os.path.join(out, f'{spec["slug"]}-{name}.png')); await q.close()

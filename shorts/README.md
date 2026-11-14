@@ -2,7 +2,8 @@
 
 `make_short.py` turns the day's content into:
 - `<slug>-short-youtube.mp4` and `<slug>-short-tiktok.mp4` (1080×1920, ~40 s; TikTok version silent — add a TikTok sound in the app),
-- `<slug>-thumbnail-youtube.png` (1280×720) and `<slug>-cover-tiktok.png` (1080×1920),
+- `<slug>-thumbnail-youtube.png` (1280×720), `<slug>-cover-tiktok.png` (1080×1920) and `<slug>-thumbnail-shorts.png`
+  (1080×1920, centred — use this one for YouTube Shorts: the Shorts grid crops a 16:9 thumbnail),
 - `<slug>-sheet.png` (all scenes side by side, to check before sending).
 
 ## The daily routine
