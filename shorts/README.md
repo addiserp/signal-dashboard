@@ -15,7 +15,9 @@
    symbol's price, 24h change, addis-4H status and levels — use those numbers in the spec.
    Fetch: `git fetch origin +refs/heads/snaps:refs/remotes/origin/snaps && git archive refs/remotes/origin/snaps | tar -x -C SNAPS_DIR`
 2. **News:** search today's Bitcoin, gold and US-stock headlines (2–3 reliable sources, note them for the caption).
-3. **Spec:** copy `example-spec.json`, change `slug`, `day`, `date`, the hook, scenes and thumbnail. Scene types:
+3. **Spec:** copy `example-spec.json`, change `slug`, `day`, `date` (format `14 NOV 2026`; it is shown as `SATURDAY · NOV 14`), the hook
+   (put the date in the hook title, e.g. `Saturday, Nov 14`, so the first frame shows it), scenes and thumbnail.
+   Avoid the 📅 emoji: it renders as a calendar page with a fixed wrong date. Scene types:
    `news` (optional `image` such as `BTCUSDT-4h-dxy`), `asset` (`price`, `change`, `up`, `chart`, `levels`), `system`
    (`image` such as `BTCUSDT-4h-sys`: the addis-4H panel — show wins *and* losses honestly), `text`.
    Keep 5–6 scenes, short lines, facts with their source in `src`. Always keep "NOT FINANCIAL ADVICE" (built in).

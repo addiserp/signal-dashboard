@@ -3,7 +3,7 @@
  "day": "THURSDAY",
  "date": "12 NOV 2026",
  "hook": {
-  "title_html": "Thursday<br><span class=\"y\">market update</span>",
+  "title_html": "Thursday, Nov 12<br><span class=\"y\">market update</span>",
   "sub_html": "Gold breaks below <b style=\"color:#fff\">$4,000</b><br>Bitcoin slips · dollar strong 💵",
   "chart": "PAXGUSDT-4h"
  },

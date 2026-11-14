@@ -18,6 +18,12 @@ args = sys.argv[1:]
 spec = json.load(open(args[0])); snaps = os.path.abspath(args[1]); out = os.path.abspath(args[2])
 music = args[args.index("--music") + 1] if "--music" in args else None
 mstart = float(args[args.index("--music-start") + 1]) if "--music-start" in args else 20
+# "14 NOV 2026" -> MD "NOV 14", MDY "NOV 14, 2026" (month first, as viewers read it)
+try:
+    _d, _m, _y = spec["date"].split(); MD = f"{_m} {int(_d)}"; MDY = f"{MD}, {_y}"
+except ValueError:
+    MD = MDY = spec["date"]
+DATE = f'{spec["day"]} · {MD}'
 work = os.path.join(out, "_work"); os.makedirs(work, exist_ok=True)
 for f in ("common.css", "logo.png"): shutil.copy(os.path.join(HERE, f), work)
 
@@ -49,7 +55,7 @@ h1{font-size:98px;font-weight:900;line-height:1.04;letter-spacing:-.01em}
 .src{position:absolute;left:60px;right:140px;top:1440px;font-size:24px;color:#64748b}
 .nfa{font-size:28px}.chg{font-size:64px}
 </style>'''
-TOP = f'<div class="top"><div class="logo"><img src="logo.png">Addis Chart</div><span class="nfa">⚠ NOT FINANCIAL ADVICE</span></div><div class="day">{spec["day"]} · {spec["date"]}</div>'
+TOP = f'<div class="top"><div class="logo"><img src="logo.png">Addis Chart</div><span class="nfa">⚠ NOT FINANCIAL ADVICE</span></div><div class="day">{spec["day"]} · {MDY}</div>'
 def page(inner, src=""): return f'<html><head>{CSS}</head><body>{TOP}<div class="zone">{inner}</div><div class="src">{src or ""}</div></body></html>'
 def chg(s): return f'<span class="chg" style="color:{"#4ade80" if s.get("up") else "#f87171"}">{s["change"]}</span>' if s.get("change") else ""
 
@@ -87,23 +93,23 @@ body{{width:1280px;height:720px;position:relative}}
 .t1,.t2{{position:absolute;right:20px;font-weight:900;font-size:30px;padding:8px 16px;border-radius:12px}}.t1{{top:20px}}.t2{{top:440px}}
 .red{{background:#b91c1c}}.amb{{background:#b45309}}.grn{{background:#15803d}}.blu{{background:#1d4ed8}}
 .w{{position:absolute;left:50px;top:40px;width:640px}}.logo{{font-size:28px}}.logo img{{width:58px;height:58px}}
-.day{{margin-top:26px;font-size:30px;font-weight:900;letter-spacing:.12em;color:#38bdf8}}
+.day{{margin-top:22px;font-size:36px;font-weight:900;display:inline-block;background:#1d4ed8;color:#fff;border-radius:12px;padding:6px 18px;letter-spacing:.06em;box-shadow:0 6px 24px rgba(0,0,0,.5)}}
 h1{{font-size:96px;line-height:.95;font-weight:900;margin-top:10px;white-space:nowrap}}
 .sub{{margin-top:22px;font-size:40px;font-weight:900;line-height:1.15}}.nfa{{display:inline-block;margin-top:24px;font-size:22px;padding:6px 14px}}
 </style></head><body><div class="c1"></div><div class="c2"></div><div class="fade"></div>
 <div class="t1 {th.get("tag_top_class", "amb")}">{th["tag_top"]}</div><div class="t2 {th.get("tag_bottom_class", "red")}">{th["tag_bottom"]}</div>
-<div class="w"><div class="logo"><img src="logo.png">Addis Chart Signals</div><div class="day">{spec["day"]} · {spec["date"].rsplit(" ", 1)[0]}</div>
+<div class="w"><div class="logo"><img src="logo.png">Addis Chart Signals</div><div class="day">{DATE}</div>
 <h1>{th["title_html"]}</h1><div class="sub">{th["sub_html"]}</div><span class="nfa">⚠ NOT FINANCIAL ADVICE</span></div></body></html>'''
 COVER = f'''<html><head><link rel="stylesheet" href="common.css"><style>
 body{{width:1080px;height:1920px;position:relative;background:#070b12}}
 .bg{{position:absolute;left:0;right:0;top:760px;height:760px;background:url({img(th["chart_top"] + "-chart")}) 60% 50%/cover;filter:saturate(1.3) contrast(1.1)}}
 .g{{position:absolute;inset:0;background:linear-gradient(180deg,#070b12 0%,#070b12 38%,rgba(7,11,18,.1) 50%,rgba(7,11,18,.1) 74%,#070b12 82%)}}
 .w{{position:absolute;left:60px;right:140px;top:230px}}.logo{{font-size:40px}}.logo img{{width:80px;height:80px}}
-.day{{margin-top:30px;font-size:42px;font-weight:900;letter-spacing:.12em;color:#38bdf8}}
+.day{{margin-top:30px;font-size:54px;font-weight:900;display:inline-block;background:#1d4ed8;color:#fff;border-radius:16px;padding:10px 26px;letter-spacing:.06em;box-shadow:0 6px 24px rgba(0,0,0,.5)}}
 h1{{font-size:150px;line-height:.92;font-weight:900;margin-top:16px}}.sub{{font-size:58px;font-weight:900;margin-top:24px;line-height:1.15}}
 .b{{position:absolute;left:60px;top:1540px;right:140px;font-size:46px;font-weight:900;line-height:1.4}}
 </style></head><body><div class="bg"></div><div class="g"></div>
-<div class="w"><div class="logo"><img src="logo.png">Addis Chart</div><div class="day">{spec["day"]} · {spec["date"].rsplit(" ", 1)[0]}</div>
+<div class="w"><div class="logo"><img src="logo.png">Addis Chart</div><div class="day">{DATE}</div>
 <h1>{th.get("cover_title_html", th["title_html"])}</h1><div class="sub">{th.get("cover_sub_html", "")}</div></div><div class="b">{th.get("cover_line", "")}</div></body></html>'''
 
 SHORTS = f'''<html><head><link rel="stylesheet" href="common.css"><style>
@@ -117,12 +123,12 @@ body{{width:1080px;height:1920px;position:relative;background:#070b12;text-align
 .t1{{top:1050px}}.t2{{top:1490px}}
 .red{{background:#b91c1c}}.amb{{background:#b45309}}.grn{{background:#15803d}}.blu{{background:#1d4ed8}}
 .w{{position:absolute;left:90px;right:90px;top:150px}}.logo{{font-size:44px;justify-content:center}}.logo img{{width:84px;height:84px}}
-.day{{margin-top:30px;font-size:46px;font-weight:900;letter-spacing:.1em;color:#38bdf8}}
+.day{{margin-top:30px;font-size:60px;font-weight:900;display:inline-block;background:#1d4ed8;color:#fff;border-radius:18px;padding:12px 32px;letter-spacing:.06em;box-shadow:0 6px 24px rgba(0,0,0,.5)}}
 h1{{font-size:180px;line-height:.9;font-weight:900;margin-top:16px}}.sub{{font-size:58px;font-weight:900;margin-top:26px;line-height:1.18}}
 .nfa{{display:inline-block;margin-top:28px;font-size:34px;padding:8px 20px}}
 </style></head><body><div class="c1"></div><div class="c2"></div><div class="g"></div><div class="sep"></div>
 <div class="t1 {th.get("tag_top_class", "amb")}">{th["tag_top"]}</div><div class="t2 {th.get("tag_bottom_class", "red")}">{th["tag_bottom"]}</div>
-<div class="w"><div class="logo"><img src="logo.png">Addis Chart Signals</div><div class="day">{spec["day"]} · {spec["date"].rsplit(" ", 1)[0]}</div>
+<div class="w"><div class="logo"><img src="logo.png">Addis Chart Signals</div><div class="day">{DATE}</div>
 <h1>{th.get("cover_title_html", th["title_html"])}</h1><div class="sub">{th["sub_html"]}</div><span class="nfa">⚠ NOT FINANCIAL ADVICE</span></div></body></html>'''
 
 async def render():
