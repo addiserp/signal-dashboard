@@ -108,15 +108,22 @@ h1{{font-size:150px;line-height:.92;font-weight:900;margin-top:16px}}.sub{{font-
 
 SHORTS = f'''<html><head><link rel="stylesheet" href="common.css"><style>
 body{{width:1080px;height:1920px;position:relative;background:#070b12;text-align:center}}
-.bg{{position:absolute;left:0;right:0;top:980px;height:600px;background:url({img(th["chart_top"] + "-chart")}) 62% 50%/cover;filter:saturate(1.3) contrast(1.1)}}
-.g{{position:absolute;inset:0;background:linear-gradient(180deg,#070b12 0%,#070b12 50%,rgba(7,11,18,.15) 57%,rgba(7,11,18,.15) 76%,#070b12 83%)}}
-.w{{position:absolute;left:110px;right:110px;top:300px}}.logo{{font-size:44px;justify-content:center}}.logo img{{width:84px;height:84px}}
-.day{{margin-top:34px;font-size:46px;font-weight:900;letter-spacing:.1em;color:#38bdf8}}
-h1{{font-size:190px;line-height:.9;font-weight:900;margin-top:20px}}.sub{{font-size:62px;font-weight:900;margin-top:30px;line-height:1.15}}
-.b{{position:absolute;left:110px;right:110px;top:1600px;font-size:50px;font-weight:900;line-height:1.3}}
-</style></head><body><div class="bg"></div><div class="g"></div>
-<div class="w"><div class="logo"><img src="logo.png">Addis Chart</div><div class="day">{spec["day"]} · {spec["date"].rsplit(" ", 1)[0]}</div>
-<h1>{th.get("cover_title_html", th["title_html"])}</h1><div class="sub">{th.get("cover_sub_html", "")}</div></div><div class="b">{th.get("cover_line", "")}</div></body></html>'''
+.c1,.c2{{position:absolute;left:0;right:0;height:440px;filter:saturate(1.3) contrast(1.1)}}
+.c1{{top:1020px;background:url({img(th["chart_top"] + "-chart")}) 62% 45%/cover}}
+.c2{{top:1460px;height:460px;background:url({img(th["chart_bottom"] + "-chart")}) 62% 55%/cover}}
+.g{{position:absolute;inset:0;background:linear-gradient(180deg,#070b12 0%,#070b12 51%,rgba(7,11,18,.2) 56%,rgba(7,11,18,.2) 100%)}}
+.sep{{position:absolute;left:0;right:0;top:1456px;height:6px;background:#070b12}}
+.t1,.t2{{position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap;font-weight:900;font-size:48px;padding:10px 26px;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.6)}}
+.t1{{top:1050px}}.t2{{top:1490px}}
+.red{{background:#b91c1c}}.amb{{background:#b45309}}.grn{{background:#15803d}}.blu{{background:#1d4ed8}}
+.w{{position:absolute;left:90px;right:90px;top:150px}}.logo{{font-size:44px;justify-content:center}}.logo img{{width:84px;height:84px}}
+.day{{margin-top:30px;font-size:46px;font-weight:900;letter-spacing:.1em;color:#38bdf8}}
+h1{{font-size:180px;line-height:.9;font-weight:900;margin-top:16px}}.sub{{font-size:58px;font-weight:900;margin-top:26px;line-height:1.18}}
+.nfa{{display:inline-block;margin-top:28px;font-size:34px;padding:8px 20px}}
+</style></head><body><div class="c1"></div><div class="c2"></div><div class="g"></div><div class="sep"></div>
+<div class="t1 {th.get("tag_top_class", "amb")}">{th["tag_top"]}</div><div class="t2 {th.get("tag_bottom_class", "red")}">{th["tag_bottom"]}</div>
+<div class="w"><div class="logo"><img src="logo.png">Addis Chart Signals</div><div class="day">{spec["day"]} · {spec["date"].rsplit(" ", 1)[0]}</div>
+<h1>{th.get("cover_title_html", th["title_html"])}</h1><div class="sub">{th["sub_html"]}</div><span class="nfa">⚠ NOT FINANCIAL ADVICE</span></div></body></html>'''
 
 async def render():
     async with async_playwright() as p:
