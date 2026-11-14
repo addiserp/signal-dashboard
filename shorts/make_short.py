@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Daily market Short for YouTube Shorts + TikTok (1080x1920), plus a YouTube thumbnail (1280x720) and a vertical cover.
 
-Usage:  python3 make_short.py spec.json SNAPS_DIR OUT_DIR [--music file.mp3 --music-start 20]
+Usage:  python3 make_short.py spec.json SNAPS_DIR OUT_DIR [--music file.mp3 --music-start 20 [--tiktok-music]]
   SNAPS_DIR: screenshots from the "Chart snapshots" workflow (BTCUSDT-4h.jpg, PAXGUSDT-4h.jpg, ...)
   spec.json: the day's content — see example-spec.json. Text fields are HTML (use <span class="y">…</span> for yellow,
              <b style="color:#f87171">…</b> for red, &lt; for <).
-Output: <slug>-short-youtube.mp4 (music if given), <slug>-short-tiktok.mp4 (silent), <slug>-thumbnail-youtube.png,
+Output: <slug>-short-youtube.mp4 (music if given), <slug>-short-tiktok.mp4 (silent unless --tiktok-music; end card has no off-platform link), <slug>-thumbnail-youtube.png,
         <slug>-cover-tiktok.png, <slug>-thumbnail-shorts.png (vertical, centred: YouTube Shorts crops a 16:9 thumbnail), and <slug>-sheet.png (all scenes side by side, for checking).
 Needs: python3 + playwright (pip) with Chromium, Pillow, ffmpeg.
 """
@@ -83,6 +83,13 @@ scenes.append(f'''<html><head>{CSS}</head><body>{TOP}<div style="position:absolu
   <div class="sub" style="font-size:44px">{cta.get("line", "Trend lines, structure &amp; liquidity<br>drawn on every chart")}</div>
   <div style="display:inline-block;margin-top:40px;background:#229ed9;font-size:44px;font-weight:900;padding:20px 34px;border-radius:22px">📲 Telegram: t.me/addistrad</div>
   <div style="font-size:40px;font-weight:800;margin-top:36px">Charts never lie · follow for daily updates 🔔</div></div></body></html>'''); durs.append(5)
+# TikTok end card: no Telegram / off-platform link (TikTok removes videos that redirect viewers off-platform)
+CTA_TT = f'''<html><head>{CSS}</head><body>{TOP}<div style="position:absolute;left:60px;right:140px;top:470px;text-align:center">
+  <img src="logo.png" style="width:240px;height:240px;border-radius:22%;box-shadow:0 30px 90px rgba(56,189,248,.35)">
+  <h1 style="font-size:84px;margin-top:50px">Charts <span class="y">never lie</span></h1>
+  <div class="sub" style="font-size:44px">{cta.get("line_tiktok", "Real charts · wins and losses<br>shown honestly")}</div>
+  <div style="font-size:46px;font-weight:900;margin-top:44px">Follow for a daily market update 🔔</div>
+  <div style="font-size:34px;font-weight:700;color:#94a3b8;margin-top:28px">For education only · not financial advice</div></div></body></html>'''
 
 th = spec["thumb"]
 THUMB = f'''<html><head><link rel="stylesheet" href="common.css"><style>
@@ -138,6 +145,8 @@ async def render():
         for i, h in enumerate(scenes, 1):
             fn = os.path.join(work, f"s{i}.html"); open(fn, "w").write(h)
             await pg.goto("file://" + fn); await pg.wait_for_timeout(350); await pg.screenshot(path=os.path.join(work, f"s{i}.png"))
+        fn = os.path.join(work, "s_tt.html"); open(fn, "w").write(CTA_TT)
+        await pg.goto("file://" + fn); await pg.wait_for_timeout(350); await pg.screenshot(path=os.path.join(work, "s_tt.png"))
         for html, w, hh, name in [(THUMB, 1280, 720, "thumbnail-youtube"), (COVER, 1080, 1920, "cover-tiktok"), (SHORTS, 1080, 1920, "thumbnail-shorts")]:
             fn = os.path.join(work, name + ".html"); open(fn, "w").write(html)
             q = await b.new_page(viewport={"width": w, "height": hh}); await q.goto("file://" + fn); await q.wait_for_timeout(500)
@@ -146,25 +155,29 @@ async def render():
 asyncio.run(render())
 
 def ff(*a): subprocess.run(["ffmpeg", "-loglevel", "error", "-y", *a], check=True)
-parts = []
-for i, d in enumerate(durs, 1):
-    n = d * 30; tmp = os.path.join(work, f"tmp_p{i}.mp4"); fin = os.path.join(work, f"p{i}.mp4")
-    ff("-framerate", "30", "-i", os.path.join(work, f"s{i}.png"), "-vf",
+def encode(src, d, fin):
+    n = d * 30; tmp = fin + ".tmp.mp4"
+    ff("-framerate", "30", "-i", src, "-vf",
        f"scale=2160:3840,zoompan=z='1+0.0005*on':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={n}:s=1080x1920:fps=30,format=yuv420p,trim=duration={d},fade=t=in:st=0:d=0.3,fade=t=out:st={d - 0.3}:d=0.3",
        "-c:v", "libx264", "-crf", "20", "-preset", "veryfast", "-pix_fmt", "yuv420p", "-r", "30", tmp)
-    os.replace(tmp, fin); parts.append(fin)
-lst = os.path.join(work, "list.txt"); open(lst, "w").write("".join(f"file '{p}'\n" for p in parts))
-joined = os.path.join(work, "joined.mp4"); ff("-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", joined)
+    os.replace(tmp, fin); return fin
+parts = [encode(os.path.join(work, f"s{i}.png"), d, os.path.join(work, f"p{i}.mp4")) for i, d in enumerate(durs, 1)]
+parts_tt = parts[:-1] + [encode(os.path.join(work, "s_tt.png"), durs[-1], os.path.join(work, "p_tt.mp4"))]
+def join(ps, name):
+    lst = os.path.join(work, name + ".txt"); open(lst, "w").write("".join(f"file '{p}'\n" for p in ps))
+    j = os.path.join(work, name + ".mp4"); ff("-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", j); return j
+joined = join(parts, "joined"); joined_tt = join(parts_tt, "joined_tt")
 total = sum(durs)
 yt = os.path.join(out, f'{spec["slug"]}-short-youtube.mp4'); tt = os.path.join(out, f'{spec["slug"]}-short-tiktok.mp4')
-if music:
-    ff("-i", joined, "-ss", str(mstart), "-i", music, "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-af",
-       f"afade=t=in:st=0:d=1,afade=t=out:st={total - 2.5}:d=2.5,volume=0.85", "-c:a", "aac", "-b:a", "160k", "-t", str(total), yt + ".tmp.mp4")
-else:
-    ff("-i", joined, "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo", "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-shortest", yt + ".tmp.mp4")
-os.replace(yt + ".tmp.mp4", yt)
-ff("-i", joined, "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo", "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-shortest", tt + ".tmp.mp4")
-os.replace(tt + ".tmp.mp4", tt)
+def mux(video, dst, track):
+    if track:
+        ff("-i", video, "-ss", str(mstart), "-i", track, "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-af",
+           f"afade=t=in:st=0:d=1,afade=t=out:st={total - 2.5}:d=2.5,volume=0.85", "-c:a", "aac", "-b:a", "160k", "-t", str(total), dst + ".tmp.mp4")
+    else:
+        ff("-i", video, "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo", "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-shortest", dst + ".tmp.mp4")
+    os.replace(dst + ".tmp.mp4", dst)
+mux(joined, yt, music)
+mux(joined_tt, tt, music if "--tiktok-music" in args else None)
 ims = [Image.open(os.path.join(work, f"s{i}.png")).resize((270, 480)) for i in range(1, len(scenes) + 1)]
 sheet = Image.new("RGB", (280 * len(ims), 480), (40, 40, 40))
 for i, im in enumerate(ims): sheet.paste(im, (i * 280, 0))

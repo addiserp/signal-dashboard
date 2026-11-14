@@ -1,7 +1,9 @@
 # Daily market Short (YouTube Shorts + TikTok)
 
 `make_short.py` turns the day's content into:
-- `<slug>-short-youtube.mp4` and `<slug>-short-tiktok.mp4` (1080×1920, ~40 s; TikTok version silent — add a TikTok sound in the app),
+- `<slug>-short-youtube.mp4` and `<slug>-short-tiktok.mp4` (1080×1920, ~40 s; TikTok version silent unless `--tiktok-music`).
+  The TikTok end card has **no Telegram/off-platform link** and no "signals" wording: TikTok removed a Short
+  (14 Nov 2026) and its rules ban redirecting viewers off-platform. Keep TikTok captions free of links too.
 - `<slug>-thumbnail-youtube.png` (1280×720), `<slug>-cover-tiktok.png` (1080×1920) and `<slug>-thumbnail-shorts.png`
   (1080×1920, centred — use this one for YouTube Shorts: the Shorts grid crops a 16:9 thumbnail),
 - `<slug>-sheet.png` (all scenes side by side, to check before sending).
