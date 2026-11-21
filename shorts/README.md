@@ -1,7 +1,7 @@
 # Daily market Short (YouTube Shorts + TikTok)
 
 `make_short.py` turns the day's content into:
-- `<slug>-short-youtube.mp4` and `<slug>-short-tiktok.mp4` (1080×1920, ~40 s; TikTok version silent — add a TikTok sound in the app),
+- `<slug>-short-youtube.mp4` (ends with a SUBSCRIBE card) and `<slug>-short-tiktok.mp4` (ends with a FOLLOW card), 1080×1920, ~60 s with `--voice`,
 - `<slug>-thumbnail-youtube.png` (1280×720) and `<slug>-cover-tiktok.png` (1080×1920),
 - `<slug>-sheet.png` (all scenes side by side, to check before sending).
 
@@ -18,6 +18,11 @@
    `news` (optional `image` such as `BTCUSDT-4h-dxy`), `asset` (`price`, `change`, `up`, `chart`, `levels`), `system`
    (`image` such as `BTCUSDT-4h-sys`: the addis-4H panel — show wins *and* losses honestly), `text`.
    Keep 5–6 scenes, short lines, facts with their source in `src`. Always keep "NOT FINANCIAL ADVICE" (built in).
-4. **Build:** `python3 shorts/make_short.py spec.json SNAPS_DIR OUT_DIR [--music track.mp3 --music-start 20]`
+4. **Build:** `pip install kokoro-onnx soundfile` once, then
+   `python3 shorts/make_short.py spec.json SNAPS_DIR OUT_DIR --voice [--music track.mp3 --music-start 8]`.
+   `--voice` reads each scene's `"say"` line (and `hook.say`) in a deep female voice (Kokoro `af_heart`, pitched down);
+   the CTA line is "Subscribe…" on YouTube and "Follow…" on TikTok (override with `cta.say_youtube` / `cta.say_tiktok`).
+   Write `say` lines as speech: short, numbers in words, the same facts as on screen, no Telegram mention.
+   Music, when given, is ducked under the voice on both videos
    (no music file is stored in this public repo; YouTube Audio Library tracks may not be redistributed).
 5. **Check** `<slug>-sheet.png` and one frame of the video, then deliver the four files with a ready caption.

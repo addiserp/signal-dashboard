@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Daily market Short for YouTube Shorts + TikTok (1080x1920), plus a YouTube thumbnail (1280x720) and a vertical cover.
 
-Usage:  python3 make_short.py spec.json SNAPS_DIR OUT_DIR [--music file.mp3 --music-start 20]
+Usage:  python3 make_short.py spec.json SNAPS_DIR OUT_DIR [--voice] [--music file.mp3 --music-start 8]
+  --voice: female voiceover (Kokoro TTS, voice "af_heart" pitched ~7% lower) from the "say" text of the hook, each scene
+           and the platform CTA; each scene lasts as long as its line. Model files download to ~/.cache/kokoro once.
+  --music: background track under the voice (ducked), on BOTH videos.
   SNAPS_DIR: screenshots from the "Chart snapshots" workflow (BTCUSDT-4h.jpg, PAXGUSDT-4h.jpg, ...)
   spec.json: the day's content — see example-spec.json. Text fields are HTML (use <span class="y">…</span> for yellow,
              <b style="color:#f87171">…</b> for red, &lt; for <).
-Output: <slug>-short-youtube.mp4 (music if given), <slug>-short-tiktok.mp4 (silent), <slug>-thumbnail-youtube.png,
+Output: <slug>-short-youtube.mp4 (ends with SUBSCRIBE), <slug>-short-tiktok.mp4 (ends with FOLLOW), <slug>-thumbnail-youtube.png,
         <slug>-cover-tiktok.png, and <slug>-sheet.png (all scenes side by side, for checking).
 Needs: python3 + playwright (pip) with Chromium, Pillow, ffmpeg.
 """
@@ -17,7 +20,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 args = sys.argv[1:]
 spec = json.load(open(args[0])); snaps = os.path.abspath(args[1]); out = os.path.abspath(args[2])
 music = args[args.index("--music") + 1] if "--music" in args else None
-mstart = float(args[args.index("--music-start") + 1]) if "--music-start" in args else 20
+mstart = float(args[args.index("--music-start") + 1]) if "--music-start" in args else 8
+voice = "--voice" in args
 work = os.path.join(out, "_work"); os.makedirs(work, exist_ok=True)
 for f in ("common.css", "logo.png"): shutil.copy(os.path.join(HERE, f), work)
 
@@ -53,9 +57,9 @@ TOP = f'<div class="top"><div class="logo"><img src="logo.png">Addis Chart</div>
 def page(inner, src=""): return f'<html><head>{CSS}</head><body>{TOP}<div class="zone">{inner}</div><div class="src">{src or ""}</div></body></html>'
 def chg(s): return f'<span class="chg" style="color:{"#4ade80" if s.get("up") else "#f87171"}">{s["change"]}</span>' if s.get("change") else ""
 
-scenes, durs = [], []
+scenes, durs, says = [], [], []
 h = spec["hook"]
-scenes.append(page(f'<h1>{h["title_html"]}</h1><div class="sub">{h["sub_html"]}</div><img class="shot" src="{img(h["chart"] + "-chart")}" style="margin-top:40px">')); durs.append(4)
+scenes.append(page(f'<h1>{h["title_html"]}</h1><div class="sub">{h["sub_html"]}</div><img class="shot" src="{img(h["chart"] + "-chart")}" style="margin-top:40px">')); durs.append(h.get("seconds", 4)); says.append(h.get("say", ""))
 for s in spec["scenes"]:
     pill = f'<span class="pill {s.get("pill_class", "news")}">{s["pill"]}</span>'
     t = s["type"]
@@ -69,14 +73,19 @@ for s in spec["scenes"]:
         html = f'{pill}<h1 style="margin-top:20px">{s["title_html"]}</h1><img class="shot" src="{img(s["image"])}" style="margin-top:30px"><div class="sub">{s["sub_html"]}</div>'
     else:  # text
         html = f'{pill}<h1 style="margin-top:20px">{s["title_html"]}</h1><div class="sub" style="font-size:50px;line-height:1.45">{s["body_html"]}</div>'
-    scenes.append(page(html, s.get("src"))); durs.append(s.get("seconds", 6 if t in ("asset", "news") else 5))
+    scenes.append(page(html, s.get("src"))); durs.append(s.get("seconds", 6 if t in ("asset", "news") else 5)); says.append(s.get("say", ""))
 cta = spec.get("cta", {})
-scenes.append(f'''<html><head>{CSS}</head><body>{TOP}<div style="position:absolute;left:60px;right:140px;top:470px;text-align:center">
+CTA_BTN = {"youtube": ('#ff0033', '▶ SUBSCRIBE', 'Subscribe'), "tiktok": ('#fe2c55', '➕ FOLLOW', 'Follow')}
+def cta_page(plat):
+    col, btn, verb = CTA_BTN[plat]
+    return f'''<html><head>{CSS}</head><body>{TOP}<div style="position:absolute;left:60px;right:140px;top:470px;text-align:center">
   <img src="logo.png" style="width:240px;height:240px;border-radius:22%;box-shadow:0 30px 90px rgba(56,189,248,.35)">
-  <h1 style="font-size:84px;margin-top:50px">Watch <span class="y">LIVE</span> 24/7</h1>
+  <h1 style="font-size:84px;margin-top:50px">Daily <span class="y">chart</span> updates</h1>
   <div class="sub" style="font-size:44px">{cta.get("line", "Trend lines, structure &amp; liquidity<br>drawn on every chart")}</div>
-  <div style="display:inline-block;margin-top:40px;background:#229ed9;font-size:44px;font-weight:900;padding:20px 34px;border-radius:22px">📲 Telegram: t.me/addistrad</div>
-  <div style="font-size:40px;font-weight:800;margin-top:36px">Charts never lie · follow for daily updates 🔔</div></div></body></html>'''); durs.append(5)
+  <div style="display:inline-block;margin-top:44px;background:{col};font-size:64px;font-weight:900;padding:22px 56px;border-radius:26px;box-shadow:0 20px 60px rgba(0,0,0,.5)">{btn}</div>
+  <div style="font-size:40px;font-weight:800;margin-top:40px">{verb} for tomorrow's update 🔔<br><span style="color:#94a3b8">Charts never lie</span></div></div></body></html>'''
+CTA_SAY = {p: cta.get("say_" + p, f"{CTA_BTN[p][2]} for daily chart updates. Charts never lie. Not financial advice.") for p in CTA_BTN}
+cta_durs = {p: cta.get("seconds", 5) for p in CTA_BTN}
 
 th = spec["thumb"]
 THUMB = f'''<html><head><link rel="stylesheet" href="common.css"><style>
@@ -113,6 +122,9 @@ async def render():
         for i, h in enumerate(scenes, 1):
             fn = os.path.join(work, f"s{i}.html"); open(fn, "w").write(h)
             await pg.goto("file://" + fn); await pg.wait_for_timeout(350); await pg.screenshot(path=os.path.join(work, f"s{i}.png"))
+        for plat in CTA_BTN:
+            fn = os.path.join(work, f"cta-{plat}.html"); open(fn, "w").write(cta_page(plat))
+            await pg.goto("file://" + fn); await pg.wait_for_timeout(350); await pg.screenshot(path=os.path.join(work, f"cta-{plat}.png"))
         for html, w, hh, name in [(THUMB, 1280, 720, "thumbnail-youtube"), (COVER, 1080, 1920, "cover-tiktok")]:
             fn = os.path.join(work, name + ".html"); open(fn, "w").write(html)
             q = await b.new_page(viewport={"width": w, "height": hh}); await q.goto("file://" + fn); await q.wait_for_timeout(500)
@@ -121,27 +133,67 @@ async def render():
 asyncio.run(render())
 
 def ff(*a): subprocess.run(["ffmpeg", "-loglevel", "error", "-y", *a], check=True)
-parts = []
-for i, d in enumerate(durs, 1):
-    n = d * 30; tmp = os.path.join(work, f"tmp_p{i}.mp4"); fin = os.path.join(work, f"p{i}.mp4")
-    ff("-framerate", "30", "-i", os.path.join(work, f"s{i}.png"), "-vf",
+
+# ---- voiceover: one clip per scene; a scene lasts at least as long as its line ----
+def tts_clips():
+    from kokoro_onnx import Kokoro
+    import soundfile as sf, urllib.request
+    cache = os.path.expanduser("~/.cache/kokoro"); os.makedirs(cache, exist_ok=True)
+    base = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/"
+    for f in ("kokoro-v1.0.onnx", "voices-v1.0.bin"):
+        if not os.path.exists(os.path.join(cache, f)): urllib.request.urlretrieve(base + f, os.path.join(cache, f))
+    k = Kokoro(os.path.join(cache, "kokoro-v1.0.onnx"), os.path.join(cache, "voices-v1.0.bin"))
+    def clip(text, name):
+        if not text: return None, 0
+        a, sr = k.create(text, voice="af_heart", speed=1.1, lang="en-us"); raw = os.path.join(work, name + "_raw.wav")
+        sf.write(raw, a, sr); fn = os.path.join(work, name + ".wav")
+        ff("-i", raw, "-af", f"asetrate={sr}*0.93,aresample=44100,atempo={1/0.93:.4f},aformat=channel_layouts=stereo", fn)
+        return fn, len(a) / sr
+    return clip
+clips, cta_clips = [None] * len(durs), {}
+if voice:
+    clip = tts_clips()
+    for i, t in enumerate(says):
+        clips[i], L = clip(t, f"vo{i}")
+        if L: durs[i] = max(durs[i], round(L + 0.9, 1))
+    for p in CTA_BTN:
+        cta_clips[p], L = clip(CTA_SAY[p], f"vo-cta-{p}")
+        if L: cta_durs[p] = max(cta_durs[p], round(L + 1.2, 1))
+
+def seg(png, d, fin):
+    n = int(round(d * 30)); tmp = fin + ".tmp.mp4"
+    ff("-framerate", "30", "-i", png, "-vf",
        f"scale=2160:3840,zoompan=z='1+0.0005*on':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={n}:s=1080x1920:fps=30,format=yuv420p,trim=duration={d},fade=t=in:st=0:d=0.3,fade=t=out:st={d - 0.3}:d=0.3",
        "-c:v", "libx264", "-crf", "20", "-preset", "veryfast", "-pix_fmt", "yuv420p", "-r", "30", tmp)
-    os.replace(tmp, fin); parts.append(fin)
-lst = os.path.join(work, "list.txt"); open(lst, "w").write("".join(f"file '{p}'\n" for p in parts))
-joined = os.path.join(work, "joined.mp4"); ff("-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", joined)
-total = sum(durs)
-yt = os.path.join(out, f'{spec["slug"]}-short-youtube.mp4'); tt = os.path.join(out, f'{spec["slug"]}-short-tiktok.mp4')
-if music:
-    ff("-i", joined, "-ss", str(mstart), "-i", music, "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-af",
-       f"afade=t=in:st=0:d=1,afade=t=out:st={total - 2.5}:d=2.5,volume=0.85", "-c:a", "aac", "-b:a", "160k", "-t", str(total), yt + ".tmp.mp4")
-else:
-    ff("-i", joined, "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo", "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-shortest", yt + ".tmp.mp4")
-os.replace(yt + ".tmp.mp4", yt)
-ff("-i", joined, "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo", "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-shortest", tt + ".tmp.mp4")
-os.replace(tt + ".tmp.mp4", tt)
-ims = [Image.open(os.path.join(work, f"s{i}.png")).resize((270, 480)) for i in range(1, len(scenes) + 1)]
+    os.replace(tmp, fin); return fin
+parts = [seg(os.path.join(work, f"s{i}.png"), d, os.path.join(work, f"p{i}.mp4")) for i, d in enumerate(durs, 1)]
+
+def build(plat, dest):
+    allp = parts + [seg(os.path.join(work, f"cta-{plat}.png"), cta_durs[plat], os.path.join(work, f"p-cta-{plat}.mp4"))]
+    allc = clips + [cta_clips.get(plat)]; alld = durs + [cta_durs[plat]]; total = round(sum(alld), 2)
+    lst = os.path.join(work, f"list-{plat}.txt"); open(lst, "w").write("".join(f"file '{p}'\n" for p in allp))
+    joined = os.path.join(work, f"joined-{plat}.mp4"); ff("-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", joined)
+    inp, flt, mixin, k = ["-i", joined], [], [], 1
+    for i, c in enumerate(allc):
+        if not c: continue
+        ms = int((sum(alld[:i]) + 0.35) * 1000); inp += ["-i", c]
+        flt.append(f"[{k}:a]adelay={ms}|{ms}[v{k}]"); mixin.append(f"[v{k}]"); k += 1
+    if mixin:
+        flt.append("".join(mixin) + f"amix=inputs={len(mixin)}:normalize=0,apad,atrim=0:{total},equalizer=f=180:t=q:w=1:g=2,acompressor=threshold=-18dB:ratio=3,volume=1.6[vo]")
+    if music:
+        inp += ["-ss", str(mstart), "-i", music]
+        flt.append(f"[{k}:a]atrim=0:{total},asetpts=N/SR/TB,aresample=44100,aformat=channel_layouts=stereo,volume={0.16 if mixin else 0.85},afade=t=in:st=0:d=1,afade=t=out:st={total - 2.5}:d=2.5[m]")
+        if mixin: flt.append("[vo]asplit[v][sc];[m][sc]sidechaincompress=threshold=0.03:ratio=4:attack=20:release=500[md];[v][md]amix=inputs=2:normalize=0,volume=2.2,alimiter=limit=0.89[a]")
+        else: flt.append("[m]anull[a]")
+    elif mixin: flt.append("[vo]volume=1.4,alimiter=limit=0.89[a]")
+    tmp = dest + ".tmp.mp4"
+    if flt: ff(*inp, "-filter_complex", ";".join(flt), "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-t", str(total), tmp)
+    else: ff("-i", joined, "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo", "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-shortest", tmp)
+    os.replace(tmp, dest); return total
+total = build("youtube", os.path.join(out, f'{spec["slug"]}-short-youtube.mp4'))
+build("tiktok", os.path.join(out, f'{spec["slug"]}-short-tiktok.mp4'))
+ims = [Image.open(os.path.join(work, f"s{i}.png")).resize((270, 480)) for i in range(1, len(scenes) + 1)] + [Image.open(os.path.join(work, f"cta-{p}.png")).resize((270, 480)) for p in CTA_BTN]
 sheet = Image.new("RGB", (280 * len(ims), 480), (40, 40, 40))
 for i, im in enumerate(ims): sheet.paste(im, (i * 280, 0))
 sheet.save(os.path.join(out, f'{spec["slug"]}-sheet.png'))
-print(f"done: {total}s, {len(scenes)} scenes → {out}")
+print(f"done: {total}s, {len(scenes)} scenes, voice={'on' if voice else 'off'}, music={'on' if music else 'off'} → {out}")

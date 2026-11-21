@@ -5,7 +5,8 @@
  "hook": {
   "title_html": "Thursday<br><span class=\"y\">market update</span>",
   "sub_html": "Gold breaks below <b style=\"color:#fff\">$4,000</b><br>Bitcoin slips · dollar strong 💵",
-  "chart": "PAXGUSDT-4h"
+  "chart": "PAXGUSDT-4h",
+  "say": "Thursday market update. Gold breaks below four thousand dollars, and Bitcoin slips."
  },
  "scenes": [
   {
@@ -15,7 +16,8 @@
    "sub_html": "~<b class=\"y\">90% odds</b> of a December<br>rate <b style=\"color:#f87171\">HIKE</b> (CME FedWatch)<br>US producer prices (PPI) up next",
    "image": "BTCUSDT-4h-dxy",
    "image_caption": "💵 Dollar index holds near 102.6",
-   "src": "Sources: CME FedWatch via Yahoo Finance, KuCoin market report"
+   "src": "Sources: CME FedWatch via Yahoo Finance, KuCoin market report",
+   "say": "The news: traders see about ninety percent odds of a December rate hike."
   },
   {
    "type": "asset",
