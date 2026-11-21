@@ -23,6 +23,9 @@
    `--voice` reads each scene's `"say"` line (and `hook.say`) in a deep female voice (Kokoro `af_heart`, pitched down);
    the CTA line is "Subscribe…" on YouTube and "Follow…" on TikTok (override with `cta.say_youtube` / `cta.say_tiktok`).
    Write `say` lines as speech: short, numbers in words, the same facts as on screen, no Telegram mention.
-   Music, when given, is ducked under the voice on both videos
+   Music, when given, is ducked under the voice on both videos.
+   Built in (on by default): a coin-badge splash with a whoosh before every `asset` scene (`"splash": false` to turn off;
+   optional per-scene `"badge": {"icon": "₿", "label": "BITCOIN"}`), and a Subscribe + 🔔 bell reminder popup (TikTok: Follow + ❤️)
+   with click/ding sounds during the first `text` scene (`"subscribe_popup": false` to turn off)
    (no music file is stored in this public repo; YouTube Audio Library tracks may not be redistributed).
 5. **Check** `<slug>-sheet.png` and one frame of the video, then deliver the four files with a ready caption.
