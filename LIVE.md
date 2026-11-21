@@ -11,6 +11,7 @@
 - a **live scorecard**: every addis-4H trade on the rotation symbols since 6 Nov 2026 (trades, wins, total R after fees and funding, open R, per symbol, and ⭐ A+ trades separately)
 - **VIX · fear index** (TradingView, 1H candles, last 5 days) under DXY
 - a **market phase** box: for every rotation symbol, Uptrend / Pullback / Correction / Deep correction / Bear market (drop from the 180-day high, scaled by the asset's own volatility, and the 200-day average), the Binance funding rate and the 24h open-interest change
+- a **subscribe + bell reminder** each time the coin changes: a cursor clicks SUBSCRIBE, then the bell rings (with a short click and bell sound)
 - on the chart: **Bollinger Bands (20, 2)** and a **VWAP anchored at the highest high** of the last 200 candles (price back above it often marks the end of a pullback)
 - **music that follows the trend** (bullish / bearish / sideways) — see *Music* below
 - a new symbol every **5 minutes**, with a countdown in the top-right corner
@@ -30,6 +31,8 @@ Options, added to the link with `&`:
 | `rotate` | `&rotate=5` | minutes per symbol (the timeframes share this time equally) |
 | `tfs` | `&tfs=4h,1h,30m,15m,5m` | timeframes shown during each symbol's turn, in order |
 | `dxy` | `&dxy=CAPITALCOM:DXY` | the dollar-index symbol for the TradingView chart (default `CAPITALCOM:DXY`; TradingView doesn't allow `TVC:DXY` in embedded charts) |
+| `sub` | `&sub=0` | turn off the subscribe + bell reminder that pops up (bottom-right, about 6 seconds) each time the coin changes |
+| `subsnd` | `&subsnd=0` | keep the reminder but without its click and bell sound (`&subvol=0.35` sets its volume) |
 | `vix` | `&vix=CAPITALCOM:VIX` | the VIX symbol for the chart under DXY (default `CAPITALCOM:VIX`) |
 | `since` | `&since=2026-11-06` | start date of the live scorecard |
 | `music` | `&music=0` | turn the music off |

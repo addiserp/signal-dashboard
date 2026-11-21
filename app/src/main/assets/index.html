@@ -282,6 +282,26 @@
   .lv-sess .row.on .st{color:#4ade80}.lv-sess .row.off .st{color:#8a93a6}
   .lv-sess .note{font-size:1.3vh;color:#facc15;margin-top:.2vh;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .lv-sess .mus{font-size:1.25vh;color:#8a93a6}
+  /* subscribe + bell reminder (pops up on every coin change) */
+  .lv-subw{position:absolute;right:9.5vw;bottom:9vh;z-index:60;pointer-events:none;opacity:0;transform:translateY(4vh) scale(.85);transition:opacity .35s ease,transform .45s cubic-bezier(.2,1.4,.4,1)}
+  .lv-subw.show{opacity:1;transform:none}
+  .lv-subc{display:flex;align-items:center;gap:1.3vh;background:rgba(15,19,27,.96);border:1px solid #2a3344;border-radius:1.6vh;padding:1.3vh 1.6vh;box-shadow:0 1.2vh 4vh rgba(0,0,0,.55)}
+  .lv-subc img{width:5.6vh;height:5.6vh;border-radius:50%;background:#0b0e14}
+  .lv-subt b{display:block;font-size:2vh;color:#fff}.lv-subt span{font-size:1.45vh;color:#9aa4b8}
+  .lv-subb{font-weight:900;font-size:1.9vh;letter-spacing:.04em;color:#fff;background:#e01b1b;padding:1vh 2vh;border-radius:5vh;transition:background .25s,color .25s,transform .12s;white-space:nowrap;min-width:19vh;text-align:center}
+  .lv-subb.done{background:#2b3240;color:#cbd5e1}
+  .lv-subb.press,.lv-bell.press{transform:scale(.9)}
+  .lv-bell{width:5vh;height:5vh;border-radius:50%;background:#1d2430;display:grid;place-items:center;transition:background .25s,transform .12s}
+  .lv-bell svg{width:3vh;height:3vh;fill:#cbd5e1;transform-origin:50% 8%}
+  .lv-bell.on{background:#facc15}.lv-bell.on svg{fill:#111;animation:lvring 1s ease}
+  @keyframes lvring{0%,100%{transform:rotate(0)}10%{transform:rotate(24deg)}25%{transform:rotate(-22deg)}40%{transform:rotate(16deg)}55%{transform:rotate(-12deg)}70%{transform:rotate(6deg)}85%{transform:rotate(-3deg)}}
+  .lv-subn{position:absolute;right:0;top:-4.2vh;background:#facc15;color:#111;font-weight:800;font-size:1.5vh;padding:.6vh 1.2vh;border-radius:.8vh;opacity:0;transform:translateY(1vh);transition:all .3s}
+  .lv-subn.show{opacity:1;transform:none}
+  .lv-cur{position:absolute;width:3.6vh;height:3.6vh;left:0;top:0;transition:transform .9s cubic-bezier(.5,0,.25,1);filter:drop-shadow(0 .3vh .5vh rgba(0,0,0,.6))}
+  .lv-cur svg{width:100%;height:100%;transition:transform .12s}.lv-cur.click svg{transform:scale(.8)}
+  .lv-rip{position:absolute;width:5vh;height:5vh;margin:-2.5vh 0 0 -2.5vh;border-radius:50%;border:.35vh solid #fff;opacity:0;pointer-events:none}
+  .lv-rip.go{animation:lvrip .5s ease-out}
+  @keyframes lvrip{from{opacity:.9;transform:scale(.2)}to{opacity:0;transform:scale(1.6)}}
   .lv-phase{flex:none}
   .lv-ph{display:grid;grid-template-columns:7vh 12.5vh 6.5vh 1fr 1fr;gap:.8vh;align-items:center;font-size:1.4vh;padding:.25vh 0;white-space:nowrap}
   .lv-ph.cur{background:rgba(37,99,235,.14);border-radius:.5vh}
@@ -368,6 +388,13 @@
 </header>
 
 <div id="liveRoot">
+  <div class="lv-subw" id="lvSubW"><div class="lv-subn" id="lvSubN">🔔 Notifications on · see every new live</div>
+    <div class="lv-subc"><img id="lvSubLogo" alt=""><div class="lv-subt"><b>Addis Chart Signals</b><span>Charts never lie</span></div>
+      <div class="lv-subb" id="lvSubB">SUBSCRIBE</div>
+      <div class="lv-bell" id="lvSubBell"><svg viewBox="0 0 24 24"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22zm7-6V11a7 7 0 0 0-5.5-6.84V3.5a1.5 1.5 0 0 0-3 0v.66A7 7 0 0 0 5 11v5l-2 2v1h18v-1z"/></svg></div></div>
+    <div class="lv-rip" id="lvSubRip"></div>
+    <div class="lv-cur" id="lvSubCur"><svg viewBox="0 0 24 24"><path d="M4 2l15 11.5-6.6.9 3.9 7.4-3 1.5-3.8-7.5L4 20z" fill="#fff" stroke="#000" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
+  </div>
   <div class="lv-top">
     <img id="lvLogo" alt=""><span class="lv-brand">Addis Chart Signals</span><span class="lv-live">● LIVE</span>
     <span class="lv-sym" id="lvSym">—</span><span class="lv-tf" id="lvTf">4H</span>
@@ -3915,6 +3942,7 @@ if (view !== "signals") setView(view); else { buildGrid(); lazyMover(); }
 // ?live=1                          broadcast layout 1920×1080, no buttons
 // &syms=BTCUSDT,ETHUSDT,ZECUSDT    symbols to rotate (Binance symbols; default below)
 // &rotate=5                        minutes per symbol
+// &sub=0 / &subsnd=0 / &subvol=0.35  subscribe+bell reminder on each coin change: off / silent / sound volume
 // &vix=CAPITALCOM:VIX              TradingView symbol for the VIX box under DXY
 // &test=banner                     shows a sample signal banner after 5 s (to check the layout in OBS)
 if (LIVE_MODE) (function liveMode() {
@@ -4007,10 +4035,46 @@ if (LIVE_MODE) (function liveMode() {
     }
     return { idx: i, by };
   }
+  // ---- subscribe + bell reminder: a short animation each time the coin changes (&sub=0 turns it off, &subsnd=0 mutes it)
+  const SUB_ON = P.get("sub") !== "0", SUB_SND = P.get("subsnd") !== "0";
+  let subTimers = [], subLast = null, actx = null;
+  function subSound(kind) {
+    if (!SUB_SND) return;
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === "suspended") actx.resume();
+      const t = actx.currentTime, vol = Math.max(0.05, Math.min(0.6, +(P.get("subvol") || 0.35)));
+      const tone = (f, at, dur, v, type) => { const o = actx.createOscillator(), g = actx.createGain(); o.type = type || "sine"; o.frequency.value = f; g.gain.setValueAtTime(0, t + at); g.gain.linearRampToValueAtTime(v * vol, t + at + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + at + dur); o.connect(g).connect(actx.destination); o.start(t + at); o.stop(t + at + dur + 0.05); };
+      if (kind === "click") { tone(1800, 0, 0.05, 0.5, "square"); tone(900, 0.01, 0.06, 0.4); }
+      else { [0, 0.18, 0.36].forEach((d) => { tone(1318.5, d, 0.9, 0.55); tone(2637, d, 0.5, 0.18); }); }
+    } catch (e) { /* no audio here */ }
+  }
+  function subscribeReminder() {
+    if (!SUB_ON) return;
+    subTimers.forEach(clearTimeout); subTimers = [];
+    const W = $("lvSubW"), B = $("lvSubB"), BL = $("lvSubBell"), C = $("lvSubCur"), RP = $("lvSubRip"), N = $("lvSubN");
+    if (!$("lvSubLogo").src && $("lvLogo").src) $("lvSubLogo").src = $("lvLogo").src;
+    B.classList.remove("done"); B.textContent = "SUBSCRIBE"; BL.classList.remove("on"); N.classList.remove("show");
+    const at = (ms, f) => subTimers.push(setTimeout(f, ms));
+    const pos = (el) => { const w = W.getBoundingClientRect(), r = el.getBoundingClientRect(); return [r.left - w.left + r.width * 0.55, r.top - w.top + r.height * 0.6]; };
+    const move = (x, y) => { C.style.transform = `translate(${x}px,${y}px)`; };
+    const click = (el, after) => { C.classList.add("click"); el.classList.add("press"); subSound("click");
+      const [x, y] = pos(el); RP.style.left = x + "px"; RP.style.top = y + "px"; RP.classList.remove("go"); void RP.offsetWidth; RP.classList.add("go");
+      at(150, () => { C.classList.remove("click"); el.classList.remove("press"); after(); }); };
+    C.style.transition = "none"; move(W.offsetWidth + 40, W.offsetHeight + 60); void C.offsetWidth; C.style.transition = "";
+    at(50, () => W.classList.add("show"));
+    at(700, () => { const [x, y] = pos(B); move(x, y); });
+    at(1750, () => click(B, () => { B.classList.add("done"); B.textContent = "SUBSCRIBED ✓"; }));
+    at(2500, () => { const [x, y] = pos(BL); move(x, y); });
+    at(3500, () => click(BL, () => { BL.classList.add("on"); N.classList.add("show"); subSound("bell"); }));
+    at(4300, () => move(W.offsetWidth + 40, W.offsetHeight + 60));
+    at(6400, () => { W.classList.remove("show"); N.classList.remove("show"); });
+  }
   function showSym(tlIndex, minutes) {
     if (tlBusy) { setTimeout(() => showSym(tlIndex, minutes), 300); return; }
     nextAt = Date.now() + minutes * 60e3;
     tfIdx = 0; tlTf = TFS[0]; tfStep = minutes * 60e3 / TFS.length; tfAt = Date.now() + tfStep;
+    if (tlIndex !== subLast) { subLast = tlIndex; setTimeout(subscribeReminder, 2500); }
     tlActive = tlIndex; tlRes = null; tlData = null; zoomFor = tlActive;
     $("bsLoading").hidden = false; $("bsLoading").textContent = "Loading " + tlSyms[tlActive].name + "…";
     tlLoad();
@@ -4047,6 +4111,7 @@ if (LIVE_MODE) (function liveMode() {
     if (tlBusy) { setTimeout(() => go(i), 300); return; }   // let a load in progress finish first
     pos = i; nextAt = Date.now() + ROT_MIN * 60e3;
     tfIdx = 0; tlTf = TFS[0]; tfStep = ROT_MIN * 60e3 / TFS.length; tfAt = Date.now() + tfStep;
+    if (list[pos] !== subLast) { subLast = list[pos]; setTimeout(subscribeReminder, 2500); }
     tlActive = list[pos]; tlRes = null; tlData = null; zoomFor = tlActive;
     $("bsLoading").hidden = false; $("bsLoading").textContent = "Loading " + tlSyms[tlActive].name + "…";
     tlLoad();
