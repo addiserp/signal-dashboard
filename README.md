@@ -1,15 +1,15 @@
-# Addis Chart Signals
+# Addis 4H
 
 The one backtested system (Donchian 4H breakout) with paper-trading log and position calculator, plus technical signals (TradingView), top-down trend rays, BOS/CHoCH, order blocks, HTF liquidity, FVG, volume and Fibonacci for BTC, ETH, gold, SPCX, ZEC, HYPE and NEAR.
 
 - `docs/` – installable web app (PWA). Turn on GitHub Pages (Settings → Pages → Branch `main`, folder `/docs`) to host it, then open the link on your phone and choose **Install app** / **Add to Home Screen**.
-- Android app (WebView) – the rest of this repository. GitHub Actions builds `Addis-Chart-Signals.apk` on every push: **Actions → Build Android APK → latest run → Artifacts**.
+- Android app (WebView) – the rest of this repository. GitHub Actions builds `Addis-4H.apk` on every push: **Actions → Build Android APK → latest run → Artifacts**.
 
 - `alerts/` – Telegram alerts for the 4H filter system (Trend lines + Volume + Oscillators, ⭐ A+ when the 1D structure agrees), checked every 15 minutes, with a live paper-trading scorecard. Setup: [alerts/README.md](alerts/README.md).
 - **APK updates without uninstalling:** add the signing key once — see [SIGNING.md](SIGNING.md).
 
 To update the dashboard, replace `docs/index.html` and `app/src/main/assets/index.html` with the new version.
 
-- **YouTube live:** a 1920×1080 broadcast view (`?live=1`) with the chart, DXY, the addis-4H panel, a marquee and signal banners — see [LIVE.md](LIVE.md).
+- **YouTube live:** a 1920×1080 broadcast view (`?live=1`) with the chart, DXY, the addis-4H Signals panel, a marquee and signal banners — see [LIVE.md](LIVE.md).
 
 Not financial advice.

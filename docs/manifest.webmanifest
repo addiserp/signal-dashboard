@@ -1,7 +1,7 @@
 {
-  "name": "Addis Chart Signals",
-  "short_name": "Addis Chart",
-  "description": "Addis Chart Signals: technical signals, trend rays, BOS/CHoCH, order blocks, liquidity and Fibonacci.",
+  "name": "Addis 4H",
+  "short_name": "Addis 4H",
+  "description": "Addis 4H: technical signals, trend rays, BOS/CHoCH, order blocks, liquidity and Fibonacci.",
   "id": "./",
   "start_url": "./",
   "scope": "./",

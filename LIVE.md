@@ -1,14 +1,14 @@
-# YouTube live with Addis Chart Signals
+# YouTube live with Addis 4H
 
 **Live mode** is a full-screen 1920×1080 broadcast view of the app:
 
 - the chart with all drawings (trend rays, BOS/CHoCH, swing labels, order blocks, HTF liquidity, FVG, Fib, volume), zoomed to about the last 70 candles — a different timeframe each minute of a symbol's turn: **4H → 1H → 30m → 15m → 5m**
 - **DXY · U.S. Dollar Index** (TradingView, 1H candles, last 5 days) top-left for reference
-- the **addis-4H** panel: status (waiting / 🟢 BUY / ⭐ A+ / in a long), the ✅/❌ checks and the stop
+- the **addis-4H Signals** panel: status (waiting / 🟢 BUY / ⭐ A+ / in a long), the ✅/❌ checks and the stop
 - a chart-analysis summary (bias, 4H structure, trend rays, nearest liquidity)
 - a scrolling **ANALYSIS** marquee at the bottom, refreshed every minute, with the watchlist and "Not financial advice"
 - a bold **⚠ NOT FINANCIAL ADVICE** box in the top bar
-- a **live scorecard**: every addis-4H trade on the rotation symbols since 6 Nov 2026 (trades, wins, total R after fees and funding, open R, per symbol, and ⭐ A+ trades separately)
+- a **live scorecard**: every addis-4H Signals trade on the rotation symbols since 6 Nov 2026 (trades, wins, total R after fees and funding, open R, per symbol, and ⭐ A+ trades separately)
 - **VIX · fear index** (TradingView, 1H candles, last 5 days) under DXY
 - a **market phase** box: for every rotation symbol, Uptrend / Pullback / Correction / Deep correction / Bear market (drop from the 180-day high, scaled by the asset's own volatility, and the 200-day average), the Binance funding rate and the 24h open-interest change
 - a **subscribe + bell reminder** each time the coin changes: a cursor clicks SUBSCRIBE, then the bell rings (with a short click and bell sound)
@@ -21,7 +21,7 @@
 
 `https://addiserp.github.io/signal-dashboard/?live=1`  (needs GitHub Pages on: Settings → Pages → Branch `main`, folder `/docs`)
 
-or the downloaded file: `file:///C:/path/to/Addis-Chart-Signals.html?live=1`
+or the downloaded file: `file:///C:/path/to/Addis-4H.html?live=1`
 
 Options, added to the link with `&`:
 
@@ -65,7 +65,7 @@ The page plays music that matches the current symbol's top-down trend: **bullish
 3. Make a folder called **`music`** next to the page file and rename the downloads exactly like this:
    `bullish-1.mp3`, `bullish-2.mp3`, … · `bearish-1.mp3`, `bearish-2.mp3`, … · `neutral-1.mp3`, `neutral-2.mp3`, …
    (numbers 1 to 60; gaps are fine). The page **shuffles** each mood: every track plays once in random order before any repeats, then it reshuffles. New files are picked up every 30 minutes (or refresh the source).
-4. Use the downloaded page file in OBS (Browser source → the `file:///…/Addis-Chart-Signals.html?live=1` link) so it finds the `music` folder. Don't upload the music to the public GitHub repository.
+4. Use the downloaded page file in OBS (Browser source → the `file:///…/Addis-4H.html?live=1` link) so it finds the `music` folder. Don't upload the music to the public GitHub repository.
 5. In OBS, tick **Control audio via OBS** on the browser source, and set its volume in the OBS audio mixer. In a normal browser, click once on the page to start the music (browsers block autoplay with sound).
 
 If no files are found, the page simply stays silent.

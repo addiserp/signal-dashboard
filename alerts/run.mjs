@@ -1,4 +1,4 @@
-// Addis Chart Signals — 4H alerts to Telegram.
+// Addis 4H — 4H alerts to Telegram.
 // System "filters" (default): BUY when Trend lines + Volume + Oscillators agree on a closed 4H candle,
 // ⭐ A+ when the 1D Structure agrees too. Stop 2×ATR, trailed to the 10-candle low.
 // System "donchian": the older Donchian breakout (set "system": "donchian" in config.json).
@@ -26,7 +26,7 @@ const SYSTEM = cfg.system || "filters";
 const bits = (names) => (names || []).reduce((m, n) => { const b = F.KEYS.indexOf(n); if (b < 0) throw new Error(`unknown filter "${n}" in config.json (use ${F.KEYS.join(", ")})`); return m | (1 << b); }, 0);
 const NEED = bits(cfg.filters || ["rays", "volume", "osc"]), PLUS = bits(cfg.aplus || ["structure"]);
 const NEED_NAMES = F.KEYS.filter((k, b) => NEED & (1 << b)).map((k) => F.FILTERS[k].name);
-const SYS_NAME = SYSTEM === "filters" ? "4H Filters" : "4H Donchian";
+const SYS_NAME = SYSTEM === "filters" ? "addis-4H Signals" : "4H Donchian";
 const MODE = (process.env.MODE || "auto").toLowerCase();
 // trim spaces / line breaks that sneak in when pasting secrets
 const TOKEN = (process.env.TELEGRAM_BOT_TOKEN || "").trim();
@@ -42,7 +42,7 @@ const LIVE_SINCE = Math.floor(Date.parse((cfg.liveSince || "2026-10-27") + "T00:
 const now = Math.floor(Date.now() / 1000);
 
 // ---------- data ----------
-const UA = { "User-Agent": "Mozilla/5.0 (Addis Chart Signals alerts)" };
+const UA = { "User-Agent": "Mozilla/5.0 (Addis 4H alerts)" };
 async function getJSON(url) {
   const r = await fetch(url, { headers: UA });
   if (!r.ok) throw new Error(`HTTP ${r.status} from ${new URL(url).host}`);
@@ -366,7 +366,7 @@ const today = new Date().toISOString().slice(0, 10);
 const hourUTC = new Date().getUTCHours();
 const wantSummary = MODE === "test" || MODE === "summary" || (MODE === "auto" && hourUTC >= cfg.dailySummaryHourUTC && state.summaryDay !== today);
 if (wantSummary) {
-  const head = MODE === "test" ? "✅ <b>Addis Chart Signals alerts are working</b>" : "☀️ <b>Daily status · ${SYS_NAME}</b>";
+  const head = MODE === "test" ? "✅ <b>Addis 4H alerts are working</b>" : "☀️ <b>Daily status · ${SYS_NAME}</b>";
   const body = status.length ? status.join("\n") : "No symbol could be loaded.";
   // paper-trading scorecard (net of fees and funding)
   const names = cfg.symbols.filter((s) => s.enabled).map((s) => s.name);
