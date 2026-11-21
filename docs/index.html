@@ -267,7 +267,7 @@
   .lv-side{grid-area:side;display:flex;flex-direction:column;gap:.7vh;min-height:0}
   .lv-box{background:#121722;border:1px solid #232a38;border-radius:1vh;padding:.9vh 1.3vh;min-height:0}
   .lv-box h3{margin:0 0 .6vh;font-size:1.5vh;color:#8a93a6;text-transform:uppercase;letter-spacing:.06em}
-  .lv-dxy{height:23vh;flex:none;padding:.8vh;display:flex;flex-direction:column}
+  .lv-dxy,.lv-vix{height:15vh;flex:none;padding:.8vh;display:flex;flex-direction:column}
   .lv-sysbox,.lv-score,.lv-sess{flex:none}
   .lv-score .tot{display:flex;gap:1.1vh;align-items:baseline;white-space:nowrap;font-size:1.55vh}
   .lv-score .tot b{font-size:1.95vh}
@@ -282,12 +282,21 @@
   .lv-sess .row.on .st{color:#4ade80}.lv-sess .row.off .st{color:#8a93a6}
   .lv-sess .note{font-size:1.3vh;color:#facc15;margin-top:.2vh;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .lv-sess .mus{font-size:1.25vh;color:#8a93a6}
+  .lv-phase{flex:none}
+  .lv-ph{display:grid;grid-template-columns:7vh 12.5vh 6.5vh 1fr 1fr;gap:.8vh;align-items:center;font-size:1.4vh;padding:.25vh 0;white-space:nowrap}
+  .lv-ph.cur{background:rgba(37,99,235,.14);border-radius:.5vh}
+  .lv-ph b{overflow:hidden;text-overflow:ellipsis}
+  .lv-ph .ph{font-weight:800;font-size:1.3vh;padding:.15vh .7vh;border-radius:.6vh;text-align:center;overflow:hidden;text-overflow:ellipsis}
+  .ph.up{background:rgba(34,197,94,.18);color:#4ade80}.ph.pb{background:rgba(250,204,21,.16);color:#fde047}
+  .ph.cor{background:rgba(249,115,22,.18);color:#fb923c}.ph.bear{background:rgba(239,68,68,.2);color:#f87171}.ph.weak{background:#1f2633;color:#cbd5e1}
+  .lv-ph small{color:#8a93a6;font-size:1.25vh}
+  .lv-phnote{font-size:1.2vh;color:#8a93a6;margin-top:.3vh;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .lv-trow{display:flex;justify-content:space-between;gap:1vh;font-size:1.5vh;border-top:1px solid #1e2532;padding-top:.4vh}
   .lv-trow span{color:#8a93a6}
   .lv-marq .tag.tg{background:#229ed9;font-size:1.9vh}
   .lv-musichint{position:fixed;right:2vh;bottom:8vh;z-index:60;background:#2563eb;color:#fff;font-weight:800;padding:1vh 1.6vh;border-radius:1vh;font-size:1.8vh}
-  #lvDxy{flex:1;min-height:0}
-  #lvDxy .tradingview-widget-container,#lvDxy .tradingview-widget-container__widget{height:100%!important;width:100%!important}
+  #lvDxy,#lvVix{flex:1;min-height:0}
+  #lvDxy .tradingview-widget-container,#lvDxy .tradingview-widget-container__widget,#lvVix .tradingview-widget-container,#lvVix .tradingview-widget-container__widget{height:100%!important;width:100%!important}
   .lv-sysbox{border-color:rgba(34,197,94,.5)}
   .lv-st{display:inline-block;font-weight:800;font-size:2vh;padding:.4vh 1.1vh;border-radius:.8vh;margin-bottom:.7vh}
   .lv-st.wait{background:#1f2633;color:#cbd5e1}.lv-st.on{background:rgba(34,197,94,.18);color:#4ade80}.lv-st.go{background:#16a34a;color:#fff}
@@ -371,13 +380,14 @@
   </div>
   <div class="lv-side">
     <div class="lv-box lv-dxy"><h3>DXY · U.S. Dollar Index · reference</h3><div id="lvDxy"></div></div>
+    <div class="lv-box lv-vix"><h3>VIX · Fear index · reference</h3><div id="lvVix"></div></div>
     <div class="lv-box lv-sysbox"><h3>addis-4H system</h3><div id="lvSys"></div></div>
+    <div class="lv-box lv-phase"><h3>Market phase · funding · open interest</h3><div id="lvPhase"><span class="neutral">Loading…</span></div></div>
     <div class="lv-box lv-score"><h3 id="lvScoreH">📒 addis-4H live paper results</h3><div id="lvScore"><span class="neutral">Loading…</span></div></div>
-    <div class="lv-box lv-sess"><h3>Market sessions · EAT</h3><div id="lvSess"></div></div>
     <div class="lv-box lv-ana"><h3>Chart analysis</h3><div id="lvAna"></div></div>
   </div>
   <div class="lv-main"><div id="lvChart"></div><div class="lv-banner" id="lvBanner"></div></div>
-  <div class="lv-marq"><div class="tag">ANALYSIS</div><div class="lv-mwrap"><div id="lvMarqText"></div></div><div class="tag tg" id="lvTg">📲 Free alerts on Telegram: @addistrad</div></div>
+  <div class="lv-marq"><div class="tag">ANALYSIS</div><div class="lv-mwrap"><div id="lvMarqText"></div></div></div>
   <div class="lv-reqbox" id="lvReqBox" hidden>
     <div class="h">🙋 Viewer request</div>
     <input id="lvReqIn" type="text" autocomplete="off" spellcheck="false" placeholder="ETH · SOL · GOLD · NVDA · TSLA   (optional: @name)">
@@ -409,6 +419,8 @@
       <div><div class="lg-h">Volume &amp; Fib</div>
         <label class="chk"><input type="checkbox" id="bsVol" checked> Volume</label>
         <label class="chk"><input type="checkbox" id="bsVp"> Volume profile</label>
+        <label class="chk"><input type="checkbox" id="bsBb"> Bollinger Bands</label>
+        <label class="chk"><input type="checkbox" id="bsAvwap"> VWAP from high</label>
         <label class="chk">Fib <select id="bsFibMode"><option value="bos">BOS leg</option><option value="auto">Auto swing</option><option value="off">Off</option></select></label></div>
     </div>
   </details>
@@ -1773,7 +1785,57 @@ function setView(v) {
     return { dir: R.trend, items, score: items.filter((x) => x.ok).length, total: items.length };
   }
 
-  const api = { bosFib, liquidity, sweeps, volume, fvgs, orderBlocks, confluence, FIBS };
+  // Bollinger Bands: n-candle average +- k standard deviations of the close
+  function bollinger(c, n = 20, k = 2) {
+    const out = [];
+    let sum = 0, sq = 0;
+    for (let i = 0; i < c.length; i++) {
+      sum += c[i].c; sq += c[i].c * c[i].c;
+      if (i >= n) { sum -= c[i - n].c; sq -= c[i - n].c * c[i - n].c; }
+      if (i >= n - 1) { const m = sum / n, sd = Math.sqrt(Math.max(0, sq / n - m * m)); out.push({ t: c[i].t, mid: m, up: m + k * sd, dn: m - k * sd }); }
+    }
+    return out;
+  }
+  // VWAP anchored at the highest high of the last `look` candles (equal weights if there is no volume)
+  function anchoredVwap(c, look = 200) {
+    const from = Math.max(0, c.length - look);
+    let a = from;
+    for (let i = from; i < c.length; i++) if (c[i].h > c[a].h) a = i;
+    const hasVol = c.slice(a).some((x) => x.v > 0);
+    let pv = 0, vv = 0;
+    const line = [];
+    for (let i = a; i < c.length; i++) {
+      const w = hasVol ? c[i].v : 1, tp = (c[i].h + c[i].l + c[i].c) / 3;
+      pv += tp * w; vv += w;
+      if (vv > 0) line.push({ time: c[i].t, value: pv / vv });
+    }
+    return { t: c[a].t, high: c[a].h, line, value: line.length ? line[line.length - 1].value : null };
+  }
+  // market phase from daily candles: drawdown from the 180-day high, scaled by the asset's own volatility,
+  // and where price sits against the 200-day average
+  function phase(d) {
+    if (!d || d.length < 30) return null;
+    const last = d[d.length - 1], price = last.c;
+    const win = d.slice(-180);
+    const hi = Math.max(...win.map((x) => x.h));
+    const dd = (hi - price) / hi * 100;
+    const rets = [];
+    for (let i = Math.max(1, d.length - 90); i < d.length; i++) rets.push(Math.log(d[i].c / d[i - 1].c));
+    const mu = rets.reduce((a, b) => a + b, 0) / rets.length;
+    const vol = Math.sqrt(rets.reduce((a, b) => a + (b - mu) * (b - mu), 0) / Math.max(1, rets.length - 1)) * Math.sqrt(365) * 100;
+    const sc = Math.max(1, vol / 25);
+    const ma200 = d.length >= 200 ? d.slice(-200).reduce((a, x) => a + x.c, 0) / 200 : null;
+    const above = ma200 == null ? null : price > ma200;
+    const pb = 5 * sc, cor = 10 * sc, bear = 20 * sc;
+    let key, label;
+    if (dd < pb) { key = above === false ? "weak" : "up"; label = above === false ? "Below 200-day" : "Uptrend"; }
+    else if (dd < cor) { key = "pb"; label = "Pullback"; }
+    else if (dd < bear) { key = "cor"; label = "Correction"; }
+    else { key = above === false ? "bear" : "cor"; label = above === false ? "Bear market" : "Deep correction"; }
+    return { key, label, dd, hi, vol, ma200, above, thresholds: [pb, cor, bear] };
+  }
+
+  const api = { bosFib, liquidity, sweeps, volume, fvgs, orderBlocks, confluence, FIBS, bollinger, anchoredVwap, phase };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.SMC = api;
 })(typeof window !== "undefined" ? window : globalThis);
@@ -2272,6 +2334,23 @@ function bsOverlays(c, R, tf, endT, markers, vol, ray) {
       markers.push({ time: z.t, position: z.dir > 0 ? "belowBar" : "aboveBar", color: col, shape: "square", size: 0.6, text: z.dir > 0 ? "Bull OB" : "Bear OB" });
     }
   }
+  // Bollinger Bands (20, 2): price stretched outside the bands, or bands squeezing after a drop
+  if (on("bsBb") && c.length > 25) {
+    const bb = SMC.bollinger(c, 20, 2);
+    const mk = (key, opt) => { const se = bsChart.addLineSeries(Object.assign({ priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, autoscaleInfoProvider: () => null }, opt)); se.setData(bb.map((b) => ({ time: b.t, value: b[key] }))); bsSeries.push(se); };
+    mk("up", { color: "rgba(167,139,250,.85)", lineWidth: 1 });
+    mk("mid", { color: "rgba(167,139,250,.5)", lineWidth: 1, lineStyle: 2 });
+    mk("dn", { color: "rgba(167,139,250,.85)", lineWidth: 1, title: "BB 20,2" });
+  }
+  // VWAP anchored at the highest high of the last 200 candles: the average price paid since the top
+  if (on("bsAvwap") && c.length > 10) {
+    const av = SMC.anchoredVwap(c, 200);
+    if (av && av.line.length > 1) {
+      const se = bsChart.addLineSeries({ color: "#2dd4bf", lineWidth: 2, priceLineVisible: false, lastValueVisible: true, crosshairMarkerVisible: false, title: "VWAP from high", autoscaleInfoProvider: () => null });
+      se.setData(av.line); bsSeries.push(se);
+      markers.push({ time: av.t, position: "aboveBar", color: "#2dd4bf", shape: "arrowDown", text: "VWAP anchor (high)" });
+    }
+  }
   return { fib, liq, sw, fv, cf, obs };
 }
 
@@ -2336,7 +2415,7 @@ function bsCards(ov, vol, price, tfLabel, R) {
     `<div class="msg">Backtests on BTC and gold (2022–2026) found that trades with 5–6 ticks did <b>not</b> do better than trades with 0–2. Use this list to describe the chart, not to decide a trade. For trade signals use the tested Donchian 4H system at the top of this tab.</div>`;
 }
 
-["bsRays", "bsHtf", "bsSw", "bsCh", "bsOb", "bsLiq", "bsVp", "bsFvg", "bsVol"].forEach((id) => {
+["bsRays", "bsHtf", "bsSw", "bsCh", "bsOb", "bsLiq", "bsVp", "bsFvg", "bsVol", "bsBb", "bsAvwap"].forEach((id) => {
   const el = document.getElementById(id);
   el.checked = load("tvdash." + id, el.checked);
   el.onchange = () => { save("tvdash." + id, el.checked); bsRender(); };
@@ -3836,6 +3915,7 @@ if (view !== "signals") setView(view); else { buildGrid(); lazyMover(); }
 // ?live=1                          broadcast layout 1920×1080, no buttons
 // &syms=BTCUSDT,ETHUSDT,ZECUSDT    symbols to rotate (Binance symbols; default below)
 // &rotate=5                        minutes per symbol
+// &vix=CAPITALCOM:VIX              TradingView symbol for the VIX box under DXY
 // &test=banner                     shows a sample signal banner after 5 s (to check the layout in OBS)
 if (LIVE_MODE) (function liveMode() {
   const P = new URLSearchParams(location.search);
@@ -3867,18 +3947,23 @@ if (LIVE_MODE) (function liveMode() {
   const $ = (id) => document.getElementById(id);
   document.body.classList.add("live");
   const logo = document.querySelector(".brandname img"); if (logo) $("lvLogo").src = logo.src;
-  $("lvTg").textContent = `📲 Free alerts on Telegram: @${TG}`;
   $("lvScoreH").textContent = `📒 addis-4H live paper results · since ${new Date(SINCE * 1000).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}`;
   // the analysis chart and its legend move into the broadcast layout
   $("lvChart").appendChild($("bsChart")); $("lvChart").appendChild($("bsLegend"));
   // all layers on
-  for (const id of ["bsRays", "bsHtf", "bsCh", "bsSw", "bsOb", "bsLiq", "bsFvg", "bsVol"]) { const el = $(id); if (el) el.checked = true; }
+  for (const id of ["bsRays", "bsHtf", "bsCh", "bsSw", "bsOb", "bsLiq", "bsFvg", "bsVol", "bsBb", "bsAvwap"]) { const el = $(id); if (el) el.checked = true; }
   if ($("bsVp")) $("bsVp").checked = false;
   if ($("bsFibMode")) $("bsFibMode").value = "bos";
   tlTf = TFS[0];
   // DXY reference chart (TradingView), zoomed to the last few days of 1H candles
   embed($("lvDxy"), "embed-widget-advanced-chart.js", {
     autosize: true, symbol: P.get("dxy") || "CAPITALCOM:DXY", interval: "60", range: "5D", timezone: "Africa/Nairobi", theme: "dark", style: "1", locale: "en",
+    hide_top_toolbar: true, hide_side_toolbar: true, hide_legend: false, hide_volume: true, allow_symbol_change: false, save_image: false,
+    backgroundColor: "rgba(22,27,36,1)", gridColor: "rgba(38,45,58,0.6)", support_host: "https://www.tradingview.com",
+  });
+  // VIX (volatility / fear index) reference chart under DXY
+  embed($("lvVix"), "embed-widget-advanced-chart.js", {
+    autosize: true, symbol: P.get("vix") || "CAPITALCOM:VIX", interval: "60", range: "5D", timezone: "Africa/Nairobi", theme: "dark", style: "1", locale: "en",
     hide_top_toolbar: true, hide_side_toolbar: true, hide_legend: false, hide_volume: true, allow_symbol_change: false, save_image: false,
     backgroundColor: "rgba(22,27,36,1)", gridColor: "rgba(38,45,58,0.6)", support_host: "https://www.tradingview.com",
   });
@@ -4003,6 +4088,7 @@ if (LIVE_MODE) (function liveMode() {
         <div class="lv-checks"><div>${tick(S.ck.rays)} Trend lines</div><div>${tick(S.ck.volume)} Volume</div><div>${tick(S.ck.osc)} Oscillators <small>${F.oscLabel(S.ck.oscRating)}</small></div><div class="lv-plus">${tick(S.ck.structure)} Structure <small>(A+)</small></div>${S.r.gold ? `<div>${S.r.t200 ? tick(S.r.t200.above) : "—"} Above 200-day</div><div><small>👀 gold: watch-only</small></div>` : ""}</div>${extra}`;
     }
     $("lvSys").innerHTML = html;
+    try { phaseRender(); } catch (e) { /* first scan not ready */ }
     // analysis summary from the Analysis tab
     const txt = (id) => (($(id) || {}).textContent || "—").replace(/\s+/g, " ").trim();
     const liq = [...document.querySelectorAll("#bsLiqTable tr")].map((tr) => [...tr.children].map((td) => td.textContent.replace(/\s+/g, " ").trim()));
@@ -4020,7 +4106,7 @@ if (LIVE_MODE) (function liveMode() {
     const me = S ? `addis-4H: ${S.state === "signal" ? (S.aplus ? "⭐ A+ BUY SETUP" : "BUY SIGNAL") + " — stop " + tlFmt(S.stop) : S.state === "trade" ? "in a long, stop " + tlFmt(S.r.position.stop) : S.n + " of 3 filters agree"} (Trend lines ${tick(S.ck.rays)} · Volume ${tick(S.ck.volume)} · Oscillators ${tick(S.ck.osc)} ${F.oscLabel(S.ck.oscRating)} · Structure ${tick(S.ck.structure)})` : "";
     const others = list.filter((i) => i !== tlActive && scan[i]).map((i) => { const o = scan[i]; return `${tlSyms[i].name}: ${o.state === "signal" ? (o.aplus ? "⭐ A+ BUY" : "🟢 BUY") : o.state === "trade" ? "in a long" : o.n + "/3"}`; });
     const mq = [...(req ? [`🙋 Viewer request${req.by ? " from @" + req.by : ""}: ${req.name}`] : []), `${s.name} ${TFL} · ${tlFmt(price)}${chg == null ? "" : " (" + pctTxt(chg) + " 24h)"}`, `Bias ${txt("bsBias")}`, `${TFL} structure ${txt("bsTf")}`, `Trend rays: ${txt("bsRaySetup")}`, me,
-      `Liquidity above ${lq(above)} · below ${lq(below)}`, others.length ? "Watchlist — " + others.join(" · ") : "", "DXY top-left for reference", `📲 Free alerts on Telegram: @${TG}`, "Not financial advice · Addis Chart Signals"].filter(Boolean).join("   ◆   ");
+      `Liquidity above ${lq(above)} · below ${lq(below)}`, others.length ? "Watchlist — " + others.join(" · ") : "", "DXY and VIX top-left for reference", "Not financial advice · Addis Chart Signals"].filter(Boolean).join("   ◆   ");
     if (lastMqSym !== tlActive + "|" + tlTf) { lastMqSym = tlActive + "|" + tlTf; setMarq(mq); mqPending = null; $("lvMarqText").dataset.on = "1"; } else marquee(mq);
     // zoom in on the latest candles after switching symbol (after the follow-up refresh has drawn too)
     if (zoomFor === tlActive && bsChart) { zoomFor = null; const me = tlActive; [350, 1200, 3000].forEach((ms) => setTimeout(() => { if (tlActive === me) liveZoom(); }, ms)); }
@@ -4049,6 +4135,29 @@ if (LIVE_MODE) (function liveMode() {
     el.style.animationDuration = Math.max(30, w / 90) + "s";   // ~90 px per second
   }
 
+  // market phase (daily candles) + Binance futures funding rate and 24h open-interest change, per rotation symbol
+  const extra = {};
+  const PHASE_REF = { XAUUSDT: "PAXGUSDT" };   // gold perpetual has a short history: use PAXG spot for the 200-day view
+  async function fundOi(sym) {
+    const j = async (u) => { const r = await fetch(u, { cache: "no-store" }); if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); };
+    const [pi, oi] = await Promise.allSettled([
+      j(`https://fapi.binance.com/fapi/v1/premiumIndex?symbol=${sym}`),
+      j(`https://fapi.binance.com/futures/data/openInterestHist?symbol=${sym}&period=1h&limit=25`)]);
+    const o = {};
+    if (pi.status === "fulfilled" && pi.value && pi.value.lastFundingRate != null) o.fund = +pi.value.lastFundingRate * 100;
+    if (oi.status === "fulfilled" && Array.isArray(oi.value) && oi.value.length > 1) { const a = +oi.value[0].sumOpenInterest, b = +oi.value[oi.value.length - 1].sumOpenInterest; if (a > 0) o.oi = (b - a) / a * 100; }
+    return o;
+  }
+  function phaseRender() {
+    const rows = list.map((i) => {
+      const e = extra[i] || {}, ph = e.phase, nm = tlSyms[i].name.replace(/USDT$|USD$/, "");
+      const f = e.fund == null ? `<small>F —</small>` : `<span class="${e.fund >= 0 ? "" : "dn"}"><small>F</small> ${(e.fund >= 0 ? "+" : "") + e.fund.toFixed(3)}%</span>`;
+      const o = e.oi == null ? `<small>OI —</small>` : `<span class="${e.oi >= 0 ? "up" : "dn"}"><small>OI</small> ${(e.oi >= 0 ? "+" : "") + e.oi.toFixed(1)}%</span>`;
+      return `<div class="lv-ph${i === tlActive ? " cur" : ""}"><b>${nm}</b>${ph ? `<span class="ph ${ph.key}">${ph.label}</span><span>−${ph.dd.toFixed(1)}%</span>` : `<span class="ph weak">…</span><span></span>`}${f}${o}</div>`;
+    });
+    $("lvPhase").innerHTML = rows.join("") + `<div class="lv-phnote">% = below 180-day high · F = funding now · OI = open interest 24h</div>`;
+  }
+
   // every 5 minutes: check the whole rotation for new signals
   async function scanAll() {
     lastScan = Date.now();
@@ -4056,6 +4165,10 @@ if (LIVE_MODE) (function liveMode() {
       const s = tlSyms[i];
       try {
         const [c4, d1] = await Promise.all([tlFetch(s, "4h"), tlFetch(s, "1d")]);
+        extra[i] = extra[i] || {};
+        try { extra[i].phase = SMC.phase(PHASE_REF[s.sym] ? await tlFetch({ market: "spot", sym: PHASE_REF[s.sym] }, "1d") : d1); } catch (e) { extra[i].phase = SMC.phase(d1); }
+        try { Object.assign(extra[i], await fundOi(s.sym)); } catch (e) { /* no perpetual for this symbol */ }
+        phaseRender();
         const S = system({ "4h": c4, "1d": d1 }, s);
         if (!S) continue;
         scan[i] = { ...S, at: Date.now() };
@@ -4199,7 +4312,7 @@ if (LIVE_MODE) (function liveMode() {
     else if (left === 0 && reqQueue.length) startReq(reqQueue.shift());
     else if (list.length > 1 && left === 0) go((pos + 1) % list.length);
     if (Date.now() - lastScan > 5 * 60e3) scanAll();
-    if (new Date().getSeconds() % 15 === 0 || !$("lvSess").innerHTML) sessRender();
+    if ($("lvSess") && (new Date().getSeconds() % 15 === 0 || !$("lvSess").innerHTML)) sessRender();
   }, 1000);
   // fresh start every few hours (default 4) so a 20-hour stream doesn't slowly fill the memory; waits until no banner is showing
   const RELOAD_H = +(P.get("reload") || 4);

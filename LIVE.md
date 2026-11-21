@@ -9,8 +9,9 @@
 - a scrolling **ANALYSIS** marquee at the bottom, refreshed every minute, with the watchlist and "Not financial advice"
 - a bold **⚠ NOT FINANCIAL ADVICE** box in the top bar
 - a **live scorecard**: every addis-4H trade on the rotation symbols since 6 Nov 2026 (trades, wins, total R after fees and funding, open R, per symbol, and ⭐ A+ trades separately)
-- a **market-session clock**: Tokyo, London and New York with their hours in EAT, open/closed, time left, and the London + New York overlap
-- a **Telegram** tag in the bottom-right corner (and in the marquee): *📲 Free alerts on Telegram: @addistrad*
+- **VIX · fear index** (TradingView, 1H candles, last 5 days) under DXY
+- a **market phase** box: for every rotation symbol, Uptrend / Pullback / Correction / Deep correction / Bear market (drop from the 180-day high, scaled by the asset's own volatility, and the 200-day average), the Binance funding rate and the 24h open-interest change
+- on the chart: **Bollinger Bands (20, 2)** and a **VWAP anchored at the highest high** of the last 200 candles (price back above it often marks the end of a pullback)
 - **music that follows the trend** (bullish / bearish / sideways) — see *Music* below
 - a new symbol every **5 minutes**, with a countdown in the top-right corner
 - a **signal banner** (🔔 BUY SIGNAL or ⭐ A+ BUY SETUP) that drops in for 60 seconds when any symbol in the rotation gets a new signal; the chart jumps to that symbol. All symbols are checked every 5 minutes.
@@ -29,7 +30,7 @@ Options, added to the link with `&`:
 | `rotate` | `&rotate=5` | minutes per symbol (the timeframes share this time equally) |
 | `tfs` | `&tfs=4h,1h,30m,15m,5m` | timeframes shown during each symbol's turn, in order |
 | `dxy` | `&dxy=CAPITALCOM:DXY` | the dollar-index symbol for the TradingView chart (default `CAPITALCOM:DXY`; TradingView doesn't allow `TVC:DXY` in embedded charts) |
-| `tg` | `&tg=addistrad` | the Telegram name shown on screen |
+| `vix` | `&vix=CAPITALCOM:VIX` | the VIX symbol for the chart under DXY (default `CAPITALCOM:VIX`) |
 | `since` | `&since=2026-11-06` | start date of the live scorecard |
 | `music` | `&music=0` | turn the music off |
 | `vol` | `&vol=0.25` | music volume, 0 to 1 |
@@ -64,7 +65,7 @@ The page plays music that matches the current symbol's top-down trend: **bullish
 4. Use the downloaded page file in OBS (Browser source → the `file:///…/Addis-Chart-Signals.html?live=1` link) so it finds the `music` folder. Don't upload the music to the public GitHub repository.
 5. In OBS, tick **Control audio via OBS** on the browser source, and set its volume in the OBS audio mixer. In a normal browser, click once on the page to start the music (browsers block autoplay with sound).
 
-The session box shows which mood and track is playing. If no files are found, the page simply stays silent.
+If no files are found, the page simply stays silent.
 
 ## OBS Studio → YouTube (one time, ~10 minutes)
 
