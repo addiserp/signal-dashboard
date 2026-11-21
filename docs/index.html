@@ -267,7 +267,7 @@
   .lv-side{grid-area:side;display:flex;flex-direction:column;gap:.7vh;min-height:0}
   .lv-box{background:#121722;border:1px solid #232a38;border-radius:1vh;padding:.9vh 1.3vh;min-height:0}
   .lv-box h3{margin:0 0 .6vh;font-size:1.5vh;color:#8a93a6;text-transform:uppercase;letter-spacing:.06em}
-  .lv-dxy,.lv-vix{height:15vh;flex:none;padding:.8vh;display:flex;flex-direction:column}
+  .lv-dxy,.lv-vix{height:12vh;flex:none;padding:.8vh;display:flex;flex-direction:column}
   .lv-sysbox,.lv-score,.lv-sess{flex:none}
   .lv-score .tot{display:flex;gap:1.1vh;align-items:baseline;white-space:nowrap;font-size:1.55vh}
   .lv-score .tot b{font-size:1.95vh}
@@ -303,6 +303,20 @@
   .lv-rip.go{animation:lvrip .5s ease-out}
   @keyframes lvrip{from{opacity:.9;transform:scale(.2)}to{opacity:0;transform:scale(1.6)}}
   .lv-phase{flex:none}
+  .lv-side .lv-box h3{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* languages: Amharic (Ethiopic script) and Arabic (right to left) */
+  body.lang-am #liveRoot{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Ethiopic","Nyala","Abyssinica SIL",sans-serif}
+  body.lang-ar #liveRoot{font-family:"Noto Sans Arabic",system-ui,-apple-system,"Segoe UI",Roboto,Tahoma,sans-serif}
+  body.lang-am .lv-box h3,body.lang-ar .lv-box h3{letter-spacing:0;font-size:1.6vh}
+  body.lang-ar .lv-side,body.lang-ar .lv-banner,body.lang-ar .lv-subc,body.lang-ar .lv-subn,body.lang-ar .lv-reqbox,body.lang-ar .lv-nfa,body.lang-ar #lvNext,body.lang-ar .lv-marq .tag{direction:rtl}
+  body.lang-ar #lvMarqText{animation-direction:reverse}
+  body.lang-ar #lvMarqText span{direction:rtl;unicode-bidi:isolate;padding-right:0;padding-left:6vh}
+  body.lang-ar .lv-banner .t,body.lang-am .lv-banner .t{letter-spacing:0}
+  body.lang-am .lv-ph,body.lang-ar .lv-ph{grid-template-columns:7vh 14vh 6.5vh 1fr 1fr}
+  body.lang-ar .lv-ph b,body.lang-ar .lv-ph span{direction:ltr;unicode-bidi:isolate}
+  body.lang-ar .lv-ph .ph{direction:rtl}
+  body.lang-ar .lv-trow b,body.lang-ar .lv-score .tot b,body.lang-ar .lv-score .per{unicode-bidi:isolate;direction:ltr}
+  body.lang-ar .lv-score .per{text-align:right}
   .lv-ph{display:grid;grid-template-columns:7vh 12.5vh 6.5vh 1fr 1fr;gap:.8vh;align-items:center;font-size:1.4vh;padding:.25vh 0;white-space:nowrap}
   .lv-ph.cur{background:rgba(37,99,235,.14);border-radius:.5vh}
   .lv-ph b{overflow:hidden;text-overflow:ellipsis}
@@ -3943,10 +3957,95 @@ if (view !== "signals") setView(view); else { buildGrid(); lazyMover(); }
 // &syms=BTCUSDT,ETHUSDT,ZECUSDT    symbols to rotate (Binance symbols; default below)
 // &rotate=5                        minutes per symbol
 // &sub=0 / &subsnd=0 / &subvol=0.35  subscribe+bell reminder on each coin change: off / silent / sound volume
+// &lang=am | &lang=ar               on-screen language: Amharic or Arabic (right to left); default English
 // &vix=CAPITALCOM:VIX              TradingView symbol for the VIX box under DXY
 // &test=banner                     shows a sample signal banner after 5 s (to check the layout in OBS)
 if (LIVE_MODE) (function liveMode() {
   const P = new URLSearchParams(location.search);
+  // ---------- on-screen language: &lang=en (default) · &lang=am (Amharic) · &lang=ar (Arabic, right to left) ----------
+  const LANG = ["am", "ar"].includes((P.get("lang") || "").toLowerCase()) ? P.get("lang").toLowerCase() : "en";
+  const I18N = {
+    en: {
+      live: "● LIVE", nfa: "⚠ NOT FINANCIAL ADVICE", dxyH: "DXY · U.S. Dollar Index · reference", vixH: "VIX · Fear index · reference",
+      phaseH: "Market phase · funding · open interest", scoreH: "📒 addis-4H Signals · paper results since {d}", anaH: "Chart analysis", tag: "ANALYSIS",
+      loading: "Loading…", loadingSym: "Loading {s}…", slogan: "Charts never lie", sub: "SUBSCRIBE", subbed: "SUBSCRIBED ✓", notif: "🔔 Notifications on · see every new live",
+      noHist: "Not enough history for {s}.", aplus: "⭐ A+ BUY SETUP", buy: "🟢 BUY SIGNAL", buyBanner: "🔔 BUY SIGNAL", buyPlain: "BUY SIGNAL", inLong: "IN A LONG",
+      below200: "BELOW 200-DAY · no gold signals", waiting: "WAITING · {n}/3 agree", entry: "Entry", stop: "Stop", open: "Open", stopPlace: "Stop to place",
+      trend: "Trend lines", volume: "Volume", osc: "Oscillators", structure: "Structure", above200: "Above 200-day", goldWatch: "👀 gold: watch-only",
+      "Strong buy": "Strong buy", Buy: "Buy", Neutral: "Neutral", Sell: "Sell", "Strong sell": "Strong sell",
+      bias: "Bias 1M→15m", tfStruct: "{tf} structure", rays: "Trend rays", liqAbove: "Liquidity above", liqBelow: "Liquidity below", none: "none nearby",
+      mqInLong: "in a long, stop {p}", mqAgree: "{n} of 3 filters agree", watch: "Watchlist — ", dxyvix: "DXY and VIX top-left for reference", nfaBrand: "Not financial advice · Addis 4H",
+      mqReq: "🙋 Viewer request{by}: {s}", mqReqBy: " from @{u}", mqBias: "Bias {x}", mqStruct: "{tf} structure {x}", mqRays: "Trend rays: {x}", mqLiq: "Liquidity above {a} · below {b}", inLongShort: "in a long", buyShort: "🟢 BUY", aplusShort: "⭐ A+ BUY",
+      up: "Uptrend", weak: "Below 200-day", pb: "Pullback", cor: "Correction", deep: "Deep correction", bear: "Bear market",
+      phNote: "% = below 180-day high · F = funding now · OI = open interest 24h",
+      trades: "trades", wins: "wins", total: "total", openW: "open", noTrades: "no trades yet", openR: " (open {r})", aplusN: " · ⭐ A+: {n} trades {r}",
+      inTrade: " in trade", signal: " signal", bSub: "{s} · 4H · price {p} · stop {st}", agree4: "Trend lines + Volume + Oscillators + 1D Structure agree", agree3: "Trend lines + Volume + Oscillators agree", nfaSmall: "not financial advice",
+      nextTf: "Next: {tf} in {t} · ", nextSym: "{s} in {t}", nextReq: "next request in {t}", rotation: "rotation in {t}", h24: "24h",
+      req: "🙋 Request", reqH: "🙋 Viewer request", reqHelp: "Enter = show it · Esc = cancel · type several to queue them", looking: "Looking it up…",
+      queued: "Queued: {s} ({n} waiting) — type another or press Esc", notFound: "{s} was not found on Binance", tryOther: " — try another name (e.g. SOL, GOLD, NVDA)", typeName: "type a coin or stock name",
+    },
+    am: {
+      live: "● ቀጥታ", nfa: "⚠ የፋይናንስ ምክር አይደለም", dxyH: "DXY · የአሜሪካ ዶላር ኢንዴክስ · ለማጣቀሻ", vixH: "VIX · የገበያ ፍርሃት ኢንዴክስ · ለማጣቀሻ",
+      phaseH: "የገበያ ምዕራፍ · ፈንዲንግ · ክፍት ውሎች", scoreH: "📒 addis-4H Signals · የሙከራ ውጤቶች ከ{d} ጀምሮ", anaH: "የቻርት ትንተና", tag: "ትንተና",
+      loading: "በመጫን ላይ…", loadingSym: "{s} በመጫን ላይ…", slogan: "ቻርቶች አይዋሹም", sub: "ሰብስክራይብ", subbed: "ተመዝግበዋል ✓", notif: "🔔 ማሳወቂያ በርቷል · ምንም ቀጥታ ስርጭት አያምልጥዎ",
+      noHist: "ለ{s} በቂ ታሪካዊ መረጃ የለም።", aplus: "⭐ A+ የግዢ ዕድል", buy: "🟢 የግዢ ምልክት", buyBanner: "🔔 የግዢ ምልክት", buyPlain: "የግዢ ምልክት", inLong: "በግዢ ንግድ ውስጥ",
+      below200: "ከ200-ቀን አማካይ በታች · የወርቅ ምልክት የለም", waiting: "በመጠበቅ ላይ · {n}/3 ይስማማሉ", entry: "መግቢያ", stop: "ማቆሚያ", open: "ክፍት", stopPlace: "የሚቀመጥ ማቆሚያ",
+      trend: "የአዝማሚያ መስመሮች", volume: "የግብይት መጠን", osc: "ኦሲሌተሮች", structure: "መዋቅር", above200: "ከ200-ቀን አማካይ በላይ", goldWatch: "👀 ወርቅ፦ ለክትትል ብቻ",
+      "Strong buy": "ጠንካራ ግዢ", Buy: "ግዢ", Neutral: "ገለልተኛ", Sell: "ሽያጭ", "Strong sell": "ጠንካራ ሽያጭ",
+      bias: "አቅጣጫ 1M→15m", tfStruct: "የ{tf} መዋቅር", rays: "የአዝማሚያ ጨረሮች", liqAbove: "ሊኩዲቲ ከላይ", liqBelow: "ሊኩዲቲ ከታች", none: "በአቅራቢያ የለም",
+      mqInLong: "በግዢ ንግድ ውስጥ፣ ማቆሚያ {p}", mqAgree: "ከ3 ማጣሪያዎች {n}ቱ ይስማማሉ", watch: "የክትትል ዝርዝር — ", dxyvix: "DXY እና VIX ከላይ በግራ ለማጣቀሻ", nfaBrand: "የፋይናንስ ምክር አይደለም · Addis 4H",
+      mqReq: "🙋 የተመልካች ጥያቄ{by}፦ {s}", mqReqBy: " ከ@{u}", mqBias: "አቅጣጫ {x}", mqStruct: "የ{tf} መዋቅር {x}", mqRays: "የአዝማሚያ ጨረሮች፦ {x}", mqLiq: "ሊኩዲቲ ከላይ {a} · ከታች {b}", inLongShort: "በግዢ ውስጥ", buyShort: "🟢 ግዢ", aplusShort: "⭐ A+ ግዢ",
+      up: "ወደ ላይ አዝማሚያ", weak: "ከ200 ቀን በታች", pb: "መጠነኛ መመለስ", cor: "እርማት", deep: "ጥልቅ እርማት", bear: "የድብ ገበያ",
+      phNote: "% = ከ180 ቀን ከፍተኛ በታች · F = ፈንዲንግ አሁን · OI = ክፍት ውሎች 24 ሰዓት",
+      trades: "ንግዶች", wins: "ያሸነፉ", total: "ጠቅላላ", openW: "ክፍት", noTrades: "እስካሁን ንግድ የለም", openR: " (ክፍት {r})", aplusN: " · ⭐ A+፦ {n} ንግዶች {r}",
+      inTrade: " በንግድ ውስጥ", signal: " ምልክት", bSub: "{s} · 4H · ዋጋ {p} · ማቆሚያ {st}", agree4: "የአዝማሚያ መስመሮች + የግብይት መጠን + ኦሲሌተሮች + 1D መዋቅር ይስማማሉ", agree3: "የአዝማሚያ መስመሮች + የግብይት መጠን + ኦሲሌተሮች ይስማማሉ", nfaSmall: "የፋይናንስ ምክር አይደለም",
+      nextTf: "ቀጣይ፦ {tf} በ{t} ውስጥ · ", nextSym: "{s} በ{t} ውስጥ", nextReq: "ቀጣይ ጥያቄ በ{t} ውስጥ", rotation: "ዙሩ በ{t} ውስጥ", h24: "24 ሰዓት",
+      req: "🙋 ጥያቄ", reqH: "🙋 የተመልካች ጥያቄ", reqHelp: "Enter = አሳይ · Esc = ሰርዝ · ብዙ ስሞችን ይጻፉ ለወረፋ", looking: "በመፈለግ ላይ…",
+      queued: "ወረፋ ላይ፦ {s} ({n} በመጠባበቅ ላይ) — ሌላ ይጻፉ ወይም Esc ይጫኑ", notFound: "{s} በBinance ላይ አልተገኘም", tryOther: " — ሌላ ስም ይሞክሩ (ለምሳሌ SOL, GOLD, NVDA)", typeName: "የአክሲዮን ወይም የሳንቲም ስም ይጻፉ",
+    },
+    ar: {
+      live: "● مباشر", nfa: "⚠ ليست نصيحة مالية", dxyH: "DXY · مؤشر الدولار الأمريكي · للمرجعية", vixH: "VIX · مؤشر الخوف · للمرجعية",
+      phaseH: "مرحلة السوق · التمويل · العقود المفتوحة", scoreH: "📒 addis-4H Signals · نتائج تجريبية منذ {d}", anaH: "تحليل الرسم البياني", tag: "تحليل",
+      loading: "جارٍ التحميل…", loadingSym: "جارٍ تحميل {s}…", slogan: "الرسوم البيانية لا تكذب", sub: "اشترك", subbed: "مشترك ✓", notif: "🔔 الإشعارات مفعّلة · لا تفوّت أي بث مباشر",
+      noHist: "لا توجد بيانات تاريخية كافية لـ {s}.", aplus: "⭐ فرصة شراء A+", buy: "🟢 إشارة شراء", buyBanner: "🔔 إشارة شراء", buyPlain: "إشارة شراء", inLong: "في صفقة شراء",
+      below200: "تحت متوسط 200 يوم · لا إشارات للذهب", waiting: "انتظار · {n}/3 متوافقة", entry: "الدخول", stop: "وقف الخسارة", open: "مفتوح", stopPlace: "وقف الخسارة المقترح",
+      trend: "خطوط الاتجاه", volume: "حجم التداول", osc: "المذبذبات", structure: "هيكل السوق", above200: "فوق متوسط 200 يوم", goldWatch: "👀 الذهب: للمتابعة فقط",
+      "Strong buy": "شراء قوي", Buy: "شراء", Neutral: "محايد", Sell: "بيع", "Strong sell": "بيع قوي",
+      bias: "الاتجاه 1M→15m", tfStruct: "هيكل {tf}", rays: "أشعة الاتجاه", liqAbove: "السيولة أعلى", liqBelow: "السيولة أسفل", none: "لا يوجد قريب",
+      mqInLong: "في صفقة شراء، وقف الخسارة {p}", mqAgree: "{n} من 3 فلاتر متوافقة", watch: "قائمة المتابعة — ", dxyvix: "DXY و VIX أعلى اليسار للمرجعية", nfaBrand: "ليست نصيحة مالية · Addis 4H",
+      mqReq: "🙋 طلب مشاهد{by}: {s}", mqReqBy: " من ‎@{u}", mqBias: "الاتجاه {x}", mqStruct: "هيكل {tf}: {x}", mqRays: "أشعة الاتجاه: {x}", mqLiq: "السيولة أعلى {a} · أسفل {b}", inLongShort: "في صفقة شراء", buyShort: "🟢 شراء", aplusShort: "⭐ شراء A+",
+      up: "اتجاه صاعد", weak: "تحت 200 يوم", pb: "تراجع طفيف", cor: "تصحيح", deep: "تصحيح عميق", bear: "سوق هابط",
+      phNote: "% = دون أعلى سعر في 180 يومًا · F = التمويل الآن · OI = العقود المفتوحة خلال 24 ساعة",
+      trades: "صفقات", wins: "رابحة", total: "الإجمالي", openW: "مفتوح", noTrades: "لا صفقات بعد", openR: " (مفتوح {r})", aplusN: " · ⭐ A+: {n} صفقات {r}",
+      inTrade: " في صفقة", signal: " إشارة", bSub: "{s} · 4H · السعر {p} · وقف الخسارة {st}", agree4: "خطوط الاتجاه + الحجم + المذبذبات + هيكل 1D متوافقة", agree3: "خطوط الاتجاه + الحجم + المذبذبات متوافقة", nfaSmall: "ليست نصيحة مالية",
+      nextTf: "التالي: {tf} خلال {t} · ", nextSym: "{s} خلال {t}", nextReq: "الطلب التالي خلال {t}", rotation: "العودة للقائمة خلال {t}", h24: "24 ساعة",
+      req: "🙋 طلب", reqH: "🙋 طلب مشاهد", reqHelp: "Enter = عرض · Esc = إلغاء · اكتب عدة أسماء لإضافتها إلى قائمة الانتظار", looking: "جارٍ البحث…",
+      queued: "في قائمة الانتظار: {s} ({n} بالانتظار) — اكتب اسمًا آخر أو اضغط Esc", notFound: "{s} غير موجود على Binance", tryOther: " — جرّب اسمًا آخر (مثل SOL أو GOLD أو NVDA)", typeName: "اكتب اسم سهم أو عملة",
+    },
+  };
+  const iso = (x) => LANG === "ar" && /^[+\-−]?[0-9][0-9.,:]*[%R]?$/.test(String(x)) ? "\u2066" + x + "\u2069" : x;   // keep "+1.5R", "-0.4%" in one piece inside right-to-left text
+  const T = (k, v) => String((I18N[LANG] && I18N[LANG][k] != null ? I18N[LANG][k] : I18N.en[k] != null ? I18N.en[k] : k)).replace(/\{(\w+)\}/g, (_, x) => (v && v[x] != null ? iso(v[x]) : ""));
+  // texts that come from the Analysis tab (bias, structure, trend-ray setup)
+  const ANA = {
+    am: [["▲ Bullish", "▲ ወደ ላይ"], ["▼ Bearish", "▼ ወደ ታች"], ["◆ No structure yet", "◆ ገና መዋቅር የለም"], ["Bullish", "ወደ ላይ"], ["Bearish", "ወደ ታች"], ["Mixed", "የተደባለቀ"],
+      ["Up line violated — trend-line exit / no longs", "የሚወጣው መስመር ተሰብሯል — ከንግድ መውጫ / ግዢ የለም"], ["Down line violated — downtrend weakening", "የሚወርደው መስመር ተሰብሯል — ቁልቁለቱ እየደከመ ነው"],
+      ["Price at up action line — bounce setup (buy zone)", "ዋጋው በሚወጣው መስመር ላይ — የመነሳት ዕድል (የግዢ ዞን)"], ["Price at down action line — bounce setup (sell zone)", "ዋጋው በሚወርደው መስመር ላይ — የመመለስ ዕድል (የሽያጭ ዞን)"],
+      ["Between lines — wait for price to reach a line", "በመስመሮች መካከል — ዋጋው መስመር እስኪደርስ ይጠብቁ"],
+      [/ · last (\S+ [↑↓]) (\d+) candles? ago/, " · የመጨረሻው $1 ከ$2 ሻማዎች በፊት"], [/forming \(needs candle close\)/, "በመፈጠር ላይ (ሻማው እስኪዘጋ)"]],
+    ar: [["▲ Bullish", "▲ صاعد"], ["▼ Bearish", "▼ هابط"], ["◆ No structure yet", "◆ لا يوجد هيكل بعد"], ["Bullish", "صاعد"], ["Bearish", "هابط"], ["Mixed", "مختلط"],
+      ["Up line violated — trend-line exit / no longs", "كُسر خط الاتجاه الصاعد — خروج / لا صفقات شراء"], ["Down line violated — downtrend weakening", "كُسر خط الاتجاه الهابط — الهبوط يضعف"],
+      ["Price at up action line — bounce setup (buy zone)", "السعر عند خط الاتجاه الصاعد — فرصة ارتداد (منطقة شراء)"], ["Price at down action line — bounce setup (sell zone)", "السعر عند خط الاتجاه الهابط — فرصة ارتداد (منطقة بيع)"],
+      ["Between lines — wait for price to reach a line", "بين الخطوط — انتظر وصول السعر إلى أحد الخطوط"],
+      [/ · last (\S+ [↑↓]) (\d+) candles? ago/, " · آخر $1 قبل $2 شموع"], [/forming \(needs candle close\)/, "قيد التشكّل (بانتظار إغلاق الشمعة)"]],
+  };
+  const trA = (s) => { for (const [a, b] of ANA[LANG] || []) s = s.replace(a, b); return s; };
+  if (LANG !== "en") {
+    document.documentElement.lang = LANG;
+    document.body.classList.add("lang-" + LANG);
+    const fl = document.createElement("link"); fl.rel = "stylesheet";
+    fl.href = LANG === "am" ? "https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;600;700;800;900&display=swap" : "https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700;800;900&display=swap";
+    document.head.appendChild(fl);
+  }
   const ROT_MIN = Math.max(1, +(P.get("rotate") || 5));
   const TG = (P.get("tg") || "addistrad").replace(/^@/, "");
   const SINCE = Math.floor(Date.parse((P.get("since") || "2026-11-06") + "T00:00:00Z") / 1000);
@@ -3974,8 +4073,14 @@ if (LIVE_MODE) (function liveMode() {
   const shown = new Set();      // banners already shown
   const $ = (id) => document.getElementById(id);
   document.body.classList.add("live");
+  if (LANG !== "en") {
+    const setTx = (sel, k) => { const el = document.querySelector(sel); if (el) el.textContent = T(k); };
+    setTx(".lv-live", "live"); setTx(".lv-nfa", "nfa"); setTx(".lv-dxy h3", "dxyH"); setTx(".lv-vix h3", "vixH"); setTx(".lv-phase h3", "phaseH");
+    setTx(".lv-ana h3", "anaH"); setTx(".lv-marq .tag", "tag"); setTx(".lv-subt span", "slogan"); setTx("#lvSubN", "notif"); setTx("#lvSubB", "sub"); setTx(".lv-reqbox .h", "reqH");
+    for (const id of ["lvPhase", "lvScore"]) $(id).innerHTML = `<span class="neutral">${T("loading")}</span>`;
+  }
   const logo = document.querySelector(".brandname img"); if (logo) $("lvLogo").src = logo.src;
-  $("lvScoreH").textContent = `📒 addis-4H Signals · live paper results · since ${new Date(SINCE * 1000).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}`;
+  $("lvScoreH").textContent = T("scoreH", { d: new Date(SINCE * 1000).toLocaleDateString(LANG === "en" ? "en-GB" : LANG === "am" ? "am-ET" : "ar-EG-u-nu-latn", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) });
   // the analysis chart and its legend move into the broadcast layout
   $("lvChart").appendChild($("bsChart")); $("lvChart").appendChild($("bsLegend"));
   // all layers on
@@ -4023,14 +4128,14 @@ if (LIVE_MODE) (function liveMode() {
     const words = text.trim().split(/\s+/).filter(Boolean);
     const by = (words.find((w) => w.startsWith("@")) || "").slice(1, 24);
     const w0 = (words.find((w) => !w.startsWith("@")) || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
-    if (!w0) throw new Error("type a coin or stock name");
+    if (!w0) throw new Error(T("typeName"));
     const sym = ALIAS[w0] || (w0.endsWith("USDT") ? w0 : w0 + "USDT");
     let i = tlSyms.findIndex((x) => x.sym === sym);
     if (i < 0) {
       const tries = FUT.has(sym) ? ["futures", "spot"] : ["spot", "futures"];
       let ok = null;
       for (const market of tries) { try { const cand = { name: NAMES[sym] || sym, market, sym }; const d = await tlFetch(cand, "1d"); if (d && d.length) { ok = cand; break; } } catch (e) {} }
-      if (!ok) throw new Error(`${sym} was not found on Binance`);
+      if (!ok) throw new Error(T("notFound", { s: sym }));
       tlSyms.push(ok); i = tlSyms.length - 1;
     }
     return { idx: i, by };
@@ -4054,7 +4159,7 @@ if (LIVE_MODE) (function liveMode() {
     subTimers.forEach(clearTimeout); subTimers = [];
     const W = $("lvSubW"), B = $("lvSubB"), BL = $("lvSubBell"), C = $("lvSubCur"), RP = $("lvSubRip"), N = $("lvSubN");
     if (!$("lvSubLogo").src && $("lvLogo").src) $("lvSubLogo").src = $("lvLogo").src;
-    B.classList.remove("done"); B.textContent = "SUBSCRIBE"; BL.classList.remove("on"); N.classList.remove("show");
+    B.classList.remove("done"); B.textContent = T("sub"); BL.classList.remove("on"); N.classList.remove("show");
     const at = (ms, f) => subTimers.push(setTimeout(f, ms));
     const pos = (el) => { const w = W.getBoundingClientRect(), r = el.getBoundingClientRect(); return [r.left - w.left + r.width * 0.55, r.top - w.top + r.height * 0.6]; };
     const move = (x, y) => { C.style.transform = `translate(${x}px,${y}px)`; };
@@ -4064,7 +4169,7 @@ if (LIVE_MODE) (function liveMode() {
     C.style.transition = "none"; move(W.offsetWidth + 40, W.offsetHeight + 60); void C.offsetWidth; C.style.transition = "";
     at(50, () => W.classList.add("show"));
     at(700, () => { const [x, y] = pos(B); move(x, y); });
-    at(1750, () => click(B, () => { B.classList.add("done"); B.textContent = "SUBSCRIBED ✓"; }));
+    at(1750, () => click(B, () => { B.classList.add("done"); B.textContent = T("subbed"); }));
     at(2500, () => { const [x, y] = pos(BL); move(x, y); });
     at(3500, () => click(BL, () => { BL.classList.add("on"); N.classList.add("show"); subSound("bell"); }));
     at(4300, () => move(W.offsetWidth + 40, W.offsetHeight + 60));
@@ -4076,13 +4181,13 @@ if (LIVE_MODE) (function liveMode() {
     tfIdx = 0; tlTf = TFS[0]; tfStep = minutes * 60e3 / TFS.length; tfAt = Date.now() + tfStep;
     if (tlIndex !== subLast) { subLast = tlIndex; setTimeout(subscribeReminder, 2500); }
     tlActive = tlIndex; tlRes = null; tlData = null; zoomFor = tlActive;
-    $("bsLoading").hidden = false; $("bsLoading").textContent = "Loading " + tlSyms[tlActive].name + "…";
+    $("bsLoading").hidden = false; $("bsLoading").textContent = T("loadingSym", { s: tlSyms[tlActive].name });
     tlLoad();
   }
   function startReq(r) {
     req = { ...r, name: tlSyms[r.idx].name };
     $("lvReq").hidden = false; $("lvAlerts").style.display = "none";
-    $("lvReq").textContent = `🙋 Request${req.by ? " · @" + req.by : ""}`;
+    $("lvReq").textContent = `${T("req")}${req.by ? " · @" + req.by : ""}`;
     showSym(r.idx, REQ_MIN);
   }
   function endReq() {
@@ -4090,7 +4195,7 @@ if (LIVE_MODE) (function liveMode() {
     if (reqQueue.length) startReq(reqQueue.shift()); else go((pos + 1) % list.length);
   }
   const box = $("lvReqBox"), inp = $("lvReqIn"), msg = $("lvReqMsg");
-  const openBox = () => { box.hidden = false; inp.value = ""; msg.className = "m"; msg.textContent = "Enter = show it · Esc = cancel · type several to queue them"; setTimeout(() => inp.focus(), 0); };
+  const openBox = () => { box.hidden = false; inp.value = ""; msg.className = "m"; msg.textContent = T("reqHelp"); setTimeout(() => inp.focus(), 0); };
   document.addEventListener("keydown", (e) => {
     if (!box.hidden) return;
     if ((e.key === "/" || e.key === "r" || e.key === "R") && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); openBox(); }
@@ -4099,12 +4204,12 @@ if (LIVE_MODE) (function liveMode() {
     if (e.key === "Escape") { box.hidden = true; return; }
     if (e.key !== "Enter") return;
     e.preventDefault();
-    const text = inp.value; msg.className = "m"; msg.textContent = "Looking it up…";
+    const text = inp.value; msg.className = "m"; msg.textContent = T("looking");
     try {
       const r = await resolveReq(text);
-      if (req) { reqQueue.push(r); msg.className = "m ok"; msg.textContent = `Queued: ${tlSyms[r.idx].name} (${reqQueue.length} waiting) — type another or press Esc`; inp.value = ""; }
+      if (req) { reqQueue.push(r); msg.className = "m ok"; msg.textContent = T("queued", { s: tlSyms[r.idx].name, n: reqQueue.length }); inp.value = ""; }
       else { box.hidden = true; startReq(r); }
-    } catch (err) { msg.className = "m err"; msg.textContent = err.message + " — try another name (e.g. SOL, GOLD, NVDA)"; }
+    } catch (err) { msg.className = "m err"; msg.textContent = err.message + T("tryOther"); }
   });
 
   function go(i) {
@@ -4113,7 +4218,7 @@ if (LIVE_MODE) (function liveMode() {
     tfIdx = 0; tlTf = TFS[0]; tfStep = ROT_MIN * 60e3 / TFS.length; tfAt = Date.now() + tfStep;
     if (list[pos] !== subLast) { subLast = list[pos]; setTimeout(subscribeReminder, 2500); }
     tlActive = list[pos]; tlRes = null; tlData = null; zoomFor = tlActive;
-    $("bsLoading").hidden = false; $("bsLoading").textContent = "Loading " + tlSyms[tlActive].name + "…";
+    $("bsLoading").hidden = false; $("bsLoading").textContent = T("loadingSym", { s: tlSyms[tlActive].name });
     tlLoad();
   }
 
@@ -4133,45 +4238,45 @@ if (LIVE_MODE) (function liveMode() {
     const TFL = tfName(tlTf);
     $("lvTf").textContent = TFL;
     $("lvPrice").textContent = tlFmt(price);
-    $("lvChg").textContent = chg == null ? "" : pctTxt(chg) + " 24h";
+    $("lvChg").textContent = chg == null ? "" : pctTxt(chg) + " " + T("h24");
     $("lvChg").className = chg == null ? "" : chg >= 0 ? "up" : "dn";
     // the addis-4H Signals
     const S = system(tlData, s);
     if (S) { scan[tlActive] = { ...S, at: Date.now() }; scoreRender(); }
     let html = "";
-    if (!S) html = `<div class="neutral">Not enough history for ${s.name}.</div>`;
+    if (!S) html = `<div class="neutral">${T("noHist", { s: s.name })}</div>`;
     else {
-      const st = S.state === "signal" ? `<span class="lv-st go">${S.aplus ? "⭐ A+ BUY SETUP" : "🟢 BUY SIGNAL"}</span>`
-        : S.state === "trade" ? `<span class="lv-st on">${S.aplus ? "⭐ A+ " : ""}IN A LONG</span>`
-        : S.r.gold && S.r.t200 && !S.r.t200.above ? `<span class="lv-st wait">BELOW 200-DAY · no gold signals</span>`
-        : `<span class="lv-st wait">WAITING · ${S.n}/3 agree</span>`;
+      const st = S.state === "signal" ? `<span class="lv-st go">${S.aplus ? T("aplus") : T("buy")}</span>`
+        : S.state === "trade" ? `<span class="lv-st on">${S.aplus ? "⭐ A+ " : ""}${T("inLong")}</span>`
+        : S.r.gold && S.r.t200 && !S.r.t200.above ? `<span class="lv-st wait">${T("below200")}</span>`
+        : `<span class="lv-st wait">${T("waiting", { n: S.n })}</span>`;
       const p = S.r.position;
       const oR = p ? (price - p.entry) / p.risk : 0;
-      const extra = S.state === "trade" ? `<div class="lv-trow"><div><span>Entry</span> <b>${tlFmt(p.entry)}</b></div><div><span>Stop</span> <b>${tlFmt(p.stop)}</b></div><div><span>Open</span> <b class="${oR >= 0 ? "up" : "dn"}">${(oR >= 0 ? "+" : "") + oR.toFixed(2)}R</b></div></div>`
-        : S.state === "signal" ? `<div class="lv-trow"><div><span>Stop to place</span> <b>${tlFmt(S.stop)}</b></div></div>` : "";
+      const extra = S.state === "trade" ? `<div class="lv-trow"><div><span>${T("entry")}</span> <b>${tlFmt(p.entry)}</b></div><div><span>${T("stop")}</span> <b>${tlFmt(p.stop)}</b></div><div><span>${T("open")}</span> <b class="${oR >= 0 ? "up" : "dn"}">${(oR >= 0 ? "+" : "") + oR.toFixed(2)}R</b></div></div>`
+        : S.state === "signal" ? `<div class="lv-trow"><div><span>${T("stopPlace")}</span> <b>${tlFmt(S.stop)}</b></div></div>` : "";
       html = `${st}
-        <div class="lv-checks"><div>${tick(S.ck.rays)} Trend lines</div><div>${tick(S.ck.volume)} Volume</div><div>${tick(S.ck.osc)} Oscillators <small>${F.oscLabel(S.ck.oscRating)}</small></div><div class="lv-plus">${tick(S.ck.structure)} Structure <small>(A+)</small></div>${S.r.gold ? `<div>${S.r.t200 ? tick(S.r.t200.above) : "—"} Above 200-day</div><div><small>👀 gold: watch-only</small></div>` : ""}</div>${extra}`;
+        <div class="lv-checks"><div>${tick(S.ck.rays)} ${T("trend")}</div><div>${tick(S.ck.volume)} ${T("volume")}</div><div>${tick(S.ck.osc)} ${T("osc")} <small>${T(F.oscLabel(S.ck.oscRating))}</small></div><div class="lv-plus">${tick(S.ck.structure)} ${T("structure")} <small>(A+)</small></div>${S.r.gold ? `<div>${S.r.t200 ? tick(S.r.t200.above) : "—"} ${T("above200")}</div><div><small>${T("goldWatch")}</small></div>` : ""}</div>${extra}`;
     }
     $("lvSys").innerHTML = html;
     try { phaseRender(); } catch (e) { /* first scan not ready */ }
     // analysis summary from the Analysis tab
-    const txt = (id) => (($(id) || {}).textContent || "—").replace(/\s+/g, " ").trim();
+    const txt = (id) => trA((($(id) || {}).textContent || "—").replace(/\s+/g, " ").trim());
     const liq = [...document.querySelectorAll("#bsLiqTable tr")].map((tr) => [...tr.children].map((td) => td.textContent.replace(/\s+/g, " ").trim()));
     const ia = liq.findIndex((r) => /ABOVE PRICE/.test(r[0] || "")), ib = liq.findIndex((r) => /BELOW PRICE/.test(r[0] || ""));
     const above = ia >= 0 && liq[ia + 1] && liq[ia + 1].length > 1 ? liq.slice(ia + 1, ib - 1).pop() : null;   // nearest above = last row before the price row
     const below = ib >= 0 && liq[ib + 1] && liq[ib + 1].length > 1 ? liq[ib + 1] : null;
-    const lq = (r) => r ? `${(r[0] || "").replace(/(Buy-side|Sell-side|Previous|Equal)\b.*$/, "").trim()} ${r[1] || ""}`.trim() : "none nearby";
+    const lq = (r) => r ? `${(r[0] || "").replace(/(Buy-side|Sell-side|Previous|Equal)\b.*$/, "").trim()} ${r[1] || ""}`.trim() : T("none");
     $("lvAna").innerHTML = `
-      <div class="lv-kv"><span>Bias 1M→15m</span><b>${txt("bsBias")}</b></div>
-      <div class="lv-kv"><span>${TFL} structure</span><b>${txt("bsTf")}</b></div>
-      <div class="lv-kv"><span>Trend rays</span><b>${txt("bsRaySetup")}</b></div>
-      <div class="lv-kv"><span>Liquidity above</span><b>${lq(above)}</b></div>
-      <div class="lv-kv"><span>Liquidity below</span><b>${lq(below)}</b></div>`;
+      <div class="lv-kv"><span>${T("bias")}</span><b>${txt("bsBias")}</b></div>
+      <div class="lv-kv"><span>${T("tfStruct", { tf: TFL })}</span><b>${txt("bsTf")}</b></div>
+      <div class="lv-kv"><span>${T("rays")}</span><b>${txt("bsRaySetup")}</b></div>
+      <div class="lv-kv"><span>${T("liqAbove")}</span><b>${lq(above)}</b></div>
+      <div class="lv-kv"><span>${T("liqBelow")}</span><b>${lq(below)}</b></div>`;
     // marquee: this symbol + the others in the rotation
-    const me = S ? `addis-4H Signals: ${S.state === "signal" ? (S.aplus ? "⭐ A+ BUY SETUP" : "BUY SIGNAL") + " — stop " + tlFmt(S.stop) : S.state === "trade" ? "in a long, stop " + tlFmt(S.r.position.stop) : S.n + " of 3 filters agree"} (Trend lines ${tick(S.ck.rays)} · Volume ${tick(S.ck.volume)} · Oscillators ${tick(S.ck.osc)} ${F.oscLabel(S.ck.oscRating)} · Structure ${tick(S.ck.structure)})` : "";
-    const others = list.filter((i) => i !== tlActive && scan[i]).map((i) => { const o = scan[i]; return `${tlSyms[i].name}: ${o.state === "signal" ? (o.aplus ? "⭐ A+ BUY" : "🟢 BUY") : o.state === "trade" ? "in a long" : o.n + "/3"}`; });
-    const mq = [...(req ? [`🙋 Viewer request${req.by ? " from @" + req.by : ""}: ${req.name}`] : []), `${s.name} ${TFL} · ${tlFmt(price)}${chg == null ? "" : " (" + pctTxt(chg) + " 24h)"}`, `Bias ${txt("bsBias")}`, `${TFL} structure ${txt("bsTf")}`, `Trend rays: ${txt("bsRaySetup")}`, me,
-      `Liquidity above ${lq(above)} · below ${lq(below)}`, others.length ? "Watchlist — " + others.join(" · ") : "", "DXY and VIX top-left for reference", "Not financial advice · Addis 4H"].filter(Boolean).join("   ◆   ");
+    const me = S ? `addis-4H Signals: ${S.state === "signal" ? (S.aplus ? T("aplus") : T("buyPlain")) + " — " + T("stop") + " " + tlFmt(S.stop) : S.state === "trade" ? T("mqInLong", { p: tlFmt(S.r.position.stop) }) : T("mqAgree", { n: S.n })} (${T("trend")} ${tick(S.ck.rays)} · ${T("volume")} ${tick(S.ck.volume)} · ${T("osc")} ${tick(S.ck.osc)} ${T(F.oscLabel(S.ck.oscRating))} · ${T("structure")} ${tick(S.ck.structure)})` : "";
+    const others = list.filter((i) => i !== tlActive && scan[i]).map((i) => { const o = scan[i]; return `${tlSyms[i].name}: ${o.state === "signal" ? (o.aplus ? T("aplusShort") : T("buyShort")) : o.state === "trade" ? T("inLongShort") : o.n + "/3"}`; });
+    const mq = [...(req ? [T("mqReq", { by: req.by ? T("mqReqBy", { u: req.by }) : "", s: req.name })] : []), `${s.name} ${TFL} · ${tlFmt(price)}${chg == null ? "" : " (" + pctTxt(chg) + " " + T("h24") + ")"}`, T("mqBias", { x: txt("bsBias") }), T("mqStruct", { tf: TFL, x: txt("bsTf") }), T("mqRays", { x: txt("bsRaySetup") }), me,
+      T("mqLiq", { a: lq(above), b: lq(below) }), others.length ? T("watch") + others.join(" · ") : "", T("dxyvix"), T("nfaBrand")].filter(Boolean).join("   ◆   ");
     if (lastMqSym !== tlActive + "|" + tlTf) { lastMqSym = tlActive + "|" + tlTf; setMarq(mq); mqPending = null; $("lvMarqText").dataset.on = "1"; } else marquee(mq);
     // zoom in on the latest candles after switching symbol (after the follow-up refresh has drawn too)
     if (zoomFor === tlActive && bsChart) { zoomFor = null; const me = tlActive; [350, 1200, 3000].forEach((ms) => setTimeout(() => { if (tlActive === me) liveZoom(); }, ms)); }
@@ -4218,9 +4323,9 @@ if (LIVE_MODE) (function liveMode() {
       const e = extra[i] || {}, ph = e.phase, nm = tlSyms[i].name.replace(/USDT$|USD$/, "");
       const f = e.fund == null ? `<small>F —</small>` : `<span class="${e.fund >= 0 ? "" : "dn"}"><small>F</small> ${(e.fund >= 0 ? "+" : "") + e.fund.toFixed(3)}%</span>`;
       const o = e.oi == null ? `<small>OI —</small>` : `<span class="${e.oi >= 0 ? "up" : "dn"}"><small>OI</small> ${(e.oi >= 0 ? "+" : "") + e.oi.toFixed(1)}%</span>`;
-      return `<div class="lv-ph${i === tlActive ? " cur" : ""}"><b>${nm}</b>${ph ? `<span class="ph ${ph.key}">${ph.label}</span><span>−${ph.dd.toFixed(1)}%</span>` : `<span class="ph weak">…</span><span></span>`}${f}${o}</div>`;
+      return `<div class="lv-ph${i === tlActive ? " cur" : ""}"><b>${nm}</b>${ph ? `<span class="ph ${ph.key}">${T({ Uptrend: "up", "Below 200-day": "weak", Pullback: "pb", Correction: "cor", "Deep correction": "deep", "Bear market": "bear" }[ph.label] || ph.label)}</span><span>−${ph.dd.toFixed(1)}%</span>` : `<span class="ph weak">…</span><span></span>`}${f}${o}</div>`;
     });
-    $("lvPhase").innerHTML = rows.join("") + `<div class="lv-phnote">% = below 180-day high · F = funding now · OI = open interest 24h</div>`;
+    $("lvPhase").innerHTML = rows.join("") + `<div class="lv-phnote">${T("phNote")}</div>`;
   }
 
   // every 5 minutes: check the whole rotation for new signals
@@ -4247,7 +4352,7 @@ if (LIVE_MODE) (function liveMode() {
     alerts();
   }
   function alerts() {
-    const act = list.filter((i) => scan[i] && scan[i].state !== "wait").map((i) => `<span class="${scan[i].state === "signal" ? "go" : "on"}">${scan[i].aplus ? "⭐" : scan[i].state === "signal" ? "🔔" : "●"} ${tlSyms[i].name}${scan[i].state === "trade" ? " in trade" : " signal"}</span>`);
+    const act = list.filter((i) => scan[i] && scan[i].state !== "wait").map((i) => `<span class="${scan[i].state === "signal" ? "go" : "on"}">${scan[i].aplus ? "⭐" : scan[i].state === "signal" ? "🔔" : "●"} ${tlSyms[i].name}${scan[i].state === "trade" ? T("inTrade") : T("signal")}</span>`);
     $("lvAlerts").innerHTML = act.join("");
     scoreRender();
   }
@@ -4260,11 +4365,11 @@ if (LIVE_MODE) (function liveMode() {
       n += o.pp.n; w += o.pp.wins; tot += o.pp.total;
       for (const t of o.pp.closed) if (t.aplus) { apN++; ap += t.net; }
       if (o.pp.open) { nOpen++; open += o.pp.open.r; }
-      per.push(`${tlSyms[i].name.replace("USDT", "")} ${o.pp.n ? (o.pp.total >= 0 ? "+" : "") + o.pp.total.toFixed(1) + "R" : "0"}${o.pp.open ? ` (open ${(o.pp.open.r >= 0 ? "+" : "") + o.pp.open.r.toFixed(1)}R)` : ""}`);
+      per.push(`${tlSyms[i].name.replace("USDT", "")} ${o.pp.n ? (o.pp.total >= 0 ? "+" : "") + o.pp.total.toFixed(1) + "R" : "0"}${o.pp.open ? T("openR", { r: (o.pp.open.r >= 0 ? "+" : "") + o.pp.open.r.toFixed(1) + "R" }) : ""}`);
     }
     const R = (x) => `<b class="${x >= 0 ? "up" : "dn"}">${(x >= 0 ? "+" : "") + x.toFixed(2)}R</b>`;
-    $("lvScore").innerHTML = `<div class="tot"><div>${n} <span>trades</span></div><div>${n ? Math.round(w / n * 100) + "%" : "—"} <span>wins</span></div><div>${n ? R(tot) : "<b>—</b>"} <span>total</span></div><div>${nOpen ? R(open) : "<b>—</b>"} <span>open</span></div></div>
-      <div class="per">${per.join("<span>·</span>") || "no trades yet"}${apN ? ` · ⭐ A+: ${apN} trades ${(ap >= 0 ? "+" : "") + ap.toFixed(1)}R` : ""}</div>`;
+    $("lvScore").innerHTML = `<div class="tot"><div>${n} <span>${T("trades")}</span></div><div>${n ? Math.round(w / n * 100) + "%" : "—"} <span>${T("wins")}</span></div><div>${n ? R(tot) : "<b>—</b>"} <span>${T("total")}</span></div><div>${nOpen ? R(open) : "<b>—</b>"} <span>${T("openW")}</span></div></div>
+      <div class="per">${per.join("<span>·</span>") || T("noTrades")}${apN ? T("aplusN", { n: apN, r: (ap >= 0 ? "+" : "") + ap.toFixed(1) + "R" }) : ""}</div>`;
     window.__liveScore = { n, w, tot, open };
   }
 
@@ -4356,7 +4461,7 @@ if (LIVE_MODE) (function liveMode() {
   function banner(name, aplus, stop, price) {
     const b = $("lvBanner");
     b.className = "lv-banner show" + (aplus ? " aplus" : "");
-    b.innerHTML = `<div class="t">${aplus ? "⭐ A+ BUY SETUP" : "🔔 BUY SIGNAL"}</div><div class="s">${name} · 4H · price ${tlFmt(price)} · stop ${tlFmt(stop)}</div><div class="n">${aplus ? "Trend lines + Volume + Oscillators + 1D Structure agree" : "Trend lines + Volume + Oscillators agree"} · not financial advice</div>`;
+    b.innerHTML = `<div class="t">${aplus ? T("aplus") : T("buyBanner")}</div><div class="s">${T("bSub", { s: name, p: tlFmt(price), st: tlFmt(stop) })}</div><div class="n">${aplus ? T("agree4") : T("agree3")} · ${T("nfaSmall")}</div>`;
     clearTimeout(bannerTimer); bannerTimer = setTimeout(() => { b.className = "lv-banner"; }, 60e3);
   }
 
@@ -4371,7 +4476,7 @@ if (LIVE_MODE) (function liveMode() {
       tfIdx++; tfAt += tfStep; zoomFor = tlActive; tlSelectTf(TFS[tfIdx]);
     }
     const tfLeft = Math.max(0, Math.round((tfAt - Date.now()) / 1000));
-    $("lvNext").textContent = (tfIdx < TFS.length - 1 ? `Next: ${tfName(TFS[tfIdx + 1])} in ${mmss(tfLeft)} · ` : "") + (req ? `${reqQueue.length ? "next request" : "rotation"} in ${mmss(left)}` : list.length > 1 ? `${nx.name} in ${mmss(left)}` : "");
+    $("lvNext").textContent = (tfIdx < TFS.length - 1 ? T("nextTf", { tf: tfName(TFS[tfIdx + 1]), t: mmss(tfLeft) }) : "") + (req ? T(reqQueue.length ? "nextReq" : "rotation", { t: mmss(left) }) : list.length > 1 ? T("nextSym", { s: nx.name, t: mmss(left) }) : "");
     $("lvBar").style.width = (100 - left / (ROT_MIN * 60) * 100).toFixed(1) + "%";
     if (left === 0 && req) endReq();
     else if (left === 0 && reqQueue.length) startReq(reqQueue.shift());

@@ -31,6 +31,7 @@ Options, added to the link with `&`:
 | `rotate` | `&rotate=5` | minutes per symbol (the timeframes share this time equally) |
 | `tfs` | `&tfs=4h,1h,30m,15m,5m` | timeframes shown during each symbol's turn, in order |
 | `dxy` | `&dxy=CAPITALCOM:DXY` | the dollar-index symbol for the TradingView chart (default `CAPITALCOM:DXY`; TradingView doesn't allow `TVC:DXY` in embedded charts) |
+| `lang` | `&lang=am` or `&lang=ar` | on-screen language: **Amharic** (Ethiopic script) or **Arabic** (right to left). Leave it out for English. Chart labels (BOS, CHoCH, OB, Fibonacci, BSL/SSL) and symbols stay in English, as traders use them. For one stream per language, add a second Browser source (or a second OBS profile) with the other `lang` and its own YouTube stream key |
 | `sub` | `&sub=0` | turn off the subscribe + bell reminder that pops up (bottom-right, about 6 seconds) each time the coin changes |
 | `subsnd` | `&subsnd=0` | keep the reminder but without its click and bell sound (`&subvol=0.35` sets its volume) |
 | `vix` | `&vix=CAPITALCOM:VIX` | the VIX symbol for the chart under DXY (default `CAPITALCOM:VIX`) |
