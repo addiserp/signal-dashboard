@@ -3957,13 +3957,13 @@ if (view !== "signals") setView(view); else { buildGrid(); lazyMover(); }
 // &syms=BTCUSDT,ETHUSDT,ZECUSDT    symbols to rotate (Binance symbols; default below)
 // &rotate=5                        minutes per symbol
 // &sub=0 / &subsnd=0 / &subvol=0.35  subscribe+bell reminder on each coin change: off / silent / sound volume
-// &lang=am | &lang=ar               on-screen language: Amharic or Arabic (right to left); default English
+// &lang=am | &lang=ar | &lang=om    on-screen language: Amharic, Arabic (right to left) or Afaan Oromo; default English
 // &vix=CAPITALCOM:VIX              TradingView symbol for the VIX box under DXY
 // &test=banner                     shows a sample signal banner after 5 s (to check the layout in OBS)
 if (LIVE_MODE) (function liveMode() {
   const P = new URLSearchParams(location.search);
   // ---------- on-screen language: &lang=en (default) · &lang=am (Amharic) · &lang=ar (Arabic, right to left) ----------
-  const LANG = ["am", "ar"].includes((P.get("lang") || "").toLowerCase()) ? P.get("lang").toLowerCase() : "en";
+  const LANG = ["am", "ar", "om"].includes((P.get("lang") || "").toLowerCase()) ? P.get("lang").toLowerCase() : "en";
   const I18N = {
     en: {
       live: "● LIVE", nfa: "⚠ NOT FINANCIAL ADVICE", dxyH: "DXY · U.S. Dollar Index · reference", vixH: "VIX · Fear index · reference",
@@ -4022,6 +4022,25 @@ if (LIVE_MODE) (function liveMode() {
       req: "🙋 طلب", reqH: "🙋 طلب مشاهد", reqHelp: "Enter = عرض · Esc = إلغاء · اكتب عدة أسماء لإضافتها إلى قائمة الانتظار", looking: "جارٍ البحث…",
       queued: "في قائمة الانتظار: {s} ({n} بالانتظار) — اكتب اسمًا آخر أو اضغط Esc", notFound: "{s} غير موجود على Binance", tryOther: " — جرّب اسمًا آخر (مثل SOL أو GOLD أو NVDA)", typeName: "اكتب اسم سهم أو عملة",
     },
+    om: {
+      live: "● KALLATTII", nfa: "⚠ GORSA FAAYINAANSII MITI", dxyH: "DXY · Indeeksii Doolaara Ameerikaa · wabii", vixH: "VIX · Indeeksii sodaa · wabii",
+      phaseH: "Sadarkaa gabaa · funding · open interest", scoreH: "📒 addis-4H Signals · bu'aa yaalii erga {d} as", anaH: "Xiinxala chaartii", tag: "XIINXALA",
+      loading: "Fe'amaa jira…", loadingSym: "{s} fe'amaa jira…", slogan: "Chaartiin hin sobu", sub: "GALMAA'I", subbed: "GALMAA'AME ✓", notif: "🔔 Beeksisni banameera · kallattii haaraa hunda ilaali",
+      noHist: "{s}f seenaan gahaan hin jiru.", aplus: "⭐ CARRAA BITTAA A+", buy: "🟢 MALLATTOO BITTAA", buyBanner: "🔔 MALLATTOO BITTAA", buyPlain: "MALLATTOO BITTAA", inLong: "BITTAA KEESSA JIRA",
+      below200: "GIDDUGALA GUYYAA-200 GADI · mallattoo warqee hin jiru", waiting: "EEGAA JIRA · {n}/3 walii galan", entry: "Seensa", stop: "Dhaabbii", open: "Banaa", stopPlace: "Dhaabbii kaa'amu",
+      trend: "Sararoota adeemsaa", volume: "Hamma daldalaa", osc: "Oscillators", structure: "Caasaa", above200: "Giddugala guyyaa-200 ol", goldWatch: "👀 warqee: hordoffii qofa",
+      "Strong buy": "Bittaa cimaa", Buy: "Bittaa", Neutral: "Giddugaleessa", Sell: "Gurgurtaa", "Strong sell": "Gurgurtaa cimaa",
+      bias: "Kallattii 1M→15m", tfStruct: "Caasaa {tf}", rays: "Raayii adeemsaa", liqAbove: "Liquidity olii", liqBelow: "Liquidity gadii", none: "dhihoo hin jiru",
+      mqInLong: "bittaa keessa, dhaabbii {p}", mqAgree: "calleessitoota 3 keessaa {n} walii galu", watch: "Tarree hordoffii — ", dxyvix: "DXY fi VIX gubbaa bitaa irratti wabiif", nfaBrand: "Gorsa faayinaansii miti · Addis 4H",
+      mqReq: "🙋 Gaaffii ilaalaa{by}: {s}", mqReqBy: " @{u} irraa", mqBias: "Kallattii {x}", mqStruct: "Caasaa {tf} {x}", mqRays: "Raayii adeemsaa: {x}", mqLiq: "Liquidity olii {a} · gadii {b}", inLongShort: "bittaa keessa", buyShort: "🟢 BITTAA", aplusShort: "⭐ BITTAA A+",
+      up: "Ol ka'aa", weak: "Guyyaa-200 gadi", pb: "Duubatti deebii", cor: "Sirreeffama", deep: "Sirreeffama guddaa", bear: "Gabaa gad bu'aa",
+      phNote: "% = olaanaa guyyaa-180 gadi · F = funding amma · OI = open interest sa'aatii 24",
+      trades: "daldala", wins: "mo'ate", total: "waliigala", openW: "banaa", noTrades: "ammaaf daldalli hin jiru", openR: " (banaa {r})", aplusN: " · ⭐ A+: daldala {n} {r}",
+      inTrade: " daldala keessa", signal: " mallattoo", bSub: "{s} · 4H · gatii {p} · dhaabbii {st}", agree4: "Sararoota adeemsaa + Hamma daldalaa + Oscillators + Caasaa 1D walii galu", agree3: "Sararoota adeemsaa + Hamma daldalaa + Oscillators walii galu", nfaSmall: "gorsa faayinaansii miti",
+      nextTf: "Itti aanu: {tf} {t} keessatti · ", nextSym: "{s} {t} keessatti", nextReq: "gaaffii itti aanu {t} keessatti", rotation: "naanna'uu {t} keessatti", h24: "sa'a 24",
+      req: "🙋 Gaaffii", reqH: "🙋 Gaaffii ilaalaa", reqHelp: "Enter = agarsiisi · Esc = dhiisi · tarreef hedduu barreessi", looking: "Barbaadamaa jira…",
+      queued: "Tarree irra: {s} ({n} eegaa jiru) — kan biraa barreessi ykn Esc tuqi", notFound: "{s} Binance irratti hin argamne", tryOther: " — maqaa biraa yaali (fkn SOL, GOLD, NVDA)", typeName: "maqaa aksiyoonaa ykn saantimaa barreessi",
+    },
   };
   const iso = (x) => LANG === "ar" && /^[+\-−]?[0-9][0-9.,:]*[%R]?$/.test(String(x)) ? "\u2066" + x + "\u2069" : x;   // keep "+1.5R", "-0.4%" in one piece inside right-to-left text
   const T = (k, v) => String((I18N[LANG] && I18N[LANG][k] != null ? I18N[LANG][k] : I18N.en[k] != null ? I18N.en[k] : k)).replace(/\{(\w+)\}/g, (_, x) => (v && v[x] != null ? iso(v[x]) : ""));
@@ -4037,12 +4056,18 @@ if (LIVE_MODE) (function liveMode() {
       ["Price at up action line — bounce setup (buy zone)", "السعر عند خط الاتجاه الصاعد — فرصة ارتداد (منطقة شراء)"], ["Price at down action line — bounce setup (sell zone)", "السعر عند خط الاتجاه الهابط — فرصة ارتداد (منطقة بيع)"],
       ["Between lines — wait for price to reach a line", "بين الخطوط — انتظر وصول السعر إلى أحد الخطوط"],
       [/ · last (\S+ [↑↓]) (\d+) candles? ago/, " · آخر $1 قبل $2 شموع"], [/forming \(needs candle close\)/, "قيد التشكّل (بانتظار إغلاق الشمعة)"]],
+    om: [["▲ Bullish", "▲ Ol ka'aa"], ["▼ Bearish", "▼ Gad bu'aa"], ["◆ No structure yet", "◆ Caasaan ammaaf hin jiru"], ["Bullish", "Ol ka'aa"], ["Bearish", "Gad bu'aa"], ["Mixed", "Walmakaa"],
+      ["Up line violated — trend-line exit / no longs", "Sararri ol ka'aa cabeera — ba'i / bittaan hin jiru"], ["Down line violated — downtrend weakening", "Sararri gad bu'aa cabeera — gad bu'iinsi laafaa jira"],
+      ["Price at up action line — bounce setup (buy zone)", "Gatiin sarara ol ka'aa irra jira — carraa deebii (naannoo bittaa)"], ["Price at down action line — bounce setup (sell zone)", "Gatiin sarara gad bu'aa irra jira — carraa deebii (naannoo gurgurtaa)"],
+      ["Between lines — wait for price to reach a line", "Sararoota gidduu — gatiin sarara tokko ga'uu eegi"],
+      [/ · last (\S+ [↑↓]) (\d+) candles? ago/, " · $1 dhumaa shaamaa $2 dura"], [/forming \(needs candle close\)/, "uumamaa jira (cufamuu shaamaa eega)"]],
   };
   const trA = (s) => { for (const [a, b] of ANA[LANG] || []) s = s.replace(a, b); return s; };
   if (LANG !== "en") {
     document.documentElement.lang = LANG;
     document.body.classList.add("lang-" + LANG);
     const fl = document.createElement("link"); fl.rel = "stylesheet";
+    if (LANG === "om") fl.disabled = true;   // Afaan Oromo uses Latin letters: no extra font
     fl.href = LANG === "am" ? "https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;600;700;800;900&display=swap" : "https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700;800;900&display=swap";
     document.head.appendChild(fl);
   }
@@ -4080,7 +4105,7 @@ if (LIVE_MODE) (function liveMode() {
     for (const id of ["lvPhase", "lvScore"]) $(id).innerHTML = `<span class="neutral">${T("loading")}</span>`;
   }
   const logo = document.querySelector(".brandname img"); if (logo) $("lvLogo").src = logo.src;
-  $("lvScoreH").textContent = T("scoreH", { d: new Date(SINCE * 1000).toLocaleDateString(LANG === "en" ? "en-GB" : LANG === "am" ? "am-ET" : "ar-EG-u-nu-latn", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) });
+  $("lvScoreH").textContent = T("scoreH", { d: new Date(SINCE * 1000).toLocaleDateString(LANG === "am" ? "am-ET" : LANG === "ar" ? "ar-EG-u-nu-latn" : "en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) });
   // the analysis chart and its legend move into the broadcast layout
   $("lvChart").appendChild($("bsChart")); $("lvChart").appendChild($("bsLegend"));
   // all layers on
