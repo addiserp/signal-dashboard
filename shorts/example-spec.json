@@ -5,7 +5,8 @@
  "hook": {
   "title_html": "Thursday<br><span class=\"y\">market update</span>",
   "sub_html": "Gold breaks below <b style=\"color:#fff\">$4,000</b><br>Bitcoin slips · dollar strong 💵",
-  "chart": "PAXGUSDT-4h"
+  "chart": "PAXGUSDT-4h",
+  "voice": "Thursday market update. Gold breaks four thousand!"
  },
  "scenes": [
   {
@@ -15,7 +16,8 @@
    "sub_html": "~<b class=\"y\">90% odds</b> of a December<br>rate <b style=\"color:#f87171\">HIKE</b> (CME FedWatch)<br>US producer prices (PPI) up next",
    "image": "BTCUSDT-4h-dxy",
    "image_caption": "💵 Dollar index holds near 102.6",
-   "src": "Sources: CME FedWatch via Yahoo Finance, KuCoin market report"
+   "src": "Sources: CME FedWatch via Yahoo Finance, KuCoin market report",
+   "voice": "The Fed rate hike odds are now near ninety percent, and the dollar is strong."
   },
   {
    "type": "asset",
@@ -30,7 +32,8 @@
     "⬆ PDH 4,059",
     "⬇ SSL 3,894"
    ],
-   "src": "Chart: Binance PAXGUSDT 4H (gold-backed token)"
+   "src": "Chart: Binance PAXGUSDT 4H (gold-backed token)",
+   "voice": "Gold is at three thousand nine hundred and two, down three percent, back under four thousand."
   },
   {
    "type": "asset",
@@ -45,7 +48,8 @@
     "⬆ BSL 74,812",
     "⬇ BOS forming below 72,727"
    ],
-   "src": "Chart: Binance BTCUSDT 4H"
+   "src": "Chart: Binance BTCUSDT 4H",
+   "voice": "Bitcoin slips to seventy-two thousand six hundred. Fear is back, and ETFs saw a fourth day of outflows."
   },
   {
    "type": "system",
@@ -53,14 +57,16 @@
    "pill_class": "grn",
    "title_html": "Our BTC trade<br>hits its <span style=\"color:#f87171\">stop</span>",
    "image": "BTCUSDT-4h-sys",
-   "sub_html": "Entry 74,395 · stop 72,789<br>≈ <b style=\"color:#f87171\">−1R</b> loss, as planned<br><br>Small losses, big winners —<br>that is how the system works"
+   "sub_html": "Entry 74,395 · stop 72,789<br>≈ <b style=\"color:#f87171\">−1R</b> loss, as planned<br><br>Small losses, big winners —<br>that is how the system works",
+   "voice": "Honest results: our Bitcoin trade hit its stop, a one R loss, exactly as planned."
   },
   {
    "type": "text",
    "pill": "📉 STOCKS",
    "title_html": "Tech <span style=\"color:#f87171\">wobbles</span>",
    "body_html": "🔴 Nasdaq futures dip<br>after Wednesday's rally<br><br>🔴 Nvidia under pressure on<br>reports its board discussed<br>the CEO's future —<br>no decision announced",
-   "src": "Pre-market, TipRanks / Reuters report"
+   "src": "Pre-market, TipRanks / Reuters report",
+   "voice": "Tech wobbles. Nasdaq futures dip, and Nvidia is under pressure."
   },
   {
    "type": "asset",
@@ -72,7 +78,8 @@
    "sub_html": "<b style=\"color:#fff\">SOL $81.6</b> <span style=\"color:#f87171\">−3.5%</span><br>Both in a bearish 4H structure",
    "chart": "ETHUSDT-4h",
    "seconds": 5,
-   "src": "Chart: Binance ETHUSDT 4H"
+   "src": "Chart: Binance ETHUSDT 4H",
+   "voice": "Ethereum and Solana also slide, both in a bearish four-hour structure."
   }
  ],
  "cta": {
@@ -90,5 +97,6 @@
   "cover_title_html": "GOLD<br><span class=\"y\">&lt; $4K</span>",
   "cover_sub_html": "Fed hike bets 💵",
   "cover_line": "🥇 $3,902 · ₿ $72,665 · 🔴 NVDA"
- }
+ },
+ "mood": "bear"
 }
