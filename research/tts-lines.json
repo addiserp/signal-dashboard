@@ -1,0 +1,23 @@
+[
+ {
+  "id": "om",
+  "lang": "om",
+  "text": "Akkam jirtu! Addis Foor Eech Afaan Oromootiin isin biraan ga'uuf dhufaa jira. Xiinxala chaartii kallattii: aksiyoonota Ameerikaa, warqee fi Bitcoin, guyyaa fi halkan, daqiiqaa hundaan haaromfamu. Chaartiin hin sobu. Amma galmaa'aa, bilbila tuqaa, kallattii jalqabaa akka hin dhabneef. Addis Foor Eech, dhiheenyatti!",
+  "edge": [
+   "so-SO-UbaxNeural"
+  ],
+  "rate": "-8%"
+ },
+ {
+  "id": "ar",
+  "lang": "ar",
+  "text": "مرحباً بكم! قناة أديس فور إتش قادمة قريباً باللغة العربية. تحليلٌ مباشرٌ للرسوم البيانية: الأسهم الأمريكية، والذهب، والبيتكوين، على مدار الساعة، ويتجدّد كل دقيقة. الرسوم البيانية لا تكذب. اشتركوا الآن، وفعّلوا الجرس، حتى لا يفوتكم أول بثٍّ مباشر. أديس فور إتش، قريباً!",
+  "edge": [
+   "ar-SA-ZariyahNeural",
+   "ar-EG-SalmaNeural",
+   "ar-AE-FatimaNeural",
+   "ar-JO-SanaNeural"
+  ],
+  "rate": "-4%"
+ }
+]
