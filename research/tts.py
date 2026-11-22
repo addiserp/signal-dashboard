@@ -15,7 +15,7 @@ try:
         except Exception as e:
             log.append(f"mms-{code}: not available ({str(e)[:80]})"); continue
         for L in lines:
-            if (L["lang"] == "om") != (code != "ara"): continue
+            if (L["lang"] == "om") != (code != "ara") or L.get("mms_skip"): continue
             text = L["text"]
             if getattr(tok, "is_uroman", False):
                 import uroman as ur
