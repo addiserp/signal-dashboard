@@ -1,22 +1,562 @@
 [
  {
-  "id": "om-respelled",
-  "lang": "om",
-  "text": "Akkam jirtu! Addis Foor Eej Afaan Oromootiin isin biraan ga'uuf dhufaa jira. Tiintala jaartii kallattii: aksiyoonota Ameerikaa, warkee fi Bitkoyn, guyyaa fi halkan, dakiikaa hundaan haaromfamu. Jaartiin hin sobu. Amma galmaa'aa, bilbila tukaa, kallattii jalkabaa akka hin dhabneef. Addis Foor Eej, dhiheenyatti!",
+  "id": "tut-en-00",
+  "lang": "en",
+  "text": "Welcome to Addis Four H. In this short tutorial you'll learn how to read our live screen, part by part. Charts never lie — but you need to know how to read them.",
   "edge": [
-   "so-SO-UbaxNeural"
+   "en-US-AvaNeural"
   ],
-  "rate": "-10%",
+  "rate": "+0%",
   "mms_skip": true
  },
  {
-  "id": "ar-final",
+  "id": "tut-en-01",
+  "lang": "en",
+  "text": "At the top: the symbol on screen, the timeframe, the live price and its change over 24 hours. A star appears when one of our symbols has a signal or is in a trade. On the right: the clock in Addis Ababa time, and a countdown to the next timeframe and the next symbol.",
+  "edge": [
+   "en-US-AvaNeural"
+  ],
+  "rate": "+0%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-en-02",
+  "lang": "en",
+  "text": "Top left are two reference charts. D X Y is the U.S. dollar index: a strong dollar often weighs on gold, Bitcoin and stocks. VIX is the fear index: when it jumps, markets are nervous.",
+  "edge": [
+   "en-US-AvaNeural"
+  ],
+  "rate": "+0%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-en-03",
+  "lang": "en",
+  "text": "This is Addis Four H Signals, our tested system. It checks three things on every closed four-hour candle: trend lines, volume and oscillators. Waiting, one of three, means they don't all agree yet. When all three agree, it shows BUY SIGNAL with a stop. If the daily structure also agrees, it becomes an A plus setup.",
+  "edge": [
+   "en-US-AvaNeural"
+  ],
+  "rate": "+0%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-en-04",
+  "lang": "en",
+  "text": "An hourglass means a check is passing on the candle that is still forming. It only counts when that candle closes — breakouts that fail before the close don't count.",
+  "edge": [
+   "en-US-AvaNeural"
+  ],
+  "rate": "+0%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-en-05",
+  "lang": "en",
+  "text": "The row of boxes shows the same three checks on every timeframe, from 5 minutes to 1 day. Green means 3 of 3, yellow 2 of 3. You can watch momentum climb from the small timeframes up to the 4-hour. Alerts use the 4-hour only.",
+  "edge": [
+   "en-US-AvaNeural"
+  ],
+  "rate": "+0%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-en-06",
+  "lang": "en",
+  "text": "Market phase tells you where each symbol stands: uptrend, pullback, correction, deep correction or bear market, with the drop from its 180-day high. F is the futures funding rate, and OI is the change in open interest over 24 hours.",
+  "edge": [
+   "en-US-AvaNeural"
+  ],
+  "rate": "+0%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-en-07",
+  "lang": "en",
+  "text": "Paper results are honest: every trade the system has taken since we went live, wins and losses, measured in R. One R is the risk to the stop.",
+  "edge": [
+   "en-US-AvaNeural"
+  ],
+  "rate": "+0%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-en-08",
+  "lang": "en",
+  "text": "Chart analysis sums up the bias from monthly down to 15 minutes, the market structure, the trend lines and the nearest liquidity above and below.",
+  "edge": [
+   "en-US-AvaNeural"
+  ],
+  "rate": "+0%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-en-09",
+  "lang": "en",
+  "text": "On the chart, the colored rays are trend lines from each timeframe. B O S means break of structure: the trend continues. chock means change of character: a possible turn. HH, HL, LH and LL mark higher highs, higher lows, lower highs and lower lows.",
+  "edge": [
+   "en-US-AvaNeural"
+  ],
+  "rate": "+0%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-en-10",
+  "lang": "en",
+  "text": "On the right edge you see key levels: Fibonacci retracements with the 70.5% O T E zone, the 50% equilibrium, and liquidity — BSL above, SSL below, and the previous day's and week's highs and lows. Price is often drawn toward these levels.",
+  "edge": [
+   "en-US-AvaNeural"
+  ],
+  "rate": "+0%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-en-11",
+  "lang": "en",
+  "text": "The purple bands are Bollinger Bands, and the teal line is V-WAP from the high — the average price since the last top. Price climbing back above it often marks the end of a pullback. Yellow volume bars show unusually high volume.",
+  "edge": [
+   "en-US-AvaNeural"
+  ],
+  "rate": "+0%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-en-12",
+  "lang": "en",
+  "text": "The ticker at the bottom repeats the analysis. Want another chart? Write the coin or stock name in the live chat, and we'll show it on screen.",
+  "edge": [
+   "en-US-AvaNeural"
+  ],
+  "rate": "+0%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-en-13",
+  "lang": "en",
+  "text": "Remember: this is education, not financial advice. Wait for the 4-hour close, always use a stop, and do your own research. Subscribe and turn on the bell so you never miss a live. Charts never lie.",
+  "edge": [
+   "en-US-AvaNeural"
+  ],
+  "rate": "+0%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-am-00",
+  "lang": "am",
+  "text": "እንኳን ወደ አዲስ ፎር ኤች በደህና መጡ። በዚህ አጭር ትምህርት የቀጥታ ስክሪናችንን ክፍል በክፍል እንዴት እንደሚያነቡ ይማራሉ። ቻርቶች አይዋሹም — ግን እንዴት እንደሚነበቡ ማወቅ ያስፈልጋል።",
+  "edge": [
+   "am-ET-MekdesNeural"
+  ],
+  "rate": "-4%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-am-01",
+  "lang": "am",
+  "text": "ከላይ፦ በስክሪኑ ላይ ያለው ምልክት፣ የጊዜ ክፈፉ፣ የቀጥታ ዋጋው እና የሃያ አራት ሰዓት ለውጡ ይታያሉ። ከምልክቶቻችን አንዱ የግዢ ምልክት ሲኖረው ወይም በንግድ ውስጥ ሲሆን ኮከብ ይታያል። በቀኝ በኩል የአዲስ አበባ ሰዓት፣ እና ወደሚቀጥለው የጊዜ ክፈፍና ምልክት የሚቀረው ጊዜ አለ።",
+  "edge": [
+   "am-ET-MekdesNeural"
+  ],
+  "rate": "-4%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-am-02",
+  "lang": "am",
+  "text": "ከላይ በግራ ሁለት የማጣቀሻ ቻርቶች አሉ። ዲ ኤክስ ዋይ የአሜሪካ ዶላር ኢንዴክስ ነው፤ ዶላር ሲጠነክር ብዙ ጊዜ ወርቅን፣ ቢትኮይንን እና አክሲዮኖችን ይጫናል። ቪክስ የፍርሃት ኢንዴክስ ነው፤ ሲጨምር ገበያው ተጨንቋል ማለት ነው።",
+  "edge": [
+   "am-ET-MekdesNeural"
+  ],
+  "rate": "-4%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-am-03",
+  "lang": "am",
+  "text": "ይህ አዲስ ፎር ኤች ሲግናልስ፣ የተፈተነው ስርዓታችን ነው። በእያንዳንዱ የተዘጋ የአራት ሰዓት ሻማ ላይ ሶስት ነገሮችን ይፈትሻል፦ የአዝማሚያ መስመሮችን፣ የግብይት መጠንን እና ኦሲሌተሮችን። በመጠበቅ ላይ፣ አንድ ከሶስት፣ ማለት ገና ሁሉም አልተስማሙም ማለት ነው። ሶስቱም ሲስማሙ የግዢ ምልክትን ከማቆሚያው ጋር ያሳያል። የቀን መዋቅሩም ከተስማማ ኤ ፕላስ ዕድል ይሆናል።",
+  "edge": [
+   "am-ET-MekdesNeural"
+  ],
+  "rate": "-4%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-am-04",
+  "lang": "am",
+  "text": "የአሸዋ ሰዓት ማለት አንድ ፍተሻ ገና እየተፈጠረ ባለው ሻማ ላይ እያለፈ ነው ማለት ነው። የሚቆጠረው ሻማው ሲዘጋ ብቻ ነው፤ ከመዝጋቱ በፊት የሚወድቁ ስብራቶች አይቆጠሩም።",
+  "edge": [
+   "am-ET-MekdesNeural"
+  ],
+  "rate": "-4%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-am-05",
+  "lang": "am",
+  "text": "የሳጥኖቹ ረድፍ እነዚህን ሶስት ፍተሻዎች በሁሉም የጊዜ ክፈፎች፣ ከአምስት ደቂቃ እስከ አንድ ቀን ያሳያል። አረንጓዴ ሶስት ከሶስት፣ ቢጫ ሁለት ከሶስት ማለት ነው። ኃይሉ ከትናንሽ የጊዜ ክፈፎች ወደ 4 ሰዓቱ ሲወጣ ማየት ይችላሉ። ማንቂያዎች የ4 ሰዓቱን ብቻ ይጠቀማሉ።",
+  "edge": [
+   "am-ET-MekdesNeural"
+  ],
+  "rate": "-4%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-am-06",
+  "lang": "am",
+  "text": "የገበያ ምዕራፍ እያንዳንዱ ምልክት የት እንዳለ ይነግርዎታል፦ ወደ ላይ አዝማሚያ፣ መጠነኛ መመለስ፣ እርማት፣ ጥልቅ እርማት ወይም የድብ ገበያ፣ ከመቶ ሰማንያ ቀን ከፍተኛው ምን ያህል እንደወረደ ጭምር። ኤፍ የፊውቸርስ ፈንዲንግ መጠን ነው፤ ኦ አይ ደግሞ በሃያ አራት ሰዓት ውስጥ የክፍት ውሎች ለውጥ ነው።",
+  "edge": [
+   "am-ET-MekdesNeural"
+  ],
+  "rate": "-4%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-am-07",
+  "lang": "am",
+  "text": "የሙከራ ውጤቶቹ ግልጽ ናቸው፦ ቀጥታ ከጀመርን ጀምሮ ስርዓቱ የወሰዳቸው ንግዶች በሙሉ፣ ያሸነፉትም የተሸነፉትም፣ በአር ይለካሉ። አንድ አር እስከ ማቆሚያው ያለው ስጋት ነው።",
+  "edge": [
+   "am-ET-MekdesNeural"
+  ],
+  "rate": "-4%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-am-08",
+  "lang": "am",
+  "text": "የቻርት ትንተና ከወር እስከ 1አምስት ደቂቃ ያለውን አቅጣጫ፣ የገበያ መዋቅሩን፣ የአዝማሚያ መስመሮቹን እና በቅርብ ያለውን ሊኩዲቲ ከላይና ከታች ያጠቃልላል።",
+  "edge": [
+   "am-ET-MekdesNeural"
+  ],
+  "rate": "-4%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-am-09",
+  "lang": "am",
+  "text": "በቻርቱ ላይ ባለቀለም ጨረሮቹ ከእያንዳንዱ የጊዜ ክፈፍ የመጡ የአዝማሚያ መስመሮች ናቸው። ቢ ኦ ኤስ የመዋቅር ስብራት ነው፤ አዝማሚያው ይቀጥላል ማለት ነው። ቾክ የባህሪ ለውጥ ነው፤ ሊዞር ይችላል ማለት ነው። ኤች ኤች፣ ኤች ኤል፣ ኤል ኤች እና ኤል ኤል ከፍተኛና ዝቅተኛ ነጥቦችን ያሳያሉ።",
+  "edge": [
+   "am-ET-MekdesNeural"
+  ],
+  "rate": "-4%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-am-10",
+  "lang": "am",
+  "text": "በቀኝ ጠርዝ ላይ ቁልፍ ደረጃዎች አሉ፦ የፊቦናቺ ደረጃዎች ከሰባ ነጥብ አምስት በመቶ ኦ ቲ ኢ ዞን ጋር፣ የሃምሳ በመቶ ሚዛን ነጥብ፣ እና ሊኩዲቲ፦ ቢ ኤስ ኤል ከላይ፣ ኤስ ኤስ ኤል ከታች፣ እንዲሁም የትላንትና እና ያለፈው ሳምንት ከፍተኛና ዝቅተኛ ዋጋዎች። ዋጋ ብዙ ጊዜ ወደነዚህ ደረጃዎች ይሳባል።",
+  "edge": [
+   "am-ET-MekdesNeural"
+  ],
+  "rate": "-4%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-am-11",
+  "lang": "am",
+  "text": "ወይንጠጅ መስመሮቹ ቦሊንጀር ባንድስ ናቸው። አረንጓዴ-ሰማያዊው መስመር ከከፍተኛው ጀምሮ ያለው ቪዋፕ ነው፤ ከመጨረሻው ጫፍ ጀምሮ ያለው አማካይ ዋጋ። ዋጋው ከሱ በላይ ሲመለስ ብዙ ጊዜ የመመለሱ መጨረሻ ይሆናል። ቢጫ የግብይት መጠን አሞሌዎች ያልተለመደ ከፍተኛ ግብይትን ያሳያሉ።",
+  "edge": [
+   "am-ET-MekdesNeural"
+  ],
+  "rate": "-4%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-am-12",
+  "lang": "am",
+  "text": "ከታች ያለው ተንሸራታች ጽሑፍ ትንተናውን ይደግማል። ሌላ ቻርት ማየት ይፈልጋሉ? የሳንቲሙን ወይም የአክሲዮኑን ስም በቀጥታ ቻቱ ላይ ይጻፉ፤ በስክሪኑ ላይ እናሳየዋለን።",
+  "edge": [
+   "am-ET-MekdesNeural"
+  ],
+  "rate": "-4%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-am-13",
+  "lang": "am",
+  "text": "ያስታውሱ፦ ይህ ትምህርት ነው እንጂ የፋይናንስ ምክር አይደለም። የ4 ሰዓቱን መዝጊያ ይጠብቁ፣ ሁልጊዜ ማቆሚያ ይጠቀሙ፣ የራስዎንም ጥናት ያድርጉ። ሰብስክራይብ ያድርጉ፣ ደወሉንም ይጫኑ፣ ምንም ቀጥታ ስርጭት እንዳያመልጥዎ። ቻርቶች አይዋሹም።",
+  "edge": [
+   "am-ET-MekdesNeural"
+  ],
+  "rate": "-4%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-ar-00",
   "lang": "ar",
-  "text": "مرحباً بكم! قناة أديس فور إتش قادمة قريباً باللغة العربية. تحليلٌ مباشرٌ للرسوم البيانية: الأسهم الأمريكية، والذهب، والبيتكوين، على مدار الساعة، ويتجدّد كل دقيقة. الرسوم البيانية لا تكذب. اشتركوا الآن، وفعّلوا الجرس، حتى لا يفوتكم أول بثٍّ مباشر. أديس فور إتش، قريباً!",
+  "text": "مرحباً بكم في أديس فور إتش. في هذا الدرس القصير ستتعلمون كيف تقرؤون شاشتنا المباشرة، جزءاً جزءاً. الرسوم البيانية لا تكذب، لكن عليكم أن تعرفوا كيف تقرؤونها.",
   "edge": [
    "ar-SA-ZariyahNeural"
   ],
-  "rate": "-2%",
+  "rate": "-3%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-ar-01",
+  "lang": "ar",
+  "text": "في الأعلى: الرمز المعروض، والإطار الزمني، والسعر المباشر، وتغيّره خلال أربع وعشرين ساعة. تظهر نجمة عندما يكون لأحد رموزنا إشارة أو صفقة مفتوحة. وعلى اليمين ساعة أديس أبابا، وعدّاد تنازلي للإطار الزمني التالي والرمز التالي.",
+  "edge": [
+   "ar-SA-ZariyahNeural"
+  ],
+  "rate": "-3%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-ar-02",
+  "lang": "ar",
+  "text": "في أعلى اليسار رسمان للمرجعية. دي إكس واي هو مؤشر الدولار الأمريكي: الدولار القوي غالباً ما يضغط على الذهب والبيتكوين والأسهم. وفيكس هو مؤشر الخوف: عندما يقفز، تكون الأسواق متوترة.",
+  "edge": [
+   "ar-SA-ZariyahNeural"
+  ],
+  "rate": "-3%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-ar-03",
+  "lang": "ar",
+  "text": "هذا هو أديس فور إتش سيغنالز، نظامنا المُختبَر. يفحص ثلاثة أمور على كل شمعة مغلقة من فئة أربع ساعات: خطوط الاتجاه، وحجم التداول، والمذبذبات. انتظار، واحد من ثلاثة، تعني أنها لم تتوافق كلها بعد. وعندما تتوافق الثلاثة، تظهر إشارة شراء مع وقف الخسارة. وإذا توافق هيكل السوق اليومي أيضاً، تصبح فرصة إيه بلس.",
+  "edge": [
+   "ar-SA-ZariyahNeural"
+  ],
+  "rate": "-3%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-ar-04",
+  "lang": "ar",
+  "text": "الساعة الرملية تعني أن الفحص ينجح على الشمعة التي ما زالت تتشكّل. ولا يُحتسب إلا عند إغلاقها؛ فالاختراقات التي تفشل قبل الإغلاق لا تُحتسب.",
+  "edge": [
+   "ar-SA-ZariyahNeural"
+  ],
+  "rate": "-3%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-ar-05",
+  "lang": "ar",
+  "text": "صف المربعات يعرض الفحوص الثلاثة نفسها على كل إطار زمني، من خمس دقائق إلى يوم كامل. الأخضر يعني ثلاثة من ثلاثة، والأصفر اثنان من ثلاثة. يمكنكم رؤية الزخم وهو يصعد من الأطر الصغيرة إلى إطار الأربع ساعات. التنبيهات تعتمد على الأربع ساعات فقط.",
+  "edge": [
+   "ar-SA-ZariyahNeural"
+  ],
+  "rate": "-3%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-ar-06",
+  "lang": "ar",
+  "text": "مرحلة السوق تخبركم بموقع كل رمز: اتجاه صاعد، أو تراجع طفيف، أو تصحيح، أو تصحيح عميق، أو سوق هابط، مع نسبة الهبوط عن أعلى سعر في مئة وثمانين يوماً. إف هو معدل التمويل في العقود الآجلة، وأو آي هو تغيّر العقود المفتوحة خلال أربع وعشرين ساعة.",
+  "edge": [
+   "ar-SA-ZariyahNeural"
+  ],
+  "rate": "-3%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-ar-07",
+  "lang": "ar",
+  "text": "النتائج التجريبية صادقة: كل صفقة أخذها النظام منذ بدء البث المباشر، الرابحة والخاسرة، تُقاس بوحدة آر، والآر الواحد هو المخاطرة حتى وقف الخسارة.",
+  "edge": [
+   "ar-SA-ZariyahNeural"
+  ],
+  "rate": "-3%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-ar-08",
+  "lang": "ar",
+  "text": "تحليل الرسم البياني يلخّص الاتجاه من الشهري حتى خمس عشرة دقيقة، وهيكل السوق، وخطوط الاتجاه، وأقرب سيولة في الأعلى والأسفل.",
+  "edge": [
+   "ar-SA-ZariyahNeural"
+  ],
+  "rate": "-3%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-ar-09",
+  "lang": "ar",
+  "text": "على الرسم البياني، الأشعة الملوّنة هي خطوط اتجاه من كل إطار زمني. بي أو إس تعني كسر الهيكل، أي استمرار الاتجاه. وتشوك تعني تغيّر السلوك، أي انعكاساً محتملاً. وإتش إتش، وإتش إل، وإل إتش، وإل إل تحدد القمم والقيعان الأعلى والأدنى.",
+  "edge": [
+   "ar-SA-ZariyahNeural"
+  ],
+  "rate": "-3%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-ar-10",
+  "lang": "ar",
+  "text": "على الحافة اليمنى ترون المستويات المهمة: مستويات فيبوناتشي مع منطقة أو تي إي عند سبعين ونصف بالمئة، ونقطة التوازن عند خمسين بالمئة، والسيولة: بي إس إل في الأعلى، وإس إس إل في الأسفل، وقمم وقيعان اليوم السابق والأسبوع السابق. غالباً ما ينجذب السعر إلى هذه المستويات.",
+  "edge": [
+   "ar-SA-ZariyahNeural"
+  ],
+  "rate": "-3%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-ar-11",
+  "lang": "ar",
+  "text": "الخطوط البنفسجية هي نطاقات بولينجر، والخط الفيروزي هو في واب من القمة، أي متوسط السعر منذ آخر قمة. عودة السعر فوقه غالباً ما تعني نهاية التراجع. أعمدة الحجم الصفراء تُظهر حجم تداول مرتفعاً بشكل غير عادي.",
+  "edge": [
+   "ar-SA-ZariyahNeural"
+  ],
+  "rate": "-3%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-ar-12",
+  "lang": "ar",
+  "text": "الشريط المتحرك في الأسفل يكرّر التحليل. تريدون رسماً بيانياً آخر؟ اكتبوا اسم العملة أو السهم في الدردشة المباشرة، وسنعرضه على الشاشة.",
+  "edge": [
+   "ar-SA-ZariyahNeural"
+  ],
+  "rate": "-3%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-ar-13",
+  "lang": "ar",
+  "text": "تذكّروا: هذا تعليم، وليس نصيحة مالية. انتظروا إغلاق شمعة الأربع ساعات، واستخدموا وقف الخسارة دائماً، وقوموا بأبحاثكم الخاصة. اشتركوا وفعّلوا الجرس حتى لا يفوتكم أي بث مباشر. الرسوم البيانية لا تكذب.",
+  "edge": [
+   "ar-SA-ZariyahNeural"
+  ],
+  "rate": "-3%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-om-00",
+  "lang": "om",
+  "text": "Baga gara Addis Foor Eej dhuftan. Barnoota gabaabaa kana keessatti, iskiriinii kallattii keenyaa kutaa kutaadhaan akkamitti akka dubbistan ni barattu. Jaartiin hin sobu — garuu akkaataa itti dubbifamu beekuu kabdu.",
+  "edge": [
+   "so-SO-UbaxNeural"
+  ],
+  "rate": "-8%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-om-01",
+  "lang": "om",
+  "text": "Gubbaa irratti: mallattoon iskiriinii irra jiru, yeroon, gatiin kallattii fi jijjiiramni sa'aatii digdamii afurii ni mul'atu. Yeroo mallattoon keenya tokko mallattoo bittaa kabu ykn daldala keessa jiru, urjiin ni mul'ata. Gara mirgaatti sa'aatii Finfinnee fi yeroo hafe hanga yeroo fi mallattoo itti aanuutti jira.",
+  "edge": [
+   "so-SO-UbaxNeural"
+  ],
+  "rate": "-8%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-om-02",
+  "lang": "om",
+  "text": "Gubbaa bitaa irratti jaartiiwwan wabii lama jiru. Dii Eks Waay indeeksii doolaara Ameerikaati: doolaarri yoo jabaate, yeroo baay'ee warkee, Bitkoyn fi aksiyoonota ni dhiibba. Viks indeeksii sodaati: yoo ol ka'e, gabaan sodaajaa jira.",
+  "edge": [
+   "so-SO-UbaxNeural"
+  ],
+  "rate": "-8%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-om-03",
+  "lang": "om",
+  "text": "Kun Addis Foor Eej Signaals, sirna keenya koratamedha. Shaamaa sa'aatii afurii jufame hunda irratti waan sadii korata: sararoota adeemsaa, hamma daldalaa fi osileetaroota. Eegaa jira, tokko sadii keessaa, jejuun ammaaf hundi walii hin galle jejuudha. Yeroo sadanuu walii galan, mallattoo bittaa dhaabbii wajjin agarsiisa. Jaasaan guyyaa illee yoo walii gale, jarraa Ee plas ta'a.",
+  "edge": [
+   "so-SO-UbaxNeural"
+  ],
+  "rate": "-8%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-om-04",
+  "lang": "om",
+  "text": "Sa'aatiin jirraja jejuun korannoon tokko shaamaa ammas uumamaa jiru irratti darbaa jira jejuudha. Kan lakkaa'amu yeroo shaamaan jufamu kofa; jabiinsi jufamuu dura kufu hin lakkaa'amu.",
+  "edge": [
+   "so-SO-UbaxNeural"
+  ],
+  "rate": "-8%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-om-05",
+  "lang": "om",
+  "text": "Tarreen saandukaa korannoowwan sadan kana yeroo hunda irratti, dakiikaa shanii hanga guyyaa tokkootti agarsiisa. Magariisni sadii sadii keessaa, keelloon lama sadii keessaa jejuudha. Humni yeroo titikkoo irraa gara sa'aatii afuriitti yeroo ol ka'u ilaaluu dandeessu. Beeksisni sa'aatii afurii kofa fayyadama.",
+  "edge": [
+   "so-SO-UbaxNeural"
+  ],
+  "rate": "-8%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-om-06",
+  "lang": "om",
+  "text": "Sadarkaan gabaa mallattoon tokkoon tokkoon eessa akka jiru isinitti hima: ol ka'aa, duubatti deebii, sirreeffama, sirreeffama guddaa ykn gabaa gad bu'aa, hamma olaanaa guyyaa dhibba tokkoo fi saddeettamaa irraa gad bu'e wajjin. Ef gatii fandingii fiyuujars, Oo Aay ammoo jijjiirama oopin intarast sa'aatii digdamii afurii keessaati.",
+  "edge": [
+   "so-SO-UbaxNeural"
+  ],
+  "rate": "-8%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-om-07",
+  "lang": "om",
+  "text": "Bu'aan yaalii dhugaadha: daldala sirniji erga kallattiin jalkabnee fudhate hunda, kan mo'ates kan kasaares, Aar'n safarama. Aar tokko balaa hanga dhaabbiitti jiruudha.",
+  "edge": [
+   "so-SO-UbaxNeural"
+  ],
+  "rate": "-8%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-om-08",
+  "lang": "om",
+  "text": "Tiintalli jaartii kallattii ji'a irraa hanga dakiikaa kudha shanii, jaasaa gabaa, sararoota adeemsaa fi likuwiditii dhihoo olii fi gadii walitti kabee agarsiisa.",
+  "edge": [
+   "so-SO-UbaxNeural"
+  ],
+  "rate": "-8%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-om-09",
+  "lang": "om",
+  "text": "Jaartii irratti, raayiiwwan halluu kaban sararoota adeemsaa yeroo hundarraa dhufanidha. Bii Oo Es jejuun jaasaan jabe, adeemsi itti fufa jejuudha. Jook jejuun amalli jijjiirame, deebi'uu danda'a jejuudha. Eej Eej, Eej El, El Eej fi El El fiiteewwanii fi gadi aantota agarsiisu.",
+  "edge": [
+   "so-SO-UbaxNeural"
+  ],
+  "rate": "-8%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-om-10",
+  "lang": "om",
+  "text": "Karkara mirgaa irratti sadarkaalee ijoo argitu: sadarkaalee Fibonaaji naannoo Oo Tii Ii dhibbeentaa torbaatamii fi walakkaa wajjin, giddugala dhibbeentaa shantamaa, fi likuwiditii: Bii Es El olitti, Es Es El gaditti, akkasumas olaanaa fi gadaanaa guyyaa fi torban darbe. Gatiin yeroo baay'ee gara sadarkaalee kanaatti harkifama.",
+  "edge": [
+   "so-SO-UbaxNeural"
+  ],
+  "rate": "-8%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-om-11",
+  "lang": "om",
+  "text": "Sararoonni halluu jukuliisaa Bolinjar Baandiz jedhamu. Sararri magariisa-bishaanii Vii Waap olaanaa irraati — gatii giddugalaa erga fiitee dhumaa as. Gatiin yoo isa ol deebi'e, yeroo baay'ee tumura duubatti deebii agarsiisa. Utubaaleen hamma daldalaa keelloon daldala baay'ee guddaa agarsiisu.",
+  "edge": [
+   "so-SO-UbaxNeural"
+  ],
+  "rate": "-8%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-om-12",
+  "lang": "om",
+  "text": "Barreeffamni sojo'u gadii tiintala irra deebi'a. Jaartii biraa ilaaluu barbaadduu? Makaa saantimaa ykn aksiyoonaa jaatii kallattii irratti barreessaa; iskiriinii irratti isinii agarsiifna.",
+  "edge": [
+   "so-SO-UbaxNeural"
+  ],
+  "rate": "-8%",
+  "mms_skip": true
+ },
+ {
+  "id": "tut-om-13",
+  "lang": "om",
+  "text": "Yaadadhaa: kun barnoota, gorsa faayinaansii miti. Jufamuu sa'aatii afurii eegaa, yeroo hunda dhaabbii fayyadamaa, korannoo mataa keessanii godhaa. Galmaa'aa, bilbila tukaa, kallattiin tokkollee akka isin hin dabarre. Jaartiin hin sobu.",
+  "edge": [
+   "so-SO-UbaxNeural"
+  ],
+  "rate": "-8%",
   "mms_skip": true
  }
 ]
