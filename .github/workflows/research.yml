@@ -1,0 +1,20 @@
+name: Research backtest
+on:
+  workflow_dispatch:
+    inputs:
+      symbol:
+        description: "Binance spot symbol (PAXGUSDT = gold)"
+        default: PAXGUSDT
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Gold filter research
+        env:
+          SYM: ${{ github.event.inputs.symbol || 'PAXGUSDT' }}
+        run: node research/gold.mjs

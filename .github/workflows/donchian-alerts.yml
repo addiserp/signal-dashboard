@@ -1,0 +1,48 @@
+name: Donchian 4H alerts
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"     # backup only — GitHub often runs this hours late; cron-job.org (see alerts/README.md) does the real 15-min trigger. every 15 minutes (4H candles close at 00, 04, 08, 12, 16, 20 UTC = 03, 07, 11, 15, 19, 23 Addis Ababa)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "test = send the current status now · auto = normal check (used by cron-job.org)"
+        type: choice
+        options: [auto, test, summary]
+        default: auto
+
+concurrency:
+  group: donchian-alerts
+  cancel-in-progress: false
+
+jobs:
+  alert:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # remembers which alerts were already sent, so each one arrives only once
+      - uses: actions/cache/restore@v4
+        with:
+          path: .alert-state
+          key: alert-state-${{ github.run_id }}
+          restore-keys: alert-state-
+
+      - name: Check signals and send Telegram alerts
+        env:
+          # repository secrets (recommended); repository variables with the same names also work
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN || vars.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID || vars.TELEGRAM_CHAT_ID }}
+          MODE: ${{ github.event.inputs.mode || 'auto' }}
+        run: node alerts/run.mjs
+
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: .alert-state
+          key: alert-state-${{ github.run_id }}
