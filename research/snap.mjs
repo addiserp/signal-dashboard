@@ -7,7 +7,7 @@ const page0 = "file://" + resolve("docs/index.html");
 const shots = (process.env.SHOTS || "BTCUSDT:4h,BTCUSDT:1h,PAXGUSDT:4h,PAXGUSDT:1h,ETHUSDT:4h,SOLUSDT:4h").split(",");
 const b = await chromium.launch({ channel: "chrome" });   // the Chrome that GitHub runners already have
 for (const s of shots) {
-  const [sym, tf, lang] = s.split(":");   // optional 3rd part: on-screen language, e.g. BTCUSDT:4h:om
+  const [sym, tf, lang, watch] = s.split(":");   // optional: on-screen language (BTCUSDT:4h:om) and extra rotation symbols (BTCUSDT:4h:en:ETHUSDT+PAXGUSDT)
   const ctx = await b.newContext({ viewport: { width: 1920, height: 1080 } });
   await ctx.addInitScript(() => {
     const syms = [{ name: "BTCUSDT", market: "spot", sym: "BTCUSDT" }, { name: "ETHUSDT", market: "spot", sym: "ETHUSDT" }, { name: "GOLD", market: "spot", sym: "PAXGUSDT" }, { name: "SOLUSDT", market: "spot", sym: "SOLUSDT" }, { name: "NEARUSDT", market: "spot", sym: "NEARUSDT" }];
@@ -15,8 +15,8 @@ for (const s of shots) {
   });
   const p = await ctx.newPage();
   p.on("pageerror", (e) => console.log("pageerror", e.message));
-  await p.goto(`${page0}?live=1&music=0&sub=0&rotate=60&tfs=${tf}&syms=${sym}${lang ? "&lang=" + lang : ""}`);
-  await p.waitForTimeout(25000);
+  await p.goto(`${page0}?live=1&music=0&sub=0&rotate=60&tfs=${tf}&syms=${sym}${watch ? "," + watch.split("+").join(",") : ""}${lang && lang !== "en" ? "&lang=" + lang : ""}`);
+  await p.waitForTimeout(watch ? 45000 : 25000);
   const txt = async (id) => (await p.textContent(id).catch(() => "")).replace(/\s+/g, " ").trim();
   console.log(`${sym} ${tf}: price ${await txt("#lvPrice")} ${await txt("#lvChg")} | system: ${await txt("#lvSys")} | analysis: ${await txt("#lvAna")}`);
   await p.screenshot({ path: `snaps/${sym}-${tf}${lang ? "-" + lang : ""}.jpg`, type: "jpeg", quality: 92 });
