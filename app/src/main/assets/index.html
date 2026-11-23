@@ -303,6 +303,16 @@
   .lv-rip.go{animation:lvrip .5s ease-out}
   @keyframes lvrip{from{opacity:.9;transform:scale(.2)}to{opacity:0;transform:scale(1.6)}}
   .lv-phase{flex:none}
+  .lv-tfh{margin-top:.7vh;font-size:1.2vh;color:#8a93a6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lv-tfs{display:grid;grid-template-columns:repeat(6,1fr);gap:.4vh;margin-top:.7vh}
+  .lv-tfc{font-size:1.3vh;font-weight:700;text-align:center;padding:.3vh .2vh;border-radius:.5vh;background:#1a212d;color:#94a3b8;border:1px solid transparent;white-space:nowrap}
+  .lv-tfc b{display:block;font-size:1.35vh;color:#e2e8f0}
+  .lv-tfc i{font-style:normal;color:#fde047}
+  .lv-tfc.n2{background:rgba(250,204,21,.12);color:#fde047}.lv-tfc.n3{background:rgba(34,197,94,.18);color:#4ade80}
+  .lv-tfc.cur{border-color:#3b82f6;box-shadow:0 0 0 1px #3b82f6 inset}
+  .lv-tfc.sys b{color:#38bdf8}
+  .lv-tfn{font-size:1.1vh;color:#64748b;margin-top:.3vh;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.lang-ar .lv-tfc{direction:ltr}
   .lv-pend{display:inline-block;animation:lvblink 1.2s ease-in-out infinite}
   @keyframes lvblink{50%{opacity:.35}}
   .lv-pnote{margin-top:.6vh;font-size:1.4vh;font-weight:700;color:#fde047;background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.35);border-radius:.6vh;padding:.4vh .8vh}
@@ -3002,7 +3012,7 @@ function bsCards(ov, vol, price, tfLabel, R) {
     osc: { name: "Oscillators", text: "Oscillators summary is Buy or Strong buy" },
   };
   const KEYS = Object.keys(FILTERS);
-  const TF_SEC = { "4h": 14400, "1d": 86400 };
+  const TF_SEC = { "5m": 300, "15m": 900, "30m": 1800, "1h": 3600, "4h": 14400, "1d": 86400, "1w": 604800 };
 
   // ---------- series helpers ----------
   const sma = (a, n) => { const o = new Array(a.length).fill(NaN); let s = 0; for (let i = 0; i < a.length; i++) { s += a[i]; if (i >= n) s -= a[i - n]; if (i >= n - 1) o[i] = s / n; } return o; };
@@ -3345,7 +3355,7 @@ function bsCards(ov, vol, price, tfLabel, R) {
     return { combos, pass, base, trades: lastTrades, hasVol: X.hasVol, ctx: X, only, on };
   }
 
-  const api = { FILTERS, KEYS, study, checks, context, runDonchian, runFiltersOnly, replayFilters, masks, oscRating, oscLabel, summarize, maskOf };
+  const api = { FILTERS, KEYS, study, checks, context, runDonchian, runFiltersOnly, replayFilters, masks, oscRating, oscLabel, summarize, maskOf, TF_SEC };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.DonchianFilters = api;
 })(typeof window !== "undefined" ? window : globalThis);
@@ -3969,7 +3979,7 @@ if (LIVE_MODE) (function liveMode() {
   const LANG = ["am", "ar", "om"].includes((P.get("lang") || "").toLowerCase()) ? P.get("lang").toLowerCase() : "en";
   const I18N = {
     en: {
-      live: "● LIVE", pending: "⏳ {x}: breaking now · confirms at the {t} EAT close", nfa: "⚠ NOT FINANCIAL ADVICE", dxyH: "DXY · U.S. Dollar Index · reference", vixH: "VIX · Fear index · reference",
+      live: "● LIVE", tfRowH: "Every timeframe · checks agreeing on the last closed candle", tfRowN: "n/3 = checks agreeing on each timeframe's last closed candle · alerts use 4H only", pending: "⏳ {x}: breaking now · confirms at the {t} EAT close", nfa: "⚠ NOT FINANCIAL ADVICE", dxyH: "DXY · U.S. Dollar Index · reference", vixH: "VIX · Fear index · reference",
       phaseH: "Market phase · funding · open interest", scoreH: "📒 addis-4H Signals · paper results since {d}", anaH: "Chart analysis", tag: "ANALYSIS",
       loading: "Loading…", loadingSym: "Loading {s}…", slogan: "Charts never lie", sub: "SUBSCRIBE", subbed: "SUBSCRIBED ✓", notif: "🔔 Notifications on · see every new live",
       noHist: "Not enough history for {s}.", aplus: "⭐ A+ BUY SETUP", buy: "🟢 BUY SIGNAL", buyBanner: "🔔 BUY SIGNAL", buyPlain: "BUY SIGNAL", inLong: "IN A LONG",
@@ -3988,7 +3998,7 @@ if (LIVE_MODE) (function liveMode() {
       queued: "Queued: {s} ({n} waiting) — type another or press Esc", notFound: "{s} was not found on Binance", tryOther: " — try another name (e.g. SOL, GOLD, NVDA)", typeName: "type a coin or stock name",
     },
     am: {
-      live: "● ቀጥታ", pending: "⏳ {x}፦ አሁን እየሰበረ ነው · በ{t} EAT መዝጊያ ይረጋገጣል", nfa: "⚠ የፋይናንስ ምክር አይደለም", dxyH: "DXY · የአሜሪካ ዶላር ኢንዴክስ · ለማጣቀሻ", vixH: "VIX · የገበያ ፍርሃት ኢንዴክስ · ለማጣቀሻ",
+      live: "● ቀጥታ", tfRowH: "በየጊዜ ክፈፉ · በመጨረሻው የተዘጋ ሻማ የሚስማሙ ፍተሻዎች", tfRowN: "n/3 = በየጊዜ ክፈፉ የመጨረሻ የተዘጋ ሻማ የሚስማሙ ፍተሻዎች · ማንቂያዎች 4H ብቻ", pending: "⏳ {x}፦ አሁን እየሰበረ ነው · በ{t} EAT መዝጊያ ይረጋገጣል", nfa: "⚠ የፋይናንስ ምክር አይደለም", dxyH: "DXY · የአሜሪካ ዶላር ኢንዴክስ · ለማጣቀሻ", vixH: "VIX · የገበያ ፍርሃት ኢንዴክስ · ለማጣቀሻ",
       phaseH: "የገበያ ምዕራፍ · ፈንዲንግ · ክፍት ውሎች", scoreH: "📒 addis-4H Signals · የሙከራ ውጤቶች ከ{d} ጀምሮ", anaH: "የቻርት ትንተና", tag: "ትንተና",
       loading: "በመጫን ላይ…", loadingSym: "{s} በመጫን ላይ…", slogan: "ቻርቶች አይዋሹም", sub: "ሰብስክራይብ", subbed: "ተመዝግበዋል ✓", notif: "🔔 ማሳወቂያ በርቷል · ምንም ቀጥታ ስርጭት አያምልጥዎ",
       noHist: "ለ{s} በቂ ታሪካዊ መረጃ የለም።", aplus: "⭐ A+ የግዢ ዕድል", buy: "🟢 የግዢ ምልክት", buyBanner: "🔔 የግዢ ምልክት", buyPlain: "የግዢ ምልክት", inLong: "በግዢ ንግድ ውስጥ",
@@ -4007,11 +4017,11 @@ if (LIVE_MODE) (function liveMode() {
       queued: "ወረፋ ላይ፦ {s} ({n} በመጠባበቅ ላይ) — ሌላ ይጻፉ ወይም Esc ይጫኑ", notFound: "{s} በBinance ላይ አልተገኘም", tryOther: " — ሌላ ስም ይሞክሩ (ለምሳሌ SOL, GOLD, NVDA)", typeName: "የአክሲዮን ወይም የሳንቲም ስም ይጻፉ",
     },
     ar: {
-      live: "● مباشر", pending: "⏳ {x}: يحدث الآن · يتأكد عند إغلاق الساعة {t} EAT", nfa: "⚠ ليست نصيحة مالية", dxyH: "DXY · مؤشر الدولار الأمريكي · للمرجعية", vixH: "VIX · مؤشر الخوف · للمرجعية",
+      live: "● مباشر", tfRowH: "كل إطار زمني · الفحوص المتوافقة على آخر شمعة مغلقة", tfRowN: "n/3 = الفحوص المتوافقة على آخر شمعة مغلقة لكل إطار · التنبيهات على 4H فقط", pending: "⏳ {x}: يحدث الآن · يتأكد عند إغلاق الساعة {t} EAT", nfa: "⚠ ليست نصيحة مالية", dxyH: "DXY · مؤشر الدولار الأمريكي · للمرجعية", vixH: "VIX · مؤشر الخوف · للمرجعية",
       phaseH: "مرحلة السوق · التمويل · العقود المفتوحة", scoreH: "📒 addis-4H Signals · نتائج تجريبية منذ {d}", anaH: "تحليل الرسم البياني", tag: "تحليل",
       loading: "جارٍ التحميل…", loadingSym: "جارٍ تحميل {s}…", slogan: "الرسوم البيانية لا تكذب", sub: "اشترك", subbed: "مشترك ✓", notif: "🔔 الإشعارات مفعّلة · لا تفوّت أي بث مباشر",
       noHist: "لا توجد بيانات تاريخية كافية لـ {s}.", aplus: "⭐ فرصة شراء A+", buy: "🟢 إشارة شراء", buyBanner: "🔔 إشارة شراء", buyPlain: "إشارة شراء", inLong: "في صفقة شراء",
-      below200: "تحت متوسط 200 يوم · لا إشارات للذهب", waiting: "انتظار · {n}/3 متوافقة", entry: "الدخول", stop: "وقف الخسارة", open: "مفتوح", stopPlace: "وقف الخسارة المقترح",
+      below200: "تحت متوسط 200 يوم · لا إشارات للذهب", waiting: "انتظار · \u2066{n}/3\u2069 متوافقة", entry: "الدخول", stop: "وقف الخسارة", open: "مفتوح", stopPlace: "وقف الخسارة المقترح",
       trend: "خطوط الاتجاه", volume: "حجم التداول", osc: "المذبذبات", structure: "هيكل السوق", above200: "فوق متوسط 200 يوم", goldWatch: "👀 الذهب: للمتابعة فقط",
       "Strong buy": "شراء قوي", Buy: "شراء", Neutral: "محايد", Sell: "بيع", "Strong sell": "بيع قوي",
       bias: "الاتجاه 1M→15m", tfStruct: "هيكل {tf}", rays: "أشعة الاتجاه", liqAbove: "السيولة أعلى", liqBelow: "السيولة أسفل", none: "لا يوجد قريب",
@@ -4026,7 +4036,7 @@ if (LIVE_MODE) (function liveMode() {
       queued: "في قائمة الانتظار: {s} ({n} بالانتظار) — اكتب اسمًا آخر أو اضغط Esc", notFound: "{s} غير موجود على Binance", tryOther: " — جرّب اسمًا آخر (مثل SOL أو GOLD أو NVDA)", typeName: "اكتب اسم سهم أو عملة",
     },
     om: {
-      live: "● KALLATTII", pending: "⏳ {x}: amma cabaa jira · cufamuu {t} EAT irratti mirkanaa'a", nfa: "⚠ GORSA FAAYINAANSII MITI", dxyH: "DXY · Indeeksii Doolaara Ameerikaa · wabii", vixH: "VIX · Indeeksii sodaa · wabii",
+      live: "● KALLATTII", tfRowH: "Yeroo hunda · qorannoowwan shaamaa cufame dhumaa irratti walii galan", tfRowN: "n/3 = qorannoowwan shaamaa cufame dhumaa irratti walii galan · beeksisni 4H qofa", pending: "⏳ {x}: amma cabaa jira · cufamuu {t} EAT irratti mirkanaa'a", nfa: "⚠ GORSA FAAYINAANSII MITI", dxyH: "DXY · Indeeksii Doolaara Ameerikaa · wabii", vixH: "VIX · Indeeksii sodaa · wabii",
       phaseH: "Sadarkaa gabaa · funding · open interest", scoreH: "📒 addis-4H Signals · bu'aa yaalii erga {d} as", anaH: "Xiinxala chaartii", tag: "XIINXALA",
       loading: "Fe'amaa jira…", loadingSym: "{s} fe'amaa jira…", slogan: "Chaartiin hin sobu", sub: "GALMAA'I", subbed: "GALMAA'AME ✓", notif: "🔔 Beeksisni banameera · kallattii haaraa hunda ilaali",
       noHist: "{s}f seenaan gahaan hin jiru.", aplus: "⭐ CARRAA BITTAA A+", buy: "🟢 MALLATTOO BITTAA", buyBanner: "🔔 MALLATTOO BITTAA", buyPlain: "MALLATTOO BITTAA", inLong: "BITTAA KEESSA JIRA",
@@ -4262,6 +4272,30 @@ if (LIVE_MODE) (function liveMode() {
   const _render = renderActive;
   renderActive = function () { _render(); try { liveRender(); } catch (e) { console.warn("live:", e); } };
 
+  // ---- trend lines / volume / oscillators on every timeframe (display only: signals and alerts are 4H) ----
+  const TF_ROW = ["5m", "15m", "30m", "1h", "4h", "1d"];
+  const tfCache = new Map();
+  function tfChecks(sym) {
+    const d = closed(tlData["1d"], 86400), nowS = Date.now() / 1000, out = [];
+    for (const tf of TF_ROW) {
+      const all = tlData[tf], sec = F.TF_SEC[tf];
+      if (!all || all.length < 60 || !sec) continue;
+      const cl = all.filter((x) => x.t + sec <= nowS);
+      const lastT = cl.length ? cl[cl.length - 1].t : 0, fT = all[all.length - 1].t;
+      const key = `${sym}|${tf}`, hit = tfCache.get(key);
+      if (hit && hit.lastT === lastT && Date.now() - hit.at < 30e3) { out.push(hit); continue; }
+      let ck = null, fk = null;
+      try { const X = F.context({ [tf]: cl, "1d": d }, tf); ck = F.checks(X, cl.length - 1, 1); } catch (e) { /* not enough candles */ }
+      try { if (fT + sec > nowS && all.length > cl.length) { const X2 = F.context({ [tf]: all, "1d": d }, tf); fk = F.checks(X2, all.length - 1, 1); } } catch (e) { fk = null; }
+      if (!ck) continue;
+      const n = ["rays", "volume", "osc"].filter((k) => ck[k]).length;
+      const pend = fk ? ["rays", "volume", "osc"].filter((k) => !ck[k] && fk[k]).length : 0;
+      const row = { tf, n, pend, lastT, at: Date.now() };
+      tfCache.set(key, row); out.push(row);
+    }
+    return out;
+  }
+
   function liveRender() {
     if (!tlData || !tlData["4h"]) return;
     if (bsChart && !bsChart.__live) { bsChart.applyOptions({ layout: { fontSize: 14 } }); bsChart.__live = true; }
@@ -4291,12 +4325,17 @@ if (LIVE_MODE) (function liveMode() {
       const oR = p ? (price - p.entry) / p.risk : 0;
       const extra = S.state === "trade" ? `<div class="lv-trow"><div><span>${T("entry")}</span> <b>${tlFmt(p.entry)}</b></div><div><span>${T("stop")}</span> <b>${tlFmt(p.stop)}</b></div><div><span>${T("open")}</span> <b class="${oR >= 0 ? "up" : "dn"}">${(oR >= 0 ? "+" : "") + oR.toFixed(2)}R</b></div></div>`
         : S.state === "signal" ? `<div class="lv-trow"><div><span>${T("stopPlace")}</span> <b>${tlFmt(S.stop)}</b></div></div>` : "";
+      let tfRow = "";
+      try {
+        const rows = tfChecks(s.sym);
+        if (rows.length) tfRow = `<div class="lv-tfs">${rows.map((r) => `<span class="lv-tfc n${r.n}${r.tf === tlTf ? " cur" : ""}${r.tf === "4h" ? " sys" : ""}"><b>${tfName(r.tf)}</b> ${r.n}/3${r.pend ? ` <i class="lv-pend">⏳+${r.pend}</i>` : r.n === 3 ? " ✅" : ""}</span>`).join("")}</div><div class="lv-tfn">${T("tfRowN")}</div>`;
+      } catch (e) { tfRow = ""; }
       const fk = S.forming ? S.forming.ck : {};
       const pend = ["rays", "volume", "osc"].filter((k) => !S.ck[k] && fk[k]);
       const tk = (k) => S.ck[k] ? "✅" : pend.includes(k) ? '<span class="lv-pend">⏳</span>' : "❌";
       const pnote = pend.length && S.state === "wait" ? `<div class="lv-pnote">${T("pending", { x: pend.map((k) => T({ rays: "trend", volume: "volume", osc: "osc" }[k])).join(" + "), t: S.forming.close })}</div>` : "";
       html = `${st}
-        <div class="lv-checks"><div>${tk("rays")} ${T("trend")}</div><div>${tk("volume")} ${T("volume")}</div><div>${tk("osc")} ${T("osc")} <small>${T(F.oscLabel(pend.includes("osc") && fk.oscRating != null ? fk.oscRating : S.ck.oscRating))}</small></div><div class="lv-plus">${tk("structure")} ${T("structure")} <small>(A+)</small></div>${S.r.gold ? `<div>${S.r.t200 ? tick(S.r.t200.above) : "—"} ${T("above200")}</div><div><small>${T("goldWatch")}</small></div>` : ""}</div>${pnote}${extra}`;
+        <div class="lv-checks"><div>${tk("rays")} ${T("trend")}</div><div>${tk("volume")} ${T("volume")}</div><div>${tk("osc")} ${T("osc")} <small>${T(F.oscLabel(pend.includes("osc") && fk.oscRating != null ? fk.oscRating : S.ck.oscRating))}</small></div><div class="lv-plus">${tk("structure")} ${T("structure")} <small>(A+)</small></div>${S.r.gold ? `<div>${S.r.t200 ? tick(S.r.t200.above) : "—"} ${T("above200")}</div><div><small>${T("goldWatch")}</small></div>` : ""}</div>${pnote}${extra}${tfRow}`;
     }
     $("lvSys").innerHTML = html;
     try { phaseRender(); } catch (e) { /* first scan not ready */ }
