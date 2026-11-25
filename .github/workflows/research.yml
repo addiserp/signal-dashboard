@@ -5,6 +5,9 @@ on:
       symbol:
         description: "Binance spot symbol (PAXGUSDT = gold)"
         default: PAXGUSDT
+      script:
+        description: "research script (gold.mjs or osc.mjs)"
+        default: gold.mjs
 jobs:
   run:
     runs-on: ubuntu-latest
@@ -14,7 +17,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: Gold filter research
+      - name: Research
         env:
           SYM: ${{ github.event.inputs.symbol || 'PAXGUSDT' }}
-        run: node research/gold.mjs
+        run: node research/${{ github.event.inputs.script || 'gold.mjs' }}
