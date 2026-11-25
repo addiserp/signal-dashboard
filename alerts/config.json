@@ -2,7 +2,8 @@
   "system": "filters",
   "filters": [
     "rays",
-    "volume"
+    "volume",
+    "osc"
   ],
   "aplus": [
     "structure"
@@ -21,8 +22,8 @@
     {
       "name": "BTCUSDT",
       "enabled": true,
-      "sides": "long",
-      "tested": "Backtest 2019–2026 (long, Trend lines + Volume): +0.34R/trade, A+ +0.39R/trade",
+      "sides": "both",
+      "tested": "Backtest 2019–2026 (4H, buys above / sells below the 50-day average): buys +0.76R/trade, sells +0.15R/trade",
       "sources": [
         {
           "type": "binance-spot",
@@ -32,13 +33,14 @@
           "type": "yahoo",
           "symbol": "BTC-USD"
         }
-      ]
+      ],
+      "trend50": true
     },
     {
       "name": "ZECUSDT",
       "enabled": true,
-      "sides": "long",
-      "tested": "Backtest 2019–2026 (long, Trend lines + Volume): +0.16R/trade, A+ +0.30R/trade",
+      "sides": "both",
+      "tested": "Backtest 2019–2026 (4H, buys above / sells below the 50-day average): buys +0.48R/trade, sells +0.09R/trade",
       "sources": [
         {
           "type": "binance-spot",
@@ -48,13 +50,14 @@
           "type": "yahoo",
           "symbol": "ZEC-USD"
         }
-      ]
+      ],
+      "trend50": true
     },
     {
       "name": "ETHUSDT",
       "enabled": true,
-      "sides": "long",
-      "tested": "Backtest 2019–2026 (long, Trend lines + Volume): +0.28R/trade, A+ +0.31R/trade",
+      "sides": "both",
+      "tested": "Backtest 2019–2026 (4H, buys above / sells below the 50-day average): buys +0.46R/trade, sells +0.12R/trade",
       "sources": [
         {
           "type": "binance-spot",
@@ -64,7 +67,8 @@
           "type": "yahoo",
           "symbol": "ETH-USD"
         }
-      ]
+      ],
+      "trend50": true
     },
     {
       "name": "Crude oil (WTI)",
@@ -86,7 +90,7 @@
       "name": "Gold (XAU)",
       "enabled": true,
       "sides": "long",
-      "tested": "Backtest gold 2020–2026 (long, above the 200-day average, Trend lines + Volume): ≈ +0.02R per trade — no clear edge; 2024–2026 ≈ +0.19R",
+      "tested": "Backtest gold 2020–2026 (buys only, above the 200-day average): ≈ +0.13R per trade; 2024–2026 ≈ +0.36R; sells lost money",
       "sources": [
         {
           "type": "binance-futures",

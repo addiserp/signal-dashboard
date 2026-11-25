@@ -1,5 +1,6 @@
 // Addis 4H — 4H alerts to Telegram.
-// System "filters" (default): BUY when Trend lines + Volume agree on a closed 4H candle (Oscillators removed 25 Nov 2026),
+// System "filters" (default): BUY when Trend lines + Volume + Oscillators agree on a closed 4H candle and the daily close is above
+// its 50-day average; SELL (symbols with sides "both") is the mirror below the 50-day average (rule of 25 Nov 2026),
 // ⭐ A+ when the 1D Structure agrees too. Stop 2×ATR, trailed to the 10-candle low.
 // System "donchian": the older Donchian breakout (set "system": "donchian" in config.json).
 // Runs on GitHub Actions (every 15 min when triggered by cron-job.org; GitHub's own schedule is often
@@ -24,7 +25,7 @@ const cfg = JSON.parse(readFileSync(join(here, "config.json"), "utf8"));
 const F = require("./dfilters.js");
 const SYSTEM = cfg.system || "filters";
 const bits = (names) => (names || []).reduce((m, n) => { const b = F.KEYS.indexOf(n); if (b < 0) throw new Error(`unknown filter "${n}" in config.json (use ${F.KEYS.join(", ")})`); return m | (1 << b); }, 0);
-const NEED = bits(cfg.filters || ["rays", "volume"]), PLUS = bits(cfg.aplus || ["structure"]);
+const NEED = bits(cfg.filters || ["rays", "volume", "osc"]), PLUS = bits(cfg.aplus || ["structure"]);
 const NEED_NAMES = F.KEYS.filter((k, b) => NEED & (1 << b)).map((k) => F.FILTERS[k].name);
 const SYS_NAME = SYSTEM === "filters" ? "addis-4H Signals" : "4H Donchian";
 const MODE = (process.env.MODE || "auto").toLowerCase();
@@ -104,6 +105,14 @@ async function trend200(ref) {
   // state known at time t: the last daily candle that had closed by then
   const at = (t) => { let a = -1; for (let i = d.length - 1; i >= 0; i--) if (d[i].t + 86400 <= t) { a = i; break; } return a >= 0 && sma[a] != null ? { above: d[a].c > sma[a], close: d[a].c, sma: sma[a] } : null; };
   return { at, ref };
+}
+
+// N-day average of the symbol's own daily candles: the state known at time t (last daily candle closed by then)
+function trendN(daily, n) {
+  const d = daily || [], sma = []; let sum = 0;
+  d.forEach((x, i) => { sum += x.c; if (i >= n) sum -= d[i - n].c; sma.push(i >= n - 1 ? sum / n : null); });
+  const at = (t) => { let a = -1; for (let i = d.length - 1; i >= 0; i--) if (d[i].t + 86400 <= t) { a = i; break; } return a >= 0 && sma[a] != null ? { above: d[a].c > sma[a], close: d[a].c, sma: sma[a], len: n } : null; };
+  return { at };
 }
 
 async function candles(sym) {
@@ -189,14 +198,14 @@ function eventMessage(sym, ev, res, source, livePrice) {
   const lateHead = late ? `⏰ <b>Late alert</b> — the 4H candle closed at ${eat(closeT)}, ${ago(closeT)} ago.\n` : "";
   if (ev.type === "signal" && SYSTEM === "filters") {
     const side = ev.dir > 0 ? "BUY" : "SELL";
-    const short = ev.dir < 0 ? `\n⚠️ Short trades tested weaker — long only is the tested system.` : "";
+    const short = ev.dir < 0 ? `\n⚠️ Sells tested much weaker than buys (≈ +0.1R vs +0.5R per trade) — consider half size.` : "";
     const head = ev.aplus ? `⭐ <b>A+ ${side} setup</b> — all filters agree, including the 1D structure` : `<b>${side} signal</b> — ${NEED_NAMES.join(" + ")} agree`;
     return `${lateHead}${ev.dir > 0 ? "🟢" : "🔻"} ${tag} — ${head}
 ${checksLine(ev.checks)}
 Close <b>${fmt(ev.price)}</b>
 ${late ? `Planned entry: next candle open at ${eat(closeT)}` : `Enter: market order now (next candle opened ${eat(closeT)})`}
-Stop: <b>${fmt(ev.stop)}</b> (2×ATR, ${pct(ev.stop, ev.price)}), then trail to the 10-candle low${sizeLine(ev.price, ev.stop, ev.dir)}${late ? lateSignalAdvice(ev, res, livePrice) : ""}${short}
-${ev.trend ? `📈 Above its 200-day average (${fmt(ev.trend.close)} vs ${fmt(ev.trend.sma)}) ✅\n` : ""}${sym.watchOnly ? `👀 <b>Watch-only:</b> ${sym.watchOnly}\n` : ""}${sym.tested ? `Backtest ${sym.tested.replace(/^Backtest /, "")}` : ""}
+Stop: <b>${fmt(ev.stop)}</b> (2×ATR, ${pct(ev.stop, ev.price)}), then trail to the 10-candle ${ev.dir > 0 ? "low" : "high"}${sizeLine(ev.price, ev.stop, ev.dir)}${late ? lateSignalAdvice(ev, res, livePrice) : ""}${short}
+${ev.trend ? `${ev.dir > 0 ? "📈 Above" : "📉 Below"} its ${ev.trend.len || 200}-day average (${fmt(ev.trend.close)} vs ${fmt(ev.trend.sma)}) ✅\n` : ""}${sym.watchOnly ? `👀 <b>Watch-only:</b> ${sym.watchOnly}\n` : ""}${sym.tested ? `Backtest ${sym.tested.replace(/^Backtest /, "")}` : ""}
 <i>${source} · candle ${when(ev.t)}</i>`;
   }
   if (ev.type === "signal") {
@@ -241,9 +250,10 @@ function statusLine(sym, res, source) {
   const p = res.position;
   if (SYSTEM === "filters" && !p && !res.pending) {
     const ck = res.now;
-    if (res.trendNow && !res.trendNow.above) return `• <b>${sym.name}</b>: no trade, price ${fmt(res.last.c)}. Below its 200-day average (${fmt(res.trendNow.sma)}) — no signals until it's back above.`;
+    if (res.trendNow && !res.trendNow.above && (res.trendNow.len || 200) === 200) return `• <b>${sym.name}</b>: no trade, price ${fmt(res.last.c)}. Below its 200-day average (${fmt(res.trendNow.sma)}) — no signals until it's back above.`;
+    const watch = res.trendNow && res.trendNow.len === 50 ? ` ${res.side < 0 ? "📉 Below" : "📈 Above"} its 50-day average (${fmt(res.trendNow.sma)}) — watching for <b>${res.side < 0 ? "sells" : "buys"}</b>.` : "";
     const n = F.KEYS.filter((k, b) => NEED & (1 << b)).filter((k) => ck[k]).length;
-    return `• <b>${sym.name}</b>: no trade, price ${fmt(res.last.c)}. Filters now: ${F.KEYS.filter((k, b) => (NEED | PLUS) & (1 << b)).map((k) => `${tick(ck[k])} ${F.FILTERS[k].name}`).join(" · ")} (${n}/${NEED_NAMES.length} needed agree)`;
+    return `• <b>${sym.name}</b>: no trade, price ${fmt(res.last.c)}. Filters now: ${F.KEYS.filter((k, b) => (NEED | PLUS) & (1 << b)).map((k) => `${tick(ck[k])} ${F.FILTERS[k].name}`).join(" · ")} (${n}/${NEED_NAMES.length} needed agree)${watch}`;
   }
   if (p) return `• <b>${sym.name}</b>: ${p.aplus ? "⭐ A+ " : ""}in a ${p.dir > 0 ? "long" : "short"} since ${when(p.entryT)} — entry ${fmt(p.entry)}, stop <b>${fmt(p.stop)}</b>, now ${fmt(res.last.c)} (${R(p.openR)})`;
   if (res.pending) return `• <b>${sym.name}</b>: signal on the last candle — enter at market, stop ${fmt(res.pending.stop)}`;
@@ -326,11 +336,20 @@ for (const sym of cfg.symbols.filter((s) => s.enabled)) {
     const X = F.context({ "4h": data.c, "1d": data.daily }, "4h");
     let allow = null, T2 = null;
     if (sym.trend200) {
-      try { T2 = await trend200(sym.trend200); allow = (k) => { const st = T2.at(data.c[k].t + TF_SEC); return !!(st && st.above); }; }
+      try { T2 = await trend200(sym.trend200); allow = (k, dir) => { const st = T2.at(data.c[k].t + TF_SEC); return dir > 0 && !!(st && st.above); }; }
       catch (e) { problems.push(`${sym.name}: 200-day check failed (${e.message}) — no signals this run`); allow = () => false; }
+    } else if (sym.trend50) {
+      T2 = trendN(data.daily, 50);
+      allow = (k, dir) => { const st = T2.at(data.c[k].t + TF_SEC); return !!st && (dir > 0 ? st.above : !st.above); };
     }
     res = F.replayFilters(X, { need: NEED, plus: PLUS, sides: sym.sides || "long", allow });
-    if (T2) { res.trendNow = T2.at(now); for (const ev of res.events) if (ev.type === "signal") ev.trend = T2.at(ev.t + TF_SEC); }
+    if (T2) {
+      res.trendNow = T2.at(now);
+      for (const ev of res.events) if (ev.type === "signal") ev.trend = T2.at(ev.t + TF_SEC);
+      // which side the system is watching now, and that side's checks on the last closed candle
+      res.side = sym.trend50 && res.trendNow && !res.trendNow.above && (sym.sides || "long") === "both" ? -1 : 1;
+      if (res.side < 0) res.now = F.checks(X, data.c.length - 1, -1);
+    }
   } else res = D.replay(data.c, { sides: sym.sides || "long" });
   recordPaper(state, sym, res);
   status.push(statusLine(sym, res, data.source));
