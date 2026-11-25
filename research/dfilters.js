@@ -311,7 +311,7 @@
       const A = X.atr[k];
       if (pos) {
         let lo = Infinity, hi = -Infinity;
-        for (let m = k - 9; m <= k; m++) { lo = Math.min(lo, c[m].l); hi = Math.max(hi, c[m].h); }
+        for (let m = k - (opts.trail || 10) + 1; m <= k; m++) { lo = Math.min(lo, c[m].l); hi = Math.max(hi, c[m].h); }
         const next = pos.dir > 0 ? Math.max(pos.stop, lo) : Math.min(pos.stop, hi);
         if (next !== pos.stop) { events.push({ k, t: x.t, type: "stop", dir: pos.dir, from: pos.stop, stop: next, price: x.c }); pos.stop = next; }
         continue;
@@ -321,7 +321,7 @@
         if (opts.allow && !opts.allow(k, dir)) continue;          // e.g. only above the 200-day average
         const ck = checks(X, k, dir);
         const aplus = plus ? (mk(k, dir) & plus) === plus : false;
-        pending = { dir, stop: dir > 0 ? x.c - 2 * A : x.c + 2 * A, aplus };
+        pending = { dir, stop: dir > 0 ? x.c - (opts.stopAtr || 2) * A : x.c + (opts.stopAtr || 2) * A, aplus };
         events.push({ k, t: x.t, type: "signal", dir, price: x.c, stop: pending.stop, atr: A, checks: ck, aplus });
         break;
       }
