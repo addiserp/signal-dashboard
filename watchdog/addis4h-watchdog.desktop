@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Addis 4H stream watchdog
+Comment=Keeps OBS streaming and the YouTube live running
+; change the path to where you put the watchdog folder
+Exec=sh -c "sleep 60; cd $HOME/addis4h-watchdog && python3 obs_watchdog.py"
+Terminal=false
+X-GNOME-Autostart-enabled=true

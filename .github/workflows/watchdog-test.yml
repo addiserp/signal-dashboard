@@ -1,0 +1,24 @@
+name: Watchdog YouTube check test
+on:
+  workflow_dispatch:
+    inputs:
+      channels:
+        description: "channel URLs separated by spaces"
+        default: "https://www.youtube.com/@addis-chart-signals https://www.youtube.com/@LofiGirl https://www.youtube.com/@YouTube"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -q requests obsws-python
+      - name: Live state of each channel
+        env:
+          CH: ${{ github.event.inputs.channels }}
+        run: |
+          cd watchdog && python3 test_watchdog.py 2>&1 | tail -3
+          python3 -c "
+          import os, obs_watchdog as W
+          for ch in os.environ['CH'].split():
+              print(ch, '->', W.youtube_state(ch))
+          "

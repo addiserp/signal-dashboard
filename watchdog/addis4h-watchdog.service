@@ -1,0 +1,19 @@
+# Alternative to the .desktop file: a systemd user service (restarts the watchdog if it ever stops).
+# Install:  mkdir -p ~/.config/systemd/user && cp addis4h-watchdog.service ~/.config/systemd/user/
+#           systemctl --user daemon-reload && systemctl --user enable --now addis4h-watchdog
+# Logs:     journalctl --user -u addis4h-watchdog -f      (also watchdog.log)
+[Unit]
+Description=Addis 4H stream watchdog
+After=graphical-session.target
+
+[Service]
+WorkingDirectory=%h/addis4h-watchdog
+ExecStartPre=/bin/sleep 60
+ExecStart=/usr/bin/python3 %h/addis4h-watchdog/obs_watchdog.py
+Restart=always
+RestartSec=30
+# OBS needs your desktop session to open its window
+Environment=DISPLAY=:0
+
+[Install]
+WantedBy=default.target

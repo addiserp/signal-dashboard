@@ -32,6 +32,8 @@ Options, added to the link with `&`:
 | `tfs` | `&tfs=4h,1h,30m,15m,5m` | timeframes shown during each symbol's turn, in order |
 | `dxy` | `&dxy=CAPITALCOM:DXY` | the dollar-index symbol for the TradingView chart (default `CAPITALCOM:DXY`; TradingView doesn't allow `TVC:DXY` in embedded charts) |
 | `lang` | `&lang=am`, `&lang=ar` or `&lang=om` | on-screen language: **Amharic** (Ethiopic script), **Arabic** (right to left) or **Afaan Oromo** (Qubee). Leave it out for English. Chart labels (BOS, CHoCH, OB, Fibonacci, BSL/SSL) and symbols stay in English, as traders use them. For one stream per language, add a second Browser source (or a second OBS profile) with the other `lang` and its own YouTube stream key |
+| `lang=auto` | `&lang=auto` | **one stream, four languages by the clock.** The page switches language at fixed times (Addis Ababa time, EAT). Default: **English 16:00–06:00** (New York session and the US evening), **Arabic 06:00–09:20**, **Amharic 09:20–12:40**, **Afaan Oromo 12:40–16:00**. The countdown line shows the next language and the time it starts, and the news ticker shows the whole timetable, so viewers know when to tune in. It never switches while a signal banner is showing |
+| `sched` | `&sched=06:00=ar,09:20=am,12:40=om,16:00=en` | your own timetable for `lang=auto`: start times in EAT (24 h) with a language (`en` `am` `ar` `om`). Each language runs until the next start time |
 | `sub` | `&sub=0` | turn off the subscribe + bell reminder that pops up (bottom-right, about 6 seconds) each time the coin changes |
 | `subsnd` | `&subsnd=0` | keep the reminder but without its click and bell sound (`&subvol=0.35` sets its volume) |
 | `vix` | `&vix=CAPITALCOM:VIX` | the VIX symbol for the chart under DXY (default `CAPITALCOM:VIX`) |

@@ -14,6 +14,8 @@ on:
       - ".github/workflows/research.yml"
       - ".github/workflows/snapshot.yml"
       - ".github/workflows/tts.yml"
+      - ".github/workflows/watchdog-test.yml"
+      - "watchdog/**"
   workflow_dispatch:
 
 jobs:
