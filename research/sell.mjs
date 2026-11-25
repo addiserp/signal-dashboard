@@ -38,7 +38,7 @@ const fmt = (s) => s.n ? `${String(s.n).padStart(4)} trades  win ${(s.win * 100)
 const T = (y) => Date.UTC(y, 0, 1) / 1000, now = Date.now() / 1000;
 const per = (tr) => ["2019-21", "2022-23", "2024-now"].map((lab, i) => { const a = [0, T(2022), T(2024)][i], b = [T(2022), T(2024), Infinity][i]; const s = summ(tr.filter((t) => t.t >= a && t.t < b)); return `${lab} ${s.n ? (s.avg >= 0 ? "+" : "") + s.avg.toFixed(2) + "R/" + s.n : "—"}`; }).join(" · ");
 const VAR = [
-  ["no trend filter", () => true],
+  ["no trend filter", () => () => true],
   ["50-day: buy above, sell below", (s50) => (k, dir, t) => s50(t) === dir],
   ["200-day: buy above, sell below", (s50, s200) => (k, dir, t) => s200(t) === dir],
   ["both 50 and 200 agree", (s50, s200) => (k, dir, t) => s50(t) === dir && s200(t) === dir],
