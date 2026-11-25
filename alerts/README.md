@@ -2,10 +2,10 @@
 
 Every 15 minutes (after step 5 below), GitHub checks the latest **closed 4H candle** for each enabled symbol and sends you a Telegram message from the **filter system** built on the app's own indicators:
 
-- **🟢 BUY signal** — **Trend lines + Volume + Oscillators** all agree on a closed 4H candle (after they did not all agree on the candle before)
+- **🟢 BUY signal** — **Trend lines + Volume** both agree on a closed 4H candle (after they did not all agree on the candle before)
   - Trend lines: price is above the 4H down ray and the 4H up ray still holds
   - Volume: the candle's volume is above its 20-candle average
-  - Oscillators: the TradingView-style oscillators summary is Buy or Strong buy
+  - (Oscillators were removed from the rule on 25 Nov 2026: more signals, smaller average result per trade — see research/osc.mjs)
 - **⭐ A+ setup** — the same, and the **1D Structure** agrees too (latest daily BOS/CHoCH is up)
 - Stop: 2×ATR below the close, then trailed up to the lowest low of the last 10 candles. Exit only at the stop.
 

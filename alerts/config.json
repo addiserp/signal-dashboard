@@ -2,8 +2,7 @@
   "system": "filters",
   "filters": [
     "rays",
-    "volume",
-    "osc"
+    "volume"
   ],
   "aplus": [
     "structure"
@@ -14,7 +13,7 @@
   "leverage": 5,
   "feePct": 0.05,
   "fundingPct": 0.01,
-  "liveSince": "2026-11-06",
+  "liveSince": "2026-11-25",
   "dailySummaryHourUTC": 5,
   "stopUpdates": true,
   "earlyWarning": false,
@@ -23,7 +22,7 @@
       "name": "BTCUSDT",
       "enabled": true,
       "sides": "long",
-      "tested": "Backtest 2018–2026 (long): +0.46R/trade, A+ +0.60R/trade",
+      "tested": "Backtest 2019–2026 (long, Trend lines + Volume): +0.34R/trade, A+ +0.39R/trade",
       "sources": [
         {
           "type": "binance-spot",
@@ -39,7 +38,7 @@
       "name": "ZECUSDT",
       "enabled": true,
       "sides": "long",
-      "tested": "Backtest 2019–2026 (long): +0.30R/trade, A+ +0.40R/trade",
+      "tested": "Backtest 2019–2026 (long, Trend lines + Volume): +0.16R/trade, A+ +0.30R/trade",
       "sources": [
         {
           "type": "binance-spot",
@@ -55,7 +54,7 @@
       "name": "ETHUSDT",
       "enabled": true,
       "sides": "long",
-      "tested": "Backtest 2018–2026 (long+short): +0.28R/trade — long only not tested yet, trade small",
+      "tested": "Backtest 2019–2026 (long, Trend lines + Volume): +0.28R/trade, A+ +0.31R/trade",
       "sources": [
         {
           "type": "binance-spot",
@@ -87,7 +86,7 @@
       "name": "Gold (XAU)",
       "enabled": true,
       "sides": "long",
-      "tested": "Backtest gold 2020–2026 (long, above the 200-day average): ≈ +0.14R per trade; 2024–2026 ≈ +0.37R",
+      "tested": "Backtest gold 2020–2026 (long, above the 200-day average, Trend lines + Volume): ≈ +0.02R per trade — no clear edge; 2024–2026 ≈ +0.19R",
       "sources": [
         {
           "type": "binance-futures",

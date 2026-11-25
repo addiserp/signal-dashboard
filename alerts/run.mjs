@@ -1,5 +1,5 @@
 // Addis 4H — 4H alerts to Telegram.
-// System "filters" (default): BUY when Trend lines + Volume + Oscillators agree on a closed 4H candle,
+// System "filters" (default): BUY when Trend lines + Volume agree on a closed 4H candle (Oscillators removed 25 Nov 2026),
 // ⭐ A+ when the 1D Structure agrees too. Stop 2×ATR, trailed to the 10-candle low.
 // System "donchian": the older Donchian breakout (set "system": "donchian" in config.json).
 // Runs on GitHub Actions (every 15 min when triggered by cron-job.org; GitHub's own schedule is often
@@ -24,7 +24,7 @@ const cfg = JSON.parse(readFileSync(join(here, "config.json"), "utf8"));
 const F = require("./dfilters.js");
 const SYSTEM = cfg.system || "filters";
 const bits = (names) => (names || []).reduce((m, n) => { const b = F.KEYS.indexOf(n); if (b < 0) throw new Error(`unknown filter "${n}" in config.json (use ${F.KEYS.join(", ")})`); return m | (1 << b); }, 0);
-const NEED = bits(cfg.filters || ["rays", "volume", "osc"]), PLUS = bits(cfg.aplus || ["structure"]);
+const NEED = bits(cfg.filters || ["rays", "volume"]), PLUS = bits(cfg.aplus || ["structure"]);
 const NEED_NAMES = F.KEYS.filter((k, b) => NEED & (1 << b)).map((k) => F.FILTERS[k].name);
 const SYS_NAME = SYSTEM === "filters" ? "addis-4H Signals" : "4H Donchian";
 const MODE = (process.env.MODE || "auto").toLowerCase();
@@ -193,7 +193,7 @@ function eventMessage(sym, ev, res, source, livePrice) {
     const head = ev.aplus ? `⭐ <b>A+ ${side} setup</b> — all filters agree, including the 1D structure` : `<b>${side} signal</b> — ${NEED_NAMES.join(" + ")} agree`;
     return `${lateHead}${ev.dir > 0 ? "🟢" : "🔻"} ${tag} — ${head}
 ${checksLine(ev.checks)}
-Close <b>${fmt(ev.price)}</b> · oscillators ${F.oscLabel(ev.checks.oscRating)}
+Close <b>${fmt(ev.price)}</b>
 ${late ? `Planned entry: next candle open at ${eat(closeT)}` : `Enter: market order now (next candle opened ${eat(closeT)})`}
 Stop: <b>${fmt(ev.stop)}</b> (2×ATR, ${pct(ev.stop, ev.price)}), then trail to the 10-candle low${sizeLine(ev.price, ev.stop, ev.dir)}${late ? lateSignalAdvice(ev, res, livePrice) : ""}${short}
 ${ev.trend ? `📈 Above its 200-day average (${fmt(ev.trend.close)} vs ${fmt(ev.trend.sma)}) ✅\n` : ""}${sym.watchOnly ? `👀 <b>Watch-only:</b> ${sym.watchOnly}\n` : ""}${sym.tested ? `Backtest ${sym.tested.replace(/^Backtest /, "")}` : ""}

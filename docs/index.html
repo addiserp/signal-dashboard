@@ -308,7 +308,7 @@
   .lv-tfc{font-size:1.3vh;font-weight:700;text-align:center;padding:.3vh .2vh;border-radius:.5vh;background:#1a212d;color:#94a3b8;border:1px solid transparent;white-space:nowrap}
   .lv-tfc b{display:block;font-size:1.35vh;color:#e2e8f0}
   .lv-tfc i{font-style:normal;color:#fde047}
-  .lv-tfc.n2{background:rgba(250,204,21,.12);color:#fde047}.lv-tfc.n3{background:rgba(34,197,94,.18);color:#4ade80}
+  .lv-tfc.n1{background:rgba(250,204,21,.12);color:#fde047}.lv-tfc.n2{background:rgba(34,197,94,.18);color:#4ade80}
   .lv-tfc.cur{border-color:#3b82f6;box-shadow:0 0 0 1px #3b82f6 inset}
   .lv-tfc.sys b{color:#38bdf8}
   .lv-tfn{font-size:1.1vh;color:#64748b;margin-top:.3vh;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -510,11 +510,11 @@
     </section>
   </div>
   <section class="tv-card" id="dcCard">
-    <div class="card-title">✅ Tested system: addis-4H Signals <small>Trend lines + Volume + Oscillators · ⭐ A+ when the 1D structure agrees · same rules as your Telegram alerts</small></div>
+    <div class="card-title">✅ Tested system: addis-4H Signals <small>Trend lines + Volume · ⭐ A+ when the 1D structure agrees · same rules as your Telegram alerts</small></div>
     <div class="tv-top" id="dcTop"></div>
     <div class="dc-grid">
       <div>
-        <div class="card-sub">📒 Paper trading since <input type="date" id="dcSince" value="2026-11-06"> <small class="neutral">(after fees + funding)</small></div>
+        <div class="card-sub">📒 Paper trading since <input type="date" id="dcSince" value="2026-11-25"> <small class="neutral">(after fees + funding)</small></div>
         <div class="tv-top" id="dcPaper"></div>
         <div style="overflow-x:auto"><table class="tt"><thead><tr><th>Entry</th><th>Setup</th><th>Entry price</th><th>Exit price</th><th>Result</th></tr></thead><tbody id="dcTrades"></tbody></table></div>
       </div>
@@ -531,7 +531,7 @@
         <table class="tt"><tbody id="ccOut"></tbody></table>
       </div>
     </div>
-    <div class="msg">Rules (long only): <b>buy</b> when Trend lines (above the 4H down ray, up ray holding), Volume (above its 20-candle average) and the Oscillators summary (Buy or Strong buy) all agree on a closed 4H candle; it is an <b>⭐ A+ setup</b> when the 1D Structure is bullish too. First stop 2×ATR below the close, then move it up to the lowest low of the last 10 candles; exit only at the stop. Backtest after fees: BTC 2018–2026 ≈ +0.46R per trade, A+ ≈ +0.60R. Paper results replay the same rules on the candles since the date above (up to the last ~5 months the app loads). Telegram alerts: <b>alerts/README.md</b> in your GitHub repository. Not financial advice.</div>
+    <div class="msg">Rules (long only): <b>buy</b> when Trend lines (above the 4H down ray, up ray holding) and Volume (above its 20-candle average) both agree on a closed 4H candle; it is an <b>⭐ A+ setup</b> when the 1D Structure is bullish too. Oscillators are no longer part of the rule (since 25 Nov 2026). First stop 2×ATR below the close, then move it up to the lowest low of the last 10 candles; exit only at the stop. Backtest after fees: BTC 2019–2026 ≈ +0.34R per trade, A+ ≈ +0.39R (with Oscillators it was +0.51R with fewer trades). Paper results replay the same rules on the candles since the date above (up to the last ~5 months the app loads). Telegram alerts: <b>alerts/README.md</b> in your GitHub repository. Not financial advice.</div>
   </section>
   <div class="tv-grid">
     <section class="tv-card">
@@ -2065,17 +2065,17 @@ function dcRender() {
   const nowS = Date.now() / 1000;
   const c = all.filter((x) => x.t + 14400 <= nowS);            // closed candles only
   const d = ((tlData && tlData["1d"]) || []).filter((x) => x.t + 86400 <= nowS);
-  const F = DonchianFilters, NEED = 2 | 8 | 32, PLUS = 1;       // Trend lines + Volume + Oscillators; A+ = Structure
+  const F = DonchianFilters, NEED = 2 | 8, PLUS = 1;       // Trend lines + Volume; A+ = Structure (Oscillators removed 25 Nov 2026)
   const gold = A4_TREND200.has(s.sym), tAt = gold ? a4Trend200(d) : null;
   const r = F.replayFilters(F.context({ "4h": c, "1d": d }, "4h"), { need: NEED, plus: PLUS, sides: "long", allow: tAt ? (k) => { const st = tAt(c[k].t + 14400); return !!(st && st.above); } : null });
   r.hi20 = null;
   const tNow = tAt ? tAt(nowS) : null;
   const live = all[all.length - 1].c;
   const p = r.position;
-  const T = { BTCUSDT: ["bull", "backtest 2018–2026: +0.46R/trade · A+ +0.60R"], ZECUSDT: ["bull", "backtest 2019–2026: +0.30R/trade · A+ +0.40R"], ETHUSDT: ["neutral", "tested long+short only: +0.28R/trade"], XAUUSDT: ["neutral", "watch-only · gold 2024–26 +0.37R/trade (above 200-day); 2020–23 lost"] }[s.sym] || ["neutral", "not backtested on this symbol"];
+  const T = { BTCUSDT: ["bull", "backtest 2019–2026: +0.34R/trade · A+ +0.39R"], ZECUSDT: ["bull", "backtest 2019–2026: +0.16R/trade · A+ +0.30R"], ETHUSDT: ["bull", "backtest 2019–2026: +0.28R/trade · A+ +0.31R"], XAUUSDT: ["neutral", "watch-only · gold ≈ +0.02R/trade (no clear edge); 2024–26 +0.19R"] }[s.sym] || ["neutral", "not backtested on this symbol"];
   const tested = `<span class="badge ${T[0]}">${T[1]}</span>`;
   const tick = (ok) => ok ? "✅" : "❌";
-  const chk = (ck) => `${tick(ck.rays)} Trend lines · ${tick(ck.volume)} Volume · ${tick(ck.osc)} Oscillators <span class="neutral">· A+:</span> ${tick(ck.structure)} Structure` + (gold ? ` <span class="neutral">· 200-day:</span> ${tNow ? tick(tNow.above) : "—"}` : "");
+  const chk = (ck) => `${tick(ck.rays)} Trend lines · ${tick(ck.volume)} Volume <span class="neutral">· A+:</span> ${tick(ck.structure)} Structure` + (gold ? ` <span class="neutral">· 200-day:</span> ${tNow ? tick(tNow.above) : "—"}` : "");
   let state;
   if (p) {
     const openR = (live - p.entry) / p.risk;
@@ -2091,16 +2091,16 @@ function dcRender() {
       <div style="flex-basis:100%"><div class="muted">Checks</div><div>${chk(r.now)}</div></div>`;
   } else {
     const stop = live - 2 * r.atr;
-    const n = [r.now.rays, r.now.volume, r.now.osc].filter(Boolean).length;
+    const n = [r.now.rays, r.now.volume].filter(Boolean).length;
     dcLevels = { entry: live, stop, label: "the current price and a 2×ATR stop" };
-    state = `<div><div class="muted">Status</div><div><span class="badge neutral">${gold && tNow && !tNow.above ? "no trade — gold is below its 200-day average" : `no trade — waiting for the filters (${n}/3 agree)`}</span></div></div>
+    state = `<div><div class="muted">Status</div><div><span class="badge neutral">${gold && tNow && !tNow.above ? "no trade — gold is below its 200-day average" : `no trade — waiting for the filters (${n}/2 agree)`}</span></div></div>
       <div style="flex:1;min-width:240px"><div class="muted">Last 4H close</div><div>${chk(r.now)}</div></div>
       <div><div class="muted">First stop would be about</div><div>${tlFmt(stop)} <span class="neutral" style="font-size:11px">(2×ATR)</span></div></div>`;
   }
   box.innerHTML = `<div><div class="muted">Symbol</div><div class="big">${s.name}</div><div style="margin-top:4px">${tested}</div></div>` + state;
 
   // paper trading since the chosen date
-  const sinceStr = document.getElementById("dcSince").value || "2026-11-06";
+  const sinceStr = document.getElementById("dcSince").value || "2026-11-25";
   const since = Date.parse(sinceStr + "T00:00:00Z") / 1000;
   const pp = DonchianCore.paper(r.trades, p, c[c.length - 1], since);
   const firstT = c[0].t;
@@ -2157,8 +2157,8 @@ function ccRender() {
   for (const id of ["ccEntry", "ccStop"]) document.getElementById(id).addEventListener("input", () => { ccTouched = true; ccRender(); });
   document.getElementById("ccFill").onclick = ccFill;
   const since = document.getElementById("dcSince");
-  since.value = load("tvdash.a4Since", "2026-11-06");
-  since.addEventListener("change", () => { save("tvdash.a4Since", since.value); dcRender(); });
+  since.value = load("tvdash.a4Since2", "2026-11-25");
+  since.addEventListener("change", () => { save("tvdash.a4Since2", since.value); dcRender(); });
 })();
 
 function bsRender() {
@@ -3979,77 +3979,77 @@ if (LIVE_MODE) (function liveMode() {
   const LANG = ["am", "ar", "om"].includes((P.get("lang") || "").toLowerCase()) ? P.get("lang").toLowerCase() : "en";
   const I18N = {
     en: {
-      live: "● LIVE", tfRowH: "Every timeframe · checks agreeing on the last closed candle", tfRowN: "n/3 = checks agreeing on each timeframe's last closed candle · alerts use 4H only", pending: "⏳ {x}: breaking now · confirms at the {t} EAT close", nfa: "⚠ NOT FINANCIAL ADVICE", dxyH: "DXY · U.S. Dollar Index · reference", vixH: "VIX · Fear index · reference",
+      live: "● LIVE", tfRowH: "Every timeframe · checks agreeing on the last closed candle", tfRowN: "n/2 = checks agreeing on each timeframe's last closed candle · alerts use 4H only", pending: "⏳ {x}: breaking now · confirms at the {t} EAT close", nfa: "⚠ NOT FINANCIAL ADVICE", dxyH: "DXY · U.S. Dollar Index · reference", vixH: "VIX · Fear index · reference",
       phaseH: "Market phase · funding · open interest", scoreH: "📒 addis-4H Signals · paper results since {d}", anaH: "Chart analysis", tag: "ANALYSIS",
       loading: "Loading…", loadingSym: "Loading {s}…", slogan: "Charts never lie", sub: "SUBSCRIBE", subbed: "SUBSCRIBED ✓", notif: "🔔 Notifications on · see every new live",
       noHist: "Not enough history for {s}.", aplus: "⭐ A+ BUY SETUP", buy: "🟢 BUY SIGNAL", buyBanner: "🔔 BUY SIGNAL", buyPlain: "BUY SIGNAL", inLong: "IN A LONG",
-      below200: "BELOW 200-DAY · no gold signals", waiting: "WAITING · {n}/3 agree", entry: "Entry", stop: "Stop", open: "Open", stopPlace: "Stop to place",
+      below200: "BELOW 200-DAY · no gold signals", waiting: "WAITING · {n}/2 agree", entry: "Entry", stop: "Stop", open: "Open", stopPlace: "Stop to place",
       trend: "Trend lines", volume: "Volume", osc: "Oscillators", structure: "Structure", above200: "Above 200-day", goldWatch: "👀 gold: watch-only",
       "Strong buy": "Strong buy", Buy: "Buy", Neutral: "Neutral", Sell: "Sell", "Strong sell": "Strong sell",
       bias: "Bias 1M→15m", tfStruct: "{tf} structure", rays: "Trend rays", liqAbove: "Liquidity above", liqBelow: "Liquidity below", none: "none nearby",
-      mqInLong: "in a long, stop {p}", mqAgree: "{n} of 3 filters agree", watch: "Watchlist — ", dxyvix: "DXY and VIX top-left for reference", nfaBrand: "Not financial advice · Addis 4H",
+      mqInLong: "in a long, stop {p}", mqAgree: "{n} of 2 filters agree", watch: "Watchlist — ", dxyvix: "DXY and VIX top-left for reference", nfaBrand: "Not financial advice · Addis 4H",
       mqReq: "🙋 Viewer request{by}: {s}", mqReqBy: " from @{u}", mqBias: "Bias {x}", mqStruct: "{tf} structure {x}", mqRays: "Trend rays: {x}", mqLiq: "Liquidity above {a} · below {b}", inLongShort: "in a long", buyShort: "🟢 BUY", aplusShort: "⭐ A+ BUY",
       up: "Uptrend", weak: "Below 200-day", pb: "Pullback", cor: "Correction", deep: "Deep correction", bear: "Bear market",
       phNote: "% = below 180-day high · F = funding now · OI = open interest 24h",
       trades: "trades", wins: "wins", total: "total", openW: "open", noTrades: "no trades yet", openR: " (open {r})", aplusN: " · ⭐ A+: {n} trades {r}",
-      inTrade: " in trade", signal: " signal", bSub: "{s} · 4H · price {p} · stop {st}", agree4: "Trend lines + Volume + Oscillators + 1D Structure agree", agree3: "Trend lines + Volume + Oscillators agree", nfaSmall: "not financial advice",
+      inTrade: " in trade", signal: " signal", bSub: "{s} · 4H · price {p} · stop {st}", agree4: "Trend lines + Volume + 1D Structure agree", agree3: "Trend lines + Volume agree", nfaSmall: "not financial advice",
       nextTf: "Next: {tf} in {t} · ", nextSym: "{s} in {t}", nextReq: "next request in {t}", rotation: "rotation in {t}", h24: "24h",
       req: "🙋 Request", reqH: "🙋 Viewer request", reqHelp: "Enter = show it · Esc = cancel · type several to queue them", looking: "Looking it up…",
       queued: "Queued: {s} ({n} waiting) — type another or press Esc", notFound: "{s} was not found on Binance", tryOther: " — try another name (e.g. SOL, GOLD, NVDA)", typeName: "type a coin or stock name",
     },
     am: {
-      live: "● ቀጥታ", tfRowH: "በየጊዜ ክፈፉ · በመጨረሻው የተዘጋ ሻማ የሚስማሙ ፍተሻዎች", tfRowN: "n/3 = በየጊዜ ክፈፉ የመጨረሻ የተዘጋ ሻማ የሚስማሙ ፍተሻዎች · ማንቂያዎች 4H ብቻ", pending: "⏳ {x}፦ አሁን እየሰበረ ነው · በ{t} EAT መዝጊያ ይረጋገጣል", nfa: "⚠ የፋይናንስ ምክር አይደለም", dxyH: "DXY · የአሜሪካ ዶላር ኢንዴክስ · ለማጣቀሻ", vixH: "VIX · የገበያ ፍርሃት ኢንዴክስ · ለማጣቀሻ",
+      live: "● ቀጥታ", tfRowH: "በየጊዜ ክፈፉ · በመጨረሻው የተዘጋ ሻማ የሚስማሙ ፍተሻዎች", tfRowN: "n/2 = በየጊዜ ክፈፉ የመጨረሻ የተዘጋ ሻማ የሚስማሙ ፍተሻዎች · ማንቂያዎች 4H ብቻ", pending: "⏳ {x}፦ አሁን እየሰበረ ነው · በ{t} EAT መዝጊያ ይረጋገጣል", nfa: "⚠ የፋይናንስ ምክር አይደለም", dxyH: "DXY · የአሜሪካ ዶላር ኢንዴክስ · ለማጣቀሻ", vixH: "VIX · የገበያ ፍርሃት ኢንዴክስ · ለማጣቀሻ",
       phaseH: "የገበያ ምዕራፍ · ፈንዲንግ · ክፍት ውሎች", scoreH: "📒 addis-4H Signals · የሙከራ ውጤቶች ከ{d} ጀምሮ", anaH: "የቻርት ትንተና", tag: "ትንተና",
       loading: "በመጫን ላይ…", loadingSym: "{s} በመጫን ላይ…", slogan: "ቻርቶች አይዋሹም", sub: "ሰብስክራይብ", subbed: "ተመዝግበዋል ✓", notif: "🔔 ማሳወቂያ በርቷል · ምንም ቀጥታ ስርጭት አያምልጥዎ",
       noHist: "ለ{s} በቂ ታሪካዊ መረጃ የለም።", aplus: "⭐ A+ የግዢ ዕድል", buy: "🟢 የግዢ ምልክት", buyBanner: "🔔 የግዢ ምልክት", buyPlain: "የግዢ ምልክት", inLong: "በግዢ ንግድ ውስጥ",
-      below200: "ከ200-ቀን አማካይ በታች · የወርቅ ምልክት የለም", waiting: "በመጠበቅ ላይ · {n}/3 ይስማማሉ", entry: "መግቢያ", stop: "ማቆሚያ", open: "ክፍት", stopPlace: "የሚቀመጥ ማቆሚያ",
+      below200: "ከ200-ቀን አማካይ በታች · የወርቅ ምልክት የለም", waiting: "በመጠበቅ ላይ · {n}/2 ይስማማሉ", entry: "መግቢያ", stop: "ማቆሚያ", open: "ክፍት", stopPlace: "የሚቀመጥ ማቆሚያ",
       trend: "የአዝማሚያ መስመሮች", volume: "የግብይት መጠን", osc: "ኦሲሌተሮች", structure: "መዋቅር", above200: "ከ200-ቀን አማካይ በላይ", goldWatch: "👀 ወርቅ፦ ለክትትል ብቻ",
       "Strong buy": "ጠንካራ ግዢ", Buy: "ግዢ", Neutral: "ገለልተኛ", Sell: "ሽያጭ", "Strong sell": "ጠንካራ ሽያጭ",
       bias: "አቅጣጫ 1M→15m", tfStruct: "የ{tf} መዋቅር", rays: "የአዝማሚያ ጨረሮች", liqAbove: "ሊኩዲቲ ከላይ", liqBelow: "ሊኩዲቲ ከታች", none: "በአቅራቢያ የለም",
-      mqInLong: "በግዢ ንግድ ውስጥ፣ ማቆሚያ {p}", mqAgree: "ከ3 ማጣሪያዎች {n}ቱ ይስማማሉ", watch: "የክትትል ዝርዝር — ", dxyvix: "DXY እና VIX ከላይ በግራ ለማጣቀሻ", nfaBrand: "የፋይናንስ ምክር አይደለም · Addis 4H",
+      mqInLong: "በግዢ ንግድ ውስጥ፣ ማቆሚያ {p}", mqAgree: "ከ2 ማጣሪያዎች {n}ቱ ይስማማሉ", watch: "የክትትል ዝርዝር — ", dxyvix: "DXY እና VIX ከላይ በግራ ለማጣቀሻ", nfaBrand: "የፋይናንስ ምክር አይደለም · Addis 4H",
       mqReq: "🙋 የተመልካች ጥያቄ{by}፦ {s}", mqReqBy: " ከ@{u}", mqBias: "አቅጣጫ {x}", mqStruct: "የ{tf} መዋቅር {x}", mqRays: "የአዝማሚያ ጨረሮች፦ {x}", mqLiq: "ሊኩዲቲ ከላይ {a} · ከታች {b}", inLongShort: "በግዢ ውስጥ", buyShort: "🟢 ግዢ", aplusShort: "⭐ A+ ግዢ",
       up: "ወደ ላይ አዝማሚያ", weak: "ከ200 ቀን በታች", pb: "መጠነኛ መመለስ", cor: "እርማት", deep: "ጥልቅ እርማት", bear: "የድብ ገበያ",
       phNote: "% = ከ180 ቀን ከፍተኛ በታች · F = ፈንዲንግ አሁን · OI = ክፍት ውሎች 24 ሰዓት",
       trades: "ንግዶች", wins: "ያሸነፉ", total: "ጠቅላላ", openW: "ክፍት", noTrades: "እስካሁን ንግድ የለም", openR: " (ክፍት {r})", aplusN: " · ⭐ A+፦ {n} ንግዶች {r}",
-      inTrade: " በንግድ ውስጥ", signal: " ምልክት", bSub: "{s} · 4H · ዋጋ {p} · ማቆሚያ {st}", agree4: "የአዝማሚያ መስመሮች + የግብይት መጠን + ኦሲሌተሮች + 1D መዋቅር ይስማማሉ", agree3: "የአዝማሚያ መስመሮች + የግብይት መጠን + ኦሲሌተሮች ይስማማሉ", nfaSmall: "የፋይናንስ ምክር አይደለም",
+      inTrade: " በንግድ ውስጥ", signal: " ምልክት", bSub: "{s} · 4H · ዋጋ {p} · ማቆሚያ {st}", agree4: "የአዝማሚያ መስመሮች + የግብይት መጠን + 1D መዋቅር ይስማማሉ", agree3: "የአዝማሚያ መስመሮች + የግብይት መጠን ይስማማሉ", nfaSmall: "የፋይናንስ ምክር አይደለም",
       nextTf: "ቀጣይ፦ {tf} በ{t} ውስጥ · ", nextSym: "{s} በ{t} ውስጥ", nextReq: "ቀጣይ ጥያቄ በ{t} ውስጥ", rotation: "ዙሩ በ{t} ውስጥ", h24: "24 ሰዓት",
       req: "🙋 ጥያቄ", reqH: "🙋 የተመልካች ጥያቄ", reqHelp: "Enter = አሳይ · Esc = ሰርዝ · ብዙ ስሞችን ይጻፉ ለወረፋ", looking: "በመፈለግ ላይ…",
       queued: "ወረፋ ላይ፦ {s} ({n} በመጠባበቅ ላይ) — ሌላ ይጻፉ ወይም Esc ይጫኑ", notFound: "{s} በBinance ላይ አልተገኘም", tryOther: " — ሌላ ስም ይሞክሩ (ለምሳሌ SOL, GOLD, NVDA)", typeName: "የአክሲዮን ወይም የሳንቲም ስም ይጻፉ",
     },
     ar: {
-      live: "● مباشر", tfRowH: "كل إطار زمني · الفحوص المتوافقة على آخر شمعة مغلقة", tfRowN: "n/3 = الفحوص المتوافقة على آخر شمعة مغلقة لكل إطار · التنبيهات على 4H فقط", pending: "⏳ {x}: يحدث الآن · يتأكد عند إغلاق الساعة {t} EAT", nfa: "⚠ ليست نصيحة مالية", dxyH: "DXY · مؤشر الدولار الأمريكي · للمرجعية", vixH: "VIX · مؤشر الخوف · للمرجعية",
+      live: "● مباشر", tfRowH: "كل إطار زمني · الفحوص المتوافقة على آخر شمعة مغلقة", tfRowN: "n/2 = الفحوص المتوافقة على آخر شمعة مغلقة لكل إطار · التنبيهات على 4H فقط", pending: "⏳ {x}: يحدث الآن · يتأكد عند إغلاق الساعة {t} EAT", nfa: "⚠ ليست نصيحة مالية", dxyH: "DXY · مؤشر الدولار الأمريكي · للمرجعية", vixH: "VIX · مؤشر الخوف · للمرجعية",
       phaseH: "مرحلة السوق · التمويل · العقود المفتوحة", scoreH: "📒 addis-4H Signals · نتائج تجريبية منذ {d}", anaH: "تحليل الرسم البياني", tag: "تحليل",
       loading: "جارٍ التحميل…", loadingSym: "جارٍ تحميل {s}…", slogan: "الرسوم البيانية لا تكذب", sub: "اشترك", subbed: "مشترك ✓", notif: "🔔 الإشعارات مفعّلة · لا تفوّت أي بث مباشر",
       noHist: "لا توجد بيانات تاريخية كافية لـ {s}.", aplus: "⭐ فرصة شراء A+", buy: "🟢 إشارة شراء", buyBanner: "🔔 إشارة شراء", buyPlain: "إشارة شراء", inLong: "في صفقة شراء",
-      below200: "تحت متوسط 200 يوم · لا إشارات للذهب", waiting: "انتظار · \u2066{n}/3\u2069 متوافقة", entry: "الدخول", stop: "وقف الخسارة", open: "مفتوح", stopPlace: "وقف الخسارة المقترح",
+      below200: "تحت متوسط 200 يوم · لا إشارات للذهب", waiting: "انتظار · \u2066{n}/2\u2069 متوافقة", entry: "الدخول", stop: "وقف الخسارة", open: "مفتوح", stopPlace: "وقف الخسارة المقترح",
       trend: "خطوط الاتجاه", volume: "حجم التداول", osc: "المذبذبات", structure: "هيكل السوق", above200: "فوق متوسط 200 يوم", goldWatch: "👀 الذهب: للمتابعة فقط",
       "Strong buy": "شراء قوي", Buy: "شراء", Neutral: "محايد", Sell: "بيع", "Strong sell": "بيع قوي",
       bias: "الاتجاه 1M→15m", tfStruct: "هيكل {tf}", rays: "أشعة الاتجاه", liqAbove: "السيولة أعلى", liqBelow: "السيولة أسفل", none: "لا يوجد قريب",
-      mqInLong: "في صفقة شراء، وقف الخسارة {p}", mqAgree: "{n} من 3 فلاتر متوافقة", watch: "قائمة المتابعة — ", dxyvix: "DXY و VIX أعلى اليسار للمرجعية", nfaBrand: "ليست نصيحة مالية · Addis 4H",
+      mqInLong: "في صفقة شراء، وقف الخسارة {p}", mqAgree: "{n} من 2 فلاتر متوافقة", watch: "قائمة المتابعة — ", dxyvix: "DXY و VIX أعلى اليسار للمرجعية", nfaBrand: "ليست نصيحة مالية · Addis 4H",
       mqReq: "🙋 طلب مشاهد{by}: {s}", mqReqBy: " من ‎@{u}", mqBias: "الاتجاه {x}", mqStruct: "هيكل {tf}: {x}", mqRays: "أشعة الاتجاه: {x}", mqLiq: "السيولة أعلى {a} · أسفل {b}", inLongShort: "في صفقة شراء", buyShort: "🟢 شراء", aplusShort: "⭐ شراء A+",
       up: "اتجاه صاعد", weak: "تحت 200 يوم", pb: "تراجع طفيف", cor: "تصحيح", deep: "تصحيح عميق", bear: "سوق هابط",
       phNote: "% = دون أعلى سعر في 180 يومًا · F = التمويل الآن · OI = العقود المفتوحة خلال 24 ساعة",
       trades: "صفقات", wins: "رابحة", total: "الإجمالي", openW: "مفتوح", noTrades: "لا صفقات بعد", openR: " (مفتوح {r})", aplusN: " · ⭐ A+: {n} صفقات {r}",
-      inTrade: " في صفقة", signal: " إشارة", bSub: "{s} · 4H · السعر {p} · وقف الخسارة {st}", agree4: "خطوط الاتجاه + الحجم + المذبذبات + هيكل 1D متوافقة", agree3: "خطوط الاتجاه + الحجم + المذبذبات متوافقة", nfaSmall: "ليست نصيحة مالية",
+      inTrade: " في صفقة", signal: " إشارة", bSub: "{s} · 4H · السعر {p} · وقف الخسارة {st}", agree4: "خطوط الاتجاه + الحجم + هيكل 1D متوافقة", agree3: "خطوط الاتجاه + الحجم متوافقان", nfaSmall: "ليست نصيحة مالية",
       nextTf: "التالي: {tf} خلال {t} · ", nextSym: "{s} خلال {t}", nextReq: "الطلب التالي خلال {t}", rotation: "العودة للقائمة خلال {t}", h24: "24 ساعة",
       req: "🙋 طلب", reqH: "🙋 طلب مشاهد", reqHelp: "Enter = عرض · Esc = إلغاء · اكتب عدة أسماء لإضافتها إلى قائمة الانتظار", looking: "جارٍ البحث…",
       queued: "في قائمة الانتظار: {s} ({n} بالانتظار) — اكتب اسمًا آخر أو اضغط Esc", notFound: "{s} غير موجود على Binance", tryOther: " — جرّب اسمًا آخر (مثل SOL أو GOLD أو NVDA)", typeName: "اكتب اسم سهم أو عملة",
     },
     om: {
-      live: "● KALLATTII", tfRowH: "Yeroo hunda · qorannoowwan shaamaa cufame dhumaa irratti walii galan", tfRowN: "n/3 = qorannoowwan shaamaa cufame dhumaa irratti walii galan · beeksisni 4H qofa", pending: "⏳ {x}: amma cabaa jira · cufamuu {t} EAT irratti mirkanaa'a", nfa: "⚠ GORSA FAAYINAANSII MITI", dxyH: "DXY · Indeeksii Doolaara Ameerikaa · wabii", vixH: "VIX · Indeeksii sodaa · wabii",
+      live: "● KALLATTII", tfRowH: "Yeroo hunda · qorannoowwan shaamaa cufame dhumaa irratti walii galan", tfRowN: "n/2 = qorannoowwan shaamaa cufame dhumaa irratti walii galan · beeksisni 4H qofa", pending: "⏳ {x}: amma cabaa jira · cufamuu {t} EAT irratti mirkanaa'a", nfa: "⚠ GORSA FAAYINAANSII MITI", dxyH: "DXY · Indeeksii Doolaara Ameerikaa · wabii", vixH: "VIX · Indeeksii sodaa · wabii",
       phaseH: "Sadarkaa gabaa · funding · open interest", scoreH: "📒 addis-4H Signals · bu'aa yaalii erga {d} as", anaH: "Xiinxala chaartii", tag: "XIINXALA",
       loading: "Fe'amaa jira…", loadingSym: "{s} fe'amaa jira…", slogan: "Chaartiin hin sobu", sub: "GALMAA'I", subbed: "GALMAA'AME ✓", notif: "🔔 Beeksisni banameera · kallattii haaraa hunda ilaali",
       noHist: "{s}f seenaan gahaan hin jiru.", aplus: "⭐ CARRAA BITTAA A+", buy: "🟢 MALLATTOO BITTAA", buyBanner: "🔔 MALLATTOO BITTAA", buyPlain: "MALLATTOO BITTAA", inLong: "BITTAA KEESSA JIRA",
-      below200: "GIDDUGALA GUYYAA-200 GADI · mallattoo warqee hin jiru", waiting: "EEGAA JIRA · {n}/3 walii galan", entry: "Seensa", stop: "Dhaabbii", open: "Banaa", stopPlace: "Dhaabbii kaa'amu",
+      below200: "GIDDUGALA GUYYAA-200 GADI · mallattoo warqee hin jiru", waiting: "EEGAA JIRA · {n}/2 walii galan", entry: "Seensa", stop: "Dhaabbii", open: "Banaa", stopPlace: "Dhaabbii kaa'amu",
       trend: "Sararoota adeemsaa", volume: "Hamma daldalaa", osc: "Oscillators", structure: "Caasaa", above200: "Giddugala guyyaa-200 ol", goldWatch: "👀 warqee: hordoffii qofa",
       "Strong buy": "Bittaa cimaa", Buy: "Bittaa", Neutral: "Giddugaleessa", Sell: "Gurgurtaa", "Strong sell": "Gurgurtaa cimaa",
       bias: "Kallattii 1M→15m", tfStruct: "Caasaa {tf}", rays: "Raayii adeemsaa", liqAbove: "Liquidity olii", liqBelow: "Liquidity gadii", none: "dhihoo hin jiru",
-      mqInLong: "bittaa keessa, dhaabbii {p}", mqAgree: "calleessitoota 3 keessaa {n} walii galu", watch: "Tarree hordoffii — ", dxyvix: "DXY fi VIX gubbaa bitaa irratti wabiif", nfaBrand: "Gorsa faayinaansii miti · Addis 4H",
+      mqInLong: "bittaa keessa, dhaabbii {p}", mqAgree: "calleessitoota 2 keessaa {n} walii galu", watch: "Tarree hordoffii — ", dxyvix: "DXY fi VIX gubbaa bitaa irratti wabiif", nfaBrand: "Gorsa faayinaansii miti · Addis 4H",
       mqReq: "🙋 Gaaffii ilaalaa{by}: {s}", mqReqBy: " @{u} irraa", mqBias: "Kallattii {x}", mqStruct: "Caasaa {tf} {x}", mqRays: "Raayii adeemsaa: {x}", mqLiq: "Liquidity olii {a} · gadii {b}", inLongShort: "bittaa keessa", buyShort: "🟢 BITTAA", aplusShort: "⭐ BITTAA A+",
       up: "Ol ka'aa", weak: "Guyyaa-200 gadi", pb: "Duubatti deebii", cor: "Sirreeffama", deep: "Sirreeffama guddaa", bear: "Gabaa gad bu'aa",
       phNote: "% = olaanaa guyyaa-180 gadi · F = funding amma · OI = open interest sa'aatii 24",
       trades: "daldala", wins: "mo'ate", total: "waliigala", openW: "banaa", noTrades: "ammaaf daldalli hin jiru", openR: " (banaa {r})", aplusN: " · ⭐ A+: daldala {n} {r}",
-      inTrade: " daldala keessa", signal: " mallattoo", bSub: "{s} · 4H · gatii {p} · dhaabbii {st}", agree4: "Sararoota adeemsaa + Hamma daldalaa + Oscillators + Caasaa 1D walii galu", agree3: "Sararoota adeemsaa + Hamma daldalaa + Oscillators walii galu", nfaSmall: "gorsa faayinaansii miti",
+      inTrade: " daldala keessa", signal: " mallattoo", bSub: "{s} · 4H · gatii {p} · dhaabbii {st}", agree4: "Sararoota adeemsaa + Hamma daldalaa + Caasaa 1D walii galu", agree3: "Sararoota adeemsaa + Hamma daldalaa walii galu", nfaSmall: "gorsa faayinaansii miti",
       nextTf: "Itti aanu: {tf} {t} keessatti · ", nextSym: "{s} {t} keessatti", nextReq: "gaaffii itti aanu {t} keessatti", rotation: "naanna'uu {t} keessatti", h24: "sa'a 24",
       req: "🙋 Gaaffii", reqH: "🙋 Gaaffii ilaalaa", reqHelp: "Enter = agarsiisi · Esc = dhiisi · tarreef hedduu barreessi", looking: "Barbaadamaa jira…",
       queued: "Tarree irra: {s} ({n} eegaa jiru) — kan biraa barreessi ykn Esc tuqi", notFound: "{s} Binance irratti hin argamne", tryOther: " — maqaa biraa yaali (fkn SOL, GOLD, NVDA)", typeName: "maqaa aksiyoonaa ykn saantimaa barreessi",
@@ -4086,9 +4086,9 @@ if (LIVE_MODE) (function liveMode() {
   }
   const ROT_MIN = Math.max(1, +(P.get("rotate") || 5));
   const TG = (P.get("tg") || "addistrad").replace(/^@/, "");
-  const SINCE = Math.floor(Date.parse((P.get("since") || "2026-11-06") + "T00:00:00Z") / 1000);
+  const SINCE = Math.floor(Date.parse((P.get("since") || "2026-11-25") + "T00:00:00Z") / 1000);
   const want = (P.get("syms") || "BTCUSDT,XAUUSDT,NVDAUSDT,SPCXUSDT,NEARUSDT").split(",").map((x) => x.trim().toUpperCase()).filter(Boolean);
-  const F = DonchianFilters, NEED = 2 | 8 | 32, PLUS = 1;
+  const F = DonchianFilters, NEED = 2 | 8, PLUS = 1;   // Trend lines + Volume; A+ = Structure
   // a different timeframe each minute of a symbol's turn (30m and 5m are added for Live mode only)
   const ord = TrendEngine.ORDER;
   if (!ord.includes("30m")) ord.splice(ord.indexOf("1h") + 1, 0, "30m");
@@ -4148,7 +4148,7 @@ if (LIVE_MODE) (function liveMode() {
     const gold = !!(sym && A4_TREND200.has(sym.sym)), tAt = gold ? a4Trend200(d) : null;
     const r = F.replayFilters(F.context({ "4h": c, "1d": d }, "4h"), { need: NEED, plus: PLUS, sides: "long", allow: tAt ? (k) => { const st = tAt(c[k].t + 14400); return !!(st && st.above); } : null });
     r.gold = gold; r.t200 = tAt ? tAt(Date.now() / 1000) : null;
-    const n = [r.now.rays, r.now.volume, r.now.osc].filter(Boolean).length;
+    const n = [r.now.rays, r.now.volume].filter(Boolean).length;
     const state = r.pending ? "signal" : r.position ? "trade" : "wait";
     const pp = DonchianCore.paper(r.trades, r.position, c[c.length - 1], SINCE);
     // the 4H candle still forming: which checks it passes right now (shown as ⏳ only; signals use closed candles)
@@ -4160,7 +4160,7 @@ if (LIVE_MODE) (function liveMode() {
         forming = { ck, close: new Date((f.t + 14400) * 1000).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Addis_Ababa" }) };
       }
     } catch (e) { forming = null; }
-    return { r, n, ck: r.now, forming, state, pp, aplus: r.pending ? r.pending.aplus : r.position ? r.position.aplus : r.now.structure && n === 3, stop: r.pending ? r.pending.stop : r.position ? r.position.stop : null, sigT: r.pending ? c[c.length - 1].t : null };
+    return { r, n, ck: r.now, forming, state, pp, aplus: r.pending ? r.pending.aplus : r.position ? r.position.aplus : r.now.structure && n === 2, stop: r.pending ? r.pending.stop : r.position ? r.position.stop : null, sigT: r.pending ? c[c.length - 1].t : null };
   }
 
   // ---------- viewer requests: press "/" or "R" (in OBS: right-click the Browser source → Interact) ----------
@@ -4288,8 +4288,8 @@ if (LIVE_MODE) (function liveMode() {
       try { const X = F.context({ [tf]: cl, "1d": d }, tf); ck = F.checks(X, cl.length - 1, 1); } catch (e) { /* not enough candles */ }
       try { if (fT + sec > nowS && all.length > cl.length) { const X2 = F.context({ [tf]: all, "1d": d }, tf); fk = F.checks(X2, all.length - 1, 1); } } catch (e) { fk = null; }
       if (!ck) continue;
-      const n = ["rays", "volume", "osc"].filter((k) => ck[k]).length;
-      const pend = fk ? ["rays", "volume", "osc"].filter((k) => !ck[k] && fk[k]).length : 0;
+      const n = ["rays", "volume"].filter((k) => ck[k]).length;
+      const pend = fk ? ["rays", "volume"].filter((k) => !ck[k] && fk[k]).length : 0;
       const row = { tf, n, pend, lastT, at: Date.now() };
       tfCache.set(key, row); out.push(row);
     }
@@ -4328,14 +4328,14 @@ if (LIVE_MODE) (function liveMode() {
       let tfRow = "";
       try {
         const rows = tfChecks(s.sym);
-        if (rows.length) tfRow = `<div class="lv-tfs">${rows.map((r) => `<span class="lv-tfc n${r.n}${r.tf === tlTf ? " cur" : ""}${r.tf === "4h" ? " sys" : ""}"><b>${tfName(r.tf)}</b> ${r.n}/3${r.pend ? ` <i class="lv-pend">⏳+${r.pend}</i>` : r.n === 3 ? " ✅" : ""}</span>`).join("")}</div><div class="lv-tfn">${T("tfRowN")}</div>`;
+        if (rows.length) tfRow = `<div class="lv-tfs">${rows.map((r) => `<span class="lv-tfc n${r.n}${r.tf === tlTf ? " cur" : ""}${r.tf === "4h" ? " sys" : ""}"><b>${tfName(r.tf)}</b> ${r.n}/2${r.pend ? ` <i class="lv-pend">⏳+${r.pend}</i>` : r.n === 2 ? " ✅" : ""}</span>`).join("")}</div><div class="lv-tfn">${T("tfRowN")}</div>`;
       } catch (e) { tfRow = ""; }
       const fk = S.forming ? S.forming.ck : {};
-      const pend = ["rays", "volume", "osc"].filter((k) => !S.ck[k] && fk[k]);
+      const pend = ["rays", "volume"].filter((k) => !S.ck[k] && fk[k]);
       const tk = (k) => S.ck[k] ? "✅" : pend.includes(k) ? '<span class="lv-pend">⏳</span>' : "❌";
       const pnote = pend.length && S.state === "wait" ? `<div class="lv-pnote">${T("pending", { x: pend.map((k) => T({ rays: "trend", volume: "volume", osc: "osc" }[k])).join(" + "), t: S.forming.close })}</div>` : "";
       html = `${st}
-        <div class="lv-checks"><div>${tk("rays")} ${T("trend")}</div><div>${tk("volume")} ${T("volume")}</div><div>${tk("osc")} ${T("osc")} <small>${T(F.oscLabel(pend.includes("osc") && fk.oscRating != null ? fk.oscRating : S.ck.oscRating))}</small></div><div class="lv-plus">${tk("structure")} ${T("structure")} <small>(A+)</small></div>${S.r.gold ? `<div>${S.r.t200 ? tick(S.r.t200.above) : "—"} ${T("above200")}</div><div><small>${T("goldWatch")}</small></div>` : ""}</div>${pnote}${extra}${tfRow}`;
+        <div class="lv-checks"><div>${tk("rays")} ${T("trend")}</div><div>${tk("volume")} ${T("volume")}</div><div class="lv-plus">${tk("structure")} ${T("structure")} <small>(A+)</small></div>${S.r.gold ? `<div>${S.r.t200 ? tick(S.r.t200.above) : "—"} ${T("above200")}</div><div><small>${T("goldWatch")}</small></div>` : ""}</div>${pnote}${extra}${tfRow}`;
     }
     $("lvSys").innerHTML = html;
     try { phaseRender(); } catch (e) { /* first scan not ready */ }
@@ -4353,8 +4353,8 @@ if (LIVE_MODE) (function liveMode() {
       <div class="lv-kv"><span>${T("liqAbove")}</span><b>${lq(above)}</b></div>
       <div class="lv-kv"><span>${T("liqBelow")}</span><b>${lq(below)}</b></div>`;
     // marquee: this symbol + the others in the rotation
-    const me = S ? `addis-4H Signals: ${S.state === "signal" ? (S.aplus ? T("aplus") : T("buyPlain")) + " — " + T("stop") + " " + tlFmt(S.stop) : S.state === "trade" ? T("mqInLong", { p: tlFmt(S.r.position.stop) }) : T("mqAgree", { n: S.n })} (${T("trend")} ${tick(S.ck.rays)} · ${T("volume")} ${tick(S.ck.volume)} · ${T("osc")} ${tick(S.ck.osc)} ${T(F.oscLabel(S.ck.oscRating))} · ${T("structure")} ${tick(S.ck.structure)})` : "";
-    const others = list.filter((i) => i !== tlActive && scan[i]).map((i) => { const o = scan[i]; return `${tlSyms[i].name}: ${o.state === "signal" ? (o.aplus ? T("aplusShort") : T("buyShort")) : o.state === "trade" ? T("inLongShort") : o.n + "/3"}`; });
+    const me = S ? `addis-4H Signals: ${S.state === "signal" ? (S.aplus ? T("aplus") : T("buyPlain")) + " — " + T("stop") + " " + tlFmt(S.stop) : S.state === "trade" ? T("mqInLong", { p: tlFmt(S.r.position.stop) }) : T("mqAgree", { n: S.n })} (${T("trend")} ${tick(S.ck.rays)} · ${T("volume")} ${tick(S.ck.volume)} · ${T("structure")} ${tick(S.ck.structure)})` : "";
+    const others = list.filter((i) => i !== tlActive && scan[i]).map((i) => { const o = scan[i]; return `${tlSyms[i].name}: ${o.state === "signal" ? (o.aplus ? T("aplusShort") : T("buyShort")) : o.state === "trade" ? T("inLongShort") : o.n + "/2"}`; });
     const mq = [...(req ? [T("mqReq", { by: req.by ? T("mqReqBy", { u: req.by }) : "", s: req.name })] : []), `${s.name} ${TFL} · ${tlFmt(price)}${chg == null ? "" : " (" + pctTxt(chg) + " " + T("h24") + ")"}`, T("mqBias", { x: txt("bsBias") }), T("mqStruct", { tf: TFL, x: txt("bsTf") }), T("mqRays", { x: txt("bsRaySetup") }), me,
       T("mqLiq", { a: lq(above), b: lq(below) }), others.length ? T("watch") + others.join(" · ") : "", T("dxyvix"), T("nfaBrand")].filter(Boolean).join("   ◆   ");
     if (lastMqSym !== tlActive + "|" + tlTf) { lastMqSym = tlActive + "|" + tlTf; setMarq(mq); mqPending = null; $("lvMarqText").dataset.on = "1"; } else marquee(mq);
