@@ -21,3 +21,4 @@ jobs:
           import os, obs_watchdog as W
           for ch in os.environ['CH'].split():
               print(ch, '->', W.youtube_state(ch))
+          "
