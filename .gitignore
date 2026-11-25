@@ -6,3 +6,4 @@ local.properties
 *.iml
 watchdog/watchdog.ini
 watchdog/watchdog.log*
+__pycache__/
