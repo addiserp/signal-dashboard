@@ -62,18 +62,25 @@ UA = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
 
 
 def parse_live_page(html):
-    """Read a channel's /live page. Returns (state, video_id): state is 'live', 'upcoming' or 'offline'."""
+    """Read a channel's /live page. Returns (state, video_id).
+    state: 'live', 'upcoming', 'offline', or None when the page can't be judged (e.g. a YouTube bot check)."""
     vid = None
-    m = re.search(r'<link rel="canonical" href="https://www\.youtube\.com/watch\?v=([\w-]{11})"', html)
+    m = (re.search(r'<link rel="canonical" href="https://www\.youtube\.com/watch\?v=([\w-]{11})"', html)
+         or re.search(r'"currentVideoEndpoint":\{.{0,400}?"videoId":"([\w-]{11})"', html))
     if m:
         vid = m.group(1)
-    if re.search(r'"isLiveNow"\s*:\s*true', html):
+    if (re.search(r'"isLiveNow"\s*:\s*true', html)
+            # the view counter under a live video: {"text":"12 watching now"}]},"isLive":true
+            or re.search(r'"isLive"\s*:\s*true\s*,\s*"extraShortViewCount"', html)
+            or re.search(r'watching now"\}\]\}\s*,\s*"isLive"\s*:\s*true', html)):
         return "live", vid
     if re.search(r'"isUpcoming"\s*:\s*true', html) or '"upcomingEventData"' in html:
         return "upcoming", vid
     # a live watch page without the microformat: playability says it is live content and no end time
     if vid and re.search(r'"isLive"\s*:\s*true', html) and not re.search(r'"endTimestamp"', html):
         return "live", vid
+    if "confirm you\u2019re not a bot" in html or "confirm you're not a bot" in html:
+        return None, vid          # can't tell: never restart because of this
     return "offline", vid
 
 
@@ -85,7 +92,10 @@ def youtube_state(channel, timeout=15):
                          cookies={"CONSENT": "YES+cb", "SOCS": "CAI"}, timeout=timeout)
         if r.status_code >= 500 or r.status_code == 429:
             return None, None
-        return parse_live_page(r.text)
+        state, vid = parse_live_page(r.text)
+        if state is None:
+            log.debug("YouTube answered with a bot check; live state unknown")
+        return state, vid
     except requests.RequestException as e:
         log.debug("YouTube check failed: %s", e)
         return None, None

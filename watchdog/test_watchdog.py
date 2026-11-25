@@ -72,6 +72,13 @@ class T(unittest.TestCase):
         self.assertEqual(W.parse_live_page(live), ("live", "JtWHMOn-n-c"))
         self.assertEqual(W.parse_live_page(up)[0], "upcoming")
         self.assertEqual(W.parse_live_page(off), ("offline", None))
+        # real page seen from a datacenter: bot check in the player, but the live view counter is there
+        counter = ('"currentVideoEndpoint":{"clickTrackingParams":"x","watchEndpoint":{"videoId":"RbZ8HMdZol8"}}'
+                   '"viewCount":{"runs":[{"text":"1 watching now"}]},"isLive":true,"extraShortViewCount":{}'
+                   '"playabilityStatus":{"status":"LOGIN_REQUIRED","reason":"Sign in to confirm you\u2019re not a bot"}')
+        self.assertEqual(W.parse_live_page(counter), ("live", "RbZ8HMdZol8"))
+        bot = '"playabilityStatus":{"status":"LOGIN_REQUIRED","reason":"Sign in to confirm you\u2019re not a bot"}'
+        self.assertEqual(W.parse_live_page(bot)[0], None)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.WARNING); unittest.main(verbosity=2)
