@@ -21,4 +21,9 @@ jobs:
           import os, obs_watchdog as W
           for ch in os.environ['CH'].split():
               print(ch, '->', W.youtube_state(ch))
+              r = W.requests.get(ch + '/live', headers={'User-Agent': W.UA, 'Accept-Language': 'en-US,en;q=0.9'}, cookies={'CONSENT': 'YES+cb', 'SOCS': 'CAI'}, timeout=15)
+              t = r.text
+              print('  status', r.status_code, 'url', r.url, 'len', len(t))
+              for k in ['isLiveNow', 'isLive\"', 'canonical', 'ytInitialPlayerResponse', 'ytInitialData', 'not a bot', 'consent', 'LOGIN_REQUIRED', 'playabilityStatus', 'liveBroadcastDetails', 'isUpcoming', 'og:url']:
+                  i = t.find(k); print('  ', k, i, repr(t[max(0,i-60):i+120]) if i >= 0 else '')
           "
