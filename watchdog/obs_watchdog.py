@@ -397,8 +397,16 @@ def main():
     logfile = cfg.get("log", "file")
     if not os.path.isabs(logfile):
         logfile = os.path.join(HERE, logfile)
-    handlers = [logging.StreamHandler(sys.stdout), RotatingFileHandler(logfile, maxBytes=2_000_000, backupCount=3, encoding="utf-8")]
+    handlers = [logging.StreamHandler(sys.stdout)]
+    log_problem = None
+    try:
+        handlers.append(RotatingFileHandler(logfile, maxBytes=2_000_000, backupCount=3, encoding="utf-8"))
+    except OSError as e:
+        log_problem = (f"Can't write the log file {logfile} ({e.strerror}); logging to the screen only. "
+                       f"If it was made with sudo, fix it with:  sudo chown -R $USER: {HERE}")
     logging.basicConfig(level=logging.INFO, format="%(asctime)s  %(message)s", datefmt="%Y-%m-%d %H:%M:%S", handlers=handlers)
+    if log_problem:
+        log.warning(log_problem)
 
     if not os.path.exists(a.config):
         log.warning("No config file at %s — using the defaults (copy watchdog.example.ini to watchdog.ini).", a.config)
