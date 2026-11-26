@@ -53,6 +53,12 @@ def load_config(path):
     cp.read_dict(DEFAULTS)
     if path and os.path.exists(path):
         cp.read(path, encoding="utf-8")
+    # people often write  bot_token = "123:abc"  — the quotes would become part of the value
+    for sec in cp.sections():
+        for k, v in cp.items(sec):
+            v2 = v.strip()
+            if len(v2) >= 2 and v2[0] == v2[-1] and v2[0] in "\"'":
+                cp.set(sec, k, v2[1:-1].strip())
     return cp
 
 
@@ -426,7 +432,17 @@ def main():
         if st.reachable:
             print(f"Streaming: {st.streaming}  reconnecting: {st.reconnecting}  sent: {st.bytes/1e6:.1f} MB  "
                   f"skipped frames: {st.skipped}/{st.total}")
-        state, vid = youtube_state(cfg.get("youtube", "channel"))
+        ch = cfg.get("youtube", "channel").rstrip("/")
+        state, vid = youtube_state(ch)
+        if state != "live":
+            try:   # keep the page so it can be checked
+                r = requests.get(ch + "/live", headers={"User-Agent": UA, "Accept-Language": "en-US,en;q=0.9"},
+                                 cookies={"CONSENT": "YES+cb", "SOCS": "CAI"}, timeout=15)
+                with open(os.path.join(HERE, "youtube_page.html"), "w", encoding="utf-8") as f:
+                    f.write(r.text)
+                print(f"           (page saved to youtube_page.html — it opened {r.url})")
+            except (requests.RequestException, OSError):
+                pass
         print(f"YouTube  : {state or 'could not reach YouTube'}{' — https://youtu.be/' + vid if vid else ''}")
         print(f"Internet : {'ok' if internet_ok() else 'NOT reachable'}")
         return 0

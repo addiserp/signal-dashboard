@@ -7,3 +7,4 @@ local.properties
 watchdog/watchdog.ini
 watchdog/watchdog.log*
 __pycache__/
+watchdog/youtube_page.html
