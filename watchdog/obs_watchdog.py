@@ -407,6 +407,9 @@ def main():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s  %(message)s", datefmt="%Y-%m-%d %H:%M:%S", handlers=handlers)
     if log_problem:
         log.warning(log_problem)
+    # obsws-python logs every connection with the password in plain text: keep it out of the screen and the log
+    for name in ("obsws_python", "obsws_python.baseclient", "websocket"):
+        logging.getLogger(name).setLevel(logging.WARNING)
 
     if not os.path.exists(a.config):
         log.warning("No config file at %s — using the defaults (copy watchdog.example.ini to watchdog.ini).", a.config)
