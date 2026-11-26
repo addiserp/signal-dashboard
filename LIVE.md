@@ -79,9 +79,38 @@ If no files are found, the page simply stays silent.
 2. **Settings → Video**: Base and Output resolution **1920×1080**, 30 FPS. **Settings → Output**: video bitrate about 4500–6000 kbps.
 3. In **Sources** click **+ → Browser**: URL = the link above, Width **1920**, Height **1080**. Tick *Refresh browser when scene becomes active*.
 4. **YouTube Studio → Create → Go live → Stream**: copy the **stream key**. In OBS **Settings → Stream**: Service *YouTube – RTMPS*, paste the key.
-5. Press **Start streaming**, then check the preview in YouTube Studio.
+5. In the same stream key's settings turn on **Auto-start** and **Auto-stop**. Then YouTube goes live again on its own whenever OBS reconnects, which the watchdog (step 8) relies on.
+6. Press **Start streaming**, then check the preview in YouTube Studio.
+7. **Four languages on one stream:** add `&lang=auto` to the Browser-source URL, e.g. `https://addiserp.github.io/signal-dashboard/?live=1&lang=auto`. The page switches language by the clock (EAT): English 16:00–06:00, Arabic 06:00–09:20, Amharic 09:20–12:40, Afaan Oromo 12:40–16:00. Change the times with `&sched=` (see the options table). Then paste the timetable below into the stream's **description** (YouTube Studio → the stream → *Edit* → *Description*). If you change `&sched=`, change the times in the description too.
+8. **Watchdog:** start `watchdog/obs_watchdog.py` (setup in `watchdog/README.md`). It restarts the stream, or OBS itself, when OBS stops or YouTube stops showing the stream as live.
 
-**Long streams:** YouTube may not save a replay of a stream longer than 12 hours, so for 24/7 streaming stop and start a new stream about every 11 hours. The page refreshes itself every 4 hours so it doesn't slowly fill the memory. In OBS turn on **Settings → Advanced → Automatically reconnect**.
+### Description: language timetable (copy into YouTube)
+
+Also saved as `youtube-schedule.txt`. YouTube does not allow `<` or `>` in descriptions, and this text has none.
+
+```
+🌐 LIVE IN 4 LANGUAGES · ONE STREAM, 24 HOURS
+The same live chart and addis-4H Signals, explained in a different language at fixed times every day.
+Times are Addis Ababa time (EAT, UTC+3).
+
+🇬🇧 English ········ 16:00 – 06:00 EAT · New York session and the US evening
+     (13:00 – 03:00 UTC · 08:00 – 22:00 New York, winter time)
+🇸🇦 العربية ········ 06:00 – 09:20 EAT
+     بتوقيت مكة المكرمة 06:00 – 09:20 · دبي 07:00 – 10:20 · القاهرة 05:00 – 08:20
+🇪🇹 አማርኛ ········ 09:20 – 12:40 EAT
+     በኢትዮጵያ ሰዓት ከጠዋቱ 3:20 – ቀን 6:40
+🇪🇹 Afaan Oromoo ··· 12:40 – 16:00 EAT
+     Sa'aatii Itoophiyaatiin 6:40 – 10:00 guyyaa
+
+⏰ Set a reminder for your language: the countdown on the stream always shows the next language and the time it starts, and the news ticker shows the whole timetable.
+
+🔔 Subscribe and tap the bell so you don't miss a signal.
+📲 Telegram: t.me/addistrad
+
+⚠ Charts never lie, but this is not financial advice. Do your own research. Trading involves risk.
+```
+
+**Long streams:** YouTube may not save a replay of a stream longer than 12 hours, so for 24/7 streaming stop and start a new stream about every 11 hours. With Auto-start on and the watchdog running, a quick *Stop streaming* is enough: the watchdog starts the stream again within about 3 minutes and YouTube opens a new broadcast. If you want to stay offline, stop the watchdog first. The page refreshes itself every 4 hours so it doesn't slowly fill the memory. In OBS turn on **Settings → Advanced → Automatically reconnect**.
 
 Add your webcam, voice or logo in OBS on top of the browser source if you like. Keep the PC awake (power settings: never sleep) for long streams. If the page ever looks stuck, right-click the browser source → **Refresh**.
 
