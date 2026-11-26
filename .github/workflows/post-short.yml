@@ -1,0 +1,32 @@
+name: Post Short
+# Uploads the Short on the "shorts" branch to YouTube and TikTok. Started by the daily routine after it pushes
+# the files to "shorts" (or by hand: Actions → Post Short → Run workflow). See shorts/README.md.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: post-short
+  cancel-in-progress: false
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get the Short from the "shorts" branch
+        run: |
+          git fetch --depth=1 origin +refs/heads/shorts:refs/remotes/origin/shorts
+          mkdir -p /tmp/short && git archive refs/remotes/origin/shorts | tar -x -C /tmp/short
+          ls -la /tmp/short && cat /tmp/short/meta.json
+      - name: Post to YouTube and TikTok
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          YT_PRIVACY: ${{ vars.YT_PRIVACY }}
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
+          TIKTOK_PRIVACY: ${{ vars.TIKTOK_PRIVACY }}
+        run: python3 shorts/post_short.py /tmp/short
