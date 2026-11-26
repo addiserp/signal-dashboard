@@ -384,6 +384,13 @@ def main():
     ap.add_argument("--channel", help="override [youtube] channel, e.g. https://www.youtube.com/@addis4h")
     a = ap.parse_args()
 
+    try:
+        import obsws_python  # noqa: F401  (without it every check would look like "OBS crashed")
+    except ImportError:
+        print("The OBS library is missing for this Python (" + sys.executable + "). Install it with:\n"
+              "  " + sys.executable + " -m pip install --user obsws-python requests\n"
+              "If pip says 'externally-managed-environment', add --break-system-packages to that line.")
+        sys.exit(2)
     cfg = load_config(a.config)
     if a.channel:
         cfg.set("youtube", "channel", a.channel)

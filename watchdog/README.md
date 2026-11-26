@@ -25,7 +25,8 @@ After each restart it waits 3 minutes so YouTube has time to show the stream as 
    ```bash
    mkdir -p ~/addis4h-watchdog && cp obs_watchdog.py watchdog.example.ini ~/addis4h-watchdog/
    cd ~/addis4h-watchdog
-   pip install obsws-python requests        # add --break-system-packages on newer Ubuntu/Debian if pip refuses
+   python3 -m pip install --user obsws-python requests   # add --break-system-packages if pip says externally-managed-environment
+   python3 -c "import obsws_python; print('OBS library OK')"
    cp watchdog.example.ini watchdog.ini
    nano watchdog.ini                         # OBS password, your channel URL, optional Telegram
    ```
