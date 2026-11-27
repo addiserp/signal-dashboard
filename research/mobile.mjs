@@ -26,7 +26,8 @@ for (const page of (process.env.PAGES || "research/m40.html,research/m41.html").
   await p.mouse.move(ax, ay); await p.mouse.down(); await p.mouse.move(ax, ay + 120, { steps: 8 }); await p.mouse.up();
   await p.waitForTimeout(800);
   await p.screenshot({ path: `snaps/${tag}-b-zoomed.jpg`, type: "jpeg", quality: 85 });
-  await p.locator("#bsSyms button", { hasText: "ETH" }).first().click();
+  const hit = await p.evaluate(() => { const bt = [...document.querySelectorAll("#bsSyms button")].find((x) => /ETH/.test(x.textContent)); const r = bt.getBoundingClientRect(); const top = document.elementFromPoint(r.x + r.width / 2, r.y + 6); const ok = bt.contains(top); bt.click(); return ok ? "button top reachable" : "button top covered by " + (top && top.tagName); });
+  console.log(tag, hit);
   await p.waitForTimeout(10000);
   const auto = await p.evaluate(() => { try { return bsChart.priceScale("right").options().autoScale; } catch (e) { return String(e); } });
   console.log(tag, "after switch autoScale", auto);
