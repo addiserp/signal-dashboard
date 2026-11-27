@@ -56,7 +56,8 @@
   #dfBest a{color:#60a5fa;font-weight:700}
   .menuBtn{display:none}
   .quick{display:none}
-  .tape{height:46px;border-top:1px solid var(--line)}
+  .tape{min-height:46px;max-height:92px;overflow:hidden;border-top:1px solid var(--line)}
+  .tape .tradingview-widget-container{position:relative}
 
   /* symbol switcher (phones only) */
   .symtabs{display:flex;gap:6px;padding:8px var(--gutter);border-top:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
@@ -195,7 +196,7 @@
     .controls select,.controls button{width:100%;min-height:44px;font-size:15px}
     .controls .pill.desk{display:none}
     .controls label.chk{grid-column:1 / -1;min-height:36px}
-    .tape{height:42px}
+    .tape{min-height:40px}
 
     .symtabs{display:flex;gap:6px;padding:8px var(--gutter);border-top:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
     .symtabs::-webkit-scrollbar{display:none}
@@ -221,6 +222,8 @@
     .views .lg{display:none}
     .views .sm{display:inline}
     #bsChart{height:430px}
+    #trendView .chips button,#bosView .chips button{min-height:30px;padding:3px 11px;font-size:13px}
+    #trendView .tv-row,#bosView .tv-row{margin:0}
     #trendView,#bosView{padding:var(--gutter);gap:10px}
     #tlChart{height:430px}
     .tv-grid{grid-template-columns:1fr}
@@ -2197,6 +2200,7 @@ function bsRender() {
   const showVol = document.getElementById("bsVol").checked;
   const key = `${tlActive}|${tf}`;
   const keepRange = key === bsLastKey ? bsChart.timeScale().getVisibleLogicalRange() : null;
+  if (key !== bsLastKey) { try { bsChart.priceScale("right").applyOptions({ autoScale: true }); } catch (e) {} }
 
   const fut = tlFuture(c[c.length - 1].t, tf, Math.max(3, Math.min(10, Math.round(c.length / 12))));
   bsCandles.setData(c.map((x) => ({ time: x.t, open: x.o, high: x.h, low: x.l, close: x.c })).concat(fut.map((t) => ({ time: t }))));

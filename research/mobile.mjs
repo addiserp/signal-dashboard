@@ -4,7 +4,7 @@ import { mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 mkdirSync("snaps", { recursive: true });
 const b = await chromium.launch({ channel: "chrome" });
-for (const page of (process.env.PAGES || "research/m40.html,research/m41.html").split(",")) {
+for (const page of (process.env.PAGES || "docs/index.html").split(",")) {
   const tag = page.replace(/.*\//, "").replace(".html", "");
   const ctx = await b.newContext({ ...devices["Pixel 5"] });
   const p = await ctx.newPage();
