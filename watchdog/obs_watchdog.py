@@ -42,7 +42,7 @@ DEFAULTS = {
             "process_name": "obs", "start_wait_sec": "40"},
     "youtube": {"channel": "https://www.youtube.com/@addis-chart-signals", "check": "yes"},
     "check": {"interval_sec": "60", "confirm": "3", "grace_sec": "180", "stream_restarts_before_obs_restart": "2",
-              "max_obs_restarts_per_hour": "4"},
+              "max_obs_restarts_per_hour": "4", "youtube_reset_sec": "60"},
     "telegram": {"bot_token": "", "chat_id": ""},
     "log": {"file": "watchdog.log"},
 }
@@ -150,6 +150,8 @@ class Obs:
         self.launch_cmd = cfg.get("obs", "launch_cmd")
         self.process_name = cfg.get("obs", "process_name")
         self.start_wait = cfg.getint("obs", "start_wait_sec")
+        # pause between stopping and starting, so YouTube ends the old broadcast (Auto-stop) and waits for a new one
+        self.reset = cfg.getint("check", "youtube_reset_sec")
         self.dry_run = dry_run
 
     def _client(self):
@@ -195,7 +197,10 @@ class Obs:
                         break
                 except Exception:
                     break
-            time.sleep(5)
+            log.info("Stream stopped — waiting %s s so YouTube can close the old broadcast", self.reset)
+            cl.disconnect()
+            time.sleep(self.reset)
+            cl = self._client()
             cl.start_stream(); cl.disconnect(); return True
         except Exception as e:
             log.warning("Restarting the stream failed: %s", e); return False
@@ -219,6 +224,8 @@ class Obs:
             if self.running():
                 log.info("OBS did not close — forcing it")
                 subprocess.run(["pkill", "-KILL", "-x", self.process_name]); time.sleep(2)
+            log.info("OBS closed — waiting %s s so YouTube can close the old broadcast", self.reset)
+            time.sleep(self.reset)
         log.info("Starting OBS: %s", self.launch_cmd)
         subprocess.Popen(shlex.split(self.launch_cmd), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                          start_new_session=True, cwd=os.path.expanduser("~"))
