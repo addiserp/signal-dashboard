@@ -7,7 +7,7 @@ const b = await chromium.launch({ channel: "chrome" });
 const ctx = await b.newContext({ ...devices["Pixel 5"] });
 const p = await ctx.newPage();
 p.on("pageerror", (e) => console.log("pageerror", e.message));
-await p.goto("file://" + resolve(process.env.PAGE || "research/m42.html"));
+await p.goto("file://" + resolve(process.env.PAGE || "docs/index.html"));
 await p.click('#views button[data-view="bt"]');
 await p.waitForTimeout(1500);
 await p.click('#btModes button[data-mode="trend"]');

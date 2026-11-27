@@ -50,6 +50,7 @@
   .df-ctl .seg button.on{background:#2563eb;color:#fff}
   .df-sw label{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer;flex:1 1 220px;min-width:0;font-size:13px}
   .df-sw label.on{border-color:#60a5fa;background:rgba(96,165,250,.10)}
+  ol.df-top{margin:6px 0 8px 18px;padding:0}ol.df-top li{margin:3px 0}ol.df-top a{margin-left:6px}
   .df-sw input{margin-top:2px;flex:none}
   .df-sw small{display:block;color:var(--muted);font-size:11.5px;line-height:1.35}
   tr.df-mine td{background:rgba(96,165,250,.08)}
@@ -638,7 +639,7 @@
       <div class="msg">Account return = growth of the account if you risk the chosen % on every trade of that system (fees and funding included). Buy &amp; hold = the coin's own price change; it takes the full price swings, the systems only risk a small slice per trade.</div>
     </section>
     <section class="tv-card" style="margin-top:12px" id="dfCard">
-      <div class="card-title" id="dfTitle">Six filters only</div>
+      <div class="card-title" id="dfTitle">Filters only</div>
       <div class="df-ctl">
         <div class="seg"><button type="button" id="dfModeOnly">Filters only</button><button type="button" id="dfModeDc">Donchian + filters</button></div>
         <label class="tf-lbl" id="dfExitWrap">Exit <select id="dfExitSel"><option value="trail">Trailing stop (10-candle low)</option><option value="filters">When the filters stop agreeing</option></select></label>
@@ -3034,6 +3035,16 @@ function bsCards(ov, vol, price, tfLabel, R) {
     volume: { name: "Volume", text: "Signal candle volume above its 20-candle average" },
     fib: { name: "Fib", text: "Not in premium — at or below 0.79 of the 60-day range" },
     osc: { name: "Oscillators", text: "Oscillators summary is Buy or Strong buy" },
+    above50: { name: "50-day average", text: "Last daily close above its 50-day average (below for sells)" },
+    above200: { name: "200-day average", text: "Last daily close above its 200-day average (below for sells)" },
+    ema: { name: "EMA 20/50", text: "EMA 20 above EMA 50 on the test timeframe" },
+    supertrend: { name: "Supertrend", text: "Supertrend (10, 3) is green (red for sells)" },
+    adx: { name: "ADX trend strength", text: "ADX(14) above 20 — trending, not sideways" },
+    rsi: { name: "RSI", text: "RSI(14) above 50 (below for sells)" },
+    macd: { name: "MACD", text: "MACD (12, 26) above its signal line (below for sells)" },
+    vwap: { name: "VWAP from high", text: "Close above the VWAP anchored at the 200-candle high (from the low for sells)" },
+    bb: { name: "Bollinger Bands", text: "Close above the middle band (20, 2) and the bands widening" },
+    ichimoku: { name: "Ichimoku cloud", text: "Close above the cloud (below for sells)" },
   };
   const KEYS = Object.keys(FILTERS);
   const TF_SEC = { "5m": 300, "15m": 900, "30m": 1800, "1h": 3600, "4h": 14400, "1d": 86400, "1w": 604800 };
@@ -3119,7 +3130,57 @@ function bsCards(ov, vol, price, tfLabel, R) {
     const swD = D.swings.map((w) => ({ ...w, known: dc[Math.min(dc.length - 1, w.i + pd)].t + 86400 }));
     const vol = c.map((x) => x.v || 0);
     const hasVol = vol.some((x) => x > 0);
-    return { c, dc, sec, tf, sw4, dEv, swD, atr: atrSeries(c, 20), vol, hasVol, osc: oscRating(c), cache: new Map() };
+    return Object.assign({ c, dc, sec, tf, sw4, dEv, swD, atr: atrSeries(c, 20), vol, hasVol, osc: oscRating(c), cache: new Map() }, indicators(c, dc, hasVol));
+  }
+
+  // series for the extra indicator filters (each value uses only candles up to that index)
+  function indicators(c, dc, hasVol) {
+    const n = c.length, C = c.map((x) => x.c), dC = dc.map((x) => x.c);
+    const o = { dS50: sma(dC, 50), dS200: sma(dC, 200), e20: ema(C, 20), e50: ema(C, 50), rsi: rsiSeries(C, 14) };
+    const e12 = ema(C, 12), e26 = ema(C, 26);
+    o.macd = e12.map((x, i) => x - e26[i]); o.sig = ema(o.macd, 9);
+    // Donchian windows: 20-candle high/low before k, 10-candle low/high up to k
+    o.hi20 = new Float64Array(n); o.lo20 = new Float64Array(n); o.lo10 = new Float64Array(n); o.hi10 = new Float64Array(n);
+    for (let k = 0; k < n; k++) {
+      let h = -Infinity, l = Infinity; for (let m = Math.max(0, k - 20); m < k; m++) { h = Math.max(h, c[m].h); l = Math.min(l, c[m].l); }
+      o.hi20[k] = h; o.lo20[k] = l;
+      h = -Infinity; l = Infinity; for (let m = Math.max(0, k - 9); m <= k; m++) { h = Math.max(h, c[m].h); l = Math.min(l, c[m].l); }
+      o.hi10[k] = h; o.lo10[k] = l;
+    }
+    // true range, ADX(14), Supertrend(10, 3)
+    const tr = c.map((x, i) => i ? Math.max(x.h - x.l, Math.abs(x.h - c[i - 1].c), Math.abs(x.l - c[i - 1].c)) : x.h - x.l);
+    const pdm = c.map((x, i) => { if (!i) return 0; const u = x.h - c[i - 1].h, d = c[i - 1].l - x.l; return u > d && u > 0 ? u : 0; });
+    const mdm = c.map((x, i) => { if (!i) return 0; const u = x.h - c[i - 1].h, d = c[i - 1].l - x.l; return d > u && d > 0 ? d : 0; });
+    const trR = rma(tr, 14), pR = rma(pdm, 14), mR = rma(mdm, 14);
+    const dx = trR.map((t, i) => { const p = t ? 100 * pR[i] / t : 0, m = t ? 100 * mR[i] / t : 0; return p + m ? 100 * Math.abs(p - m) / (p + m) : 0; });
+    o.adx = rma(dx.map((x) => isNaN(x) ? 0 : x), 14);
+    const a10 = rma(tr, 10); o.st = new Int8Array(n);
+    let fu = Infinity, fl = -Infinity, d = 1;
+    for (let i = 0; i < n; i++) {
+      const m = (c[i].h + c[i].l) / 2, A = isNaN(a10[i]) ? tr[i] : a10[i], ub = m + 3 * A, lb = m - 3 * A;
+      const pc = i ? C[i - 1] : C[0];
+      fu = ub < fu || pc > fu ? ub : fu; fl = lb > fl || pc < fl ? lb : fl;
+      if (d === 1 && C[i] < fl) d = -1; else if (d === -1 && C[i] > fu) d = 1;
+      o.st[i] = d;
+    }
+    // Bollinger (20, 2): middle band and width
+    o.bbMid = sma(C, 20); o.bbW = new Float64Array(n);
+    for (let i = 19; i < n; i++) { let v = 0; for (let j = i - 19; j <= i; j++) v += (C[j] - o.bbMid[i]) ** 2; o.bbW[i] = 4 * Math.sqrt(v / 20) / o.bbMid[i]; }
+    // VWAP anchored at the highest high / lowest low of the last 200 candles
+    const PV = new Float64Array(n + 1), V = new Float64Array(n + 1);
+    for (let i = 0; i < n; i++) { const w = hasVol ? (c[i].v || 0) : 1; PV[i + 1] = PV[i] + w * (c[i].h + c[i].l + c[i].c) / 3; V[i + 1] = V[i] + w; }
+    o.vwH = new Float64Array(n); o.vwL = new Float64Array(n);
+    for (let k = 0; k < n; k++) {
+      let jh = k, jl = k;
+      for (let j = Math.max(0, k - 199); j <= k; j++) { if (c[j].h >= c[jh].h) jh = j; if (c[j].l <= c[jl].l) jl = j; }
+      const vw = (j) => V[k + 1] - V[j] > 0 ? (PV[k + 1] - PV[j]) / (V[k + 1] - V[j]) : C[k];
+      o.vwH[k] = vw(jh); o.vwL[k] = vw(jl);
+    }
+    // Ichimoku (9, 26, 52): cloud spans, plotted 26 candles ahead
+    const mid = (i, p) => (hh(c, i, p, (y) => y.h) + ll(c, i, p, (y) => y.l)) / 2;
+    o.spA = new Float64Array(n); o.spB = new Float64Array(n);
+    for (let i = 0; i < n; i++) { o.spA[i] = (mid(i, 9) + mid(i, 26)) / 2; o.spB[i] = mid(i, 52); }
+    return o;
   }
 
   // last daily index whose candle had closed by time t
@@ -3182,6 +3243,20 @@ function bsCards(ov, vol, price, tfLabel, R) {
     // 6) oscillators summary
     out.osc = dir > 0 ? X.osc[k] > 0.1 : X.osc[k] < -0.1;
     out.oscRating = X.osc[k];
+    // 7–16) extra indicators
+    {
+      const di = dailyIdx(dc, tClose);
+      const dAv = (A) => di < 0 || !(A[di] > 0) ? true : dir > 0 ? dc[di].c > A[di] : dc[di].c < A[di];
+      out.above50 = dAv(X.dS50); out.above200 = dAv(X.dS200);
+    }
+    out.ema = dir > 0 ? X.e20[k] > X.e50[k] : X.e20[k] < X.e50[k];
+    out.supertrend = X.st[k] === dir;
+    out.adx = X.adx[k] > 20;
+    out.rsi = dir > 0 ? X.rsi[k] > 50 : X.rsi[k] < 50;
+    out.macd = dir > 0 ? X.macd[k] > X.sig[k] : X.macd[k] < X.sig[k];
+    out.vwap = dir > 0 ? x.c > X.vwH[k] : x.c < X.vwL[k];
+    out.bb = k >= 25 && (dir > 0 ? x.c > X.bbMid[k] : x.c < X.bbMid[k]) && X.bbW[k] > X.bbW[k - 5];
+    out.ichimoku = k >= 78 && (dir > 0 ? x.c > Math.max(X.spA[k - 26], X.spB[k - 26]) : x.c < Math.min(X.spA[k - 26], X.spB[k - 26]));
     X.cache.set(key, out);
     return out;
   }
@@ -3213,13 +3288,10 @@ function bsCards(ov, vol, price, tfLabel, R) {
       if (k < warm || x.t < startT || k === c.length - 1) continue;
       const A = X.atr[k];
       if (pos) {
-        let lo = Infinity, hi = -Infinity;
-        for (let m = k - 9; m <= k; m++) { lo = Math.min(lo, c[m].l); hi = Math.max(hi, c[m].h); }
-        pos.stop = pos.dir > 0 ? Math.max(pos.stop, lo) : Math.min(pos.stop, hi);
+        pos.stop = pos.dir > 0 ? Math.max(pos.stop, X.lo10[k]) : Math.min(pos.stop, X.hi10[k]);
         continue;
       }
-      let hi = -Infinity, lo = Infinity;
-      for (let m = k - 20; m < k; m++) { hi = Math.max(hi, c[m].h); lo = Math.min(lo, c[m].l); }
+      const hi = X.hi20[k], lo = X.lo20[k];
       for (const dir of sides === "both" ? [1, -1] : [1]) {
         if (dir > 0 ? !(x.c > hi) : !(x.c < lo)) continue;
         const mask = maskOf(checks(X, k, dir));
@@ -3273,9 +3345,7 @@ function bsCards(ov, vol, price, tfLabel, R) {
       if (pos) {
         if (exit === "filters") { if (!ok(k, pos.dir)) exitNext = true; }
         else {
-          let lo = Infinity, hi = -Infinity;
-          for (let m = k - 9; m <= k; m++) { lo = Math.min(lo, c[m].l); hi = Math.max(hi, c[m].h); }
-          pos.stop = pos.dir > 0 ? Math.max(pos.stop, lo) : Math.min(pos.stop, hi);
+          pos.stop = pos.dir > 0 ? Math.max(pos.stop, X.lo10[k]) : Math.min(pos.stop, X.hi10[k]);
         }
         continue;
       }
@@ -3355,28 +3425,39 @@ function bsCards(ov, vol, price, tfLabel, R) {
     return { n, winRate: wins / n, avgR: sum / n, totalR: sum, pf: gl ? gp / gl : 99, ret: eq - 100, dd };
   }
 
-  // every combination of the six switches (64 runs), so the switches in the app update instantly
+  // every combination of up to 4 switches (2,516 with 16 filters); keeps the 1- and 2-filter results,
+  // the top 5 per mode, and can evaluate any other combination on demand (evalMask)
+  const bits = (m) => { let b = 0; while (m) { b += m & 1; m >>>= 1; } return b; };
   function study(data, opts = {}) {
     const tf = opts.tf || "4h";
     if (!data[tf] || data[tf].length < 260) throw new Error("not enough candles for " + tf);
-    const X = context(data, tf);
-    const combos = [];
-    let base = null, lastTrades = null;
-    for (let need = 0; need < 1 << KEYS.length; need++) {
-      const tr = runDonchian(X, opts, need);
-      if (need === 0) base = tr;
-      combos.push(summarize(tr, opts.risk || 1));
-      if (need === (opts.show || 0)) lastTrades = tr;
+    const X = context(data, tf), risk = opts.risk || 1, maxOn = opts.maxOn || 4, minN = opts.minN || 60;
+    const evalMask = (m) => ({
+      c: summarize(runDonchian(X, opts, m), risk),
+      trail: m ? summarize(runFiltersOnly(X, opts, m, "trail"), risk) : { n: 0 },
+      filters: m ? summarize(runFiltersOnly(X, opts, m, "filters"), risk) : { n: 0 },
+    });
+    const base = runDonchian(X, opts, 0);
+    const combos = { 0: summarize(base, risk) }, only = { trail: { 0: { n: 0 } }, filters: { 0: { n: 0 } } };
+    const top = { c: [], trail: [], filters: [] };
+    const push = (list, m, st) => { if (st.n < minN) return; list.push([m, st]); list.sort((p, q) => q[1].avgR - p[1].avgR); if (list.length > 5) list.pop(); };
+    const store = (m, e) => { combos[m] = e.c; only.trail[m] = e.trail; only.filters[m] = e.filters; };
+    let tested = 0;
+    for (let m = 1; m < 1 << KEYS.length; m++) {
+      const nb = bits(m);
+      if (nb > maxOn) continue;
+      const e = evalMask(m); tested++;
+      if (nb <= 2) store(m, e);
+      push(top.c, m, e.c); push(top.trail, m, e.trail); push(top.filters, m, e.filters);
     }
+    for (const m of opts.extra || []) if (combos[m] == null) store(m, evalMask(m));
+    for (const k of ["c", "trail", "filters"]) for (const [m, st] of top[k]) if (combos[m] == null) store(m, evalMask(m));
     // pass rate of each filter among the plain Donchian signals
     const pass = KEYS.map((f, b) => { const n = base.length; return n ? base.filter((t) => t.mask & (1 << b)).length / n : 0; });
-    // filters only (no Donchian), with both exits
-    const only = { trail: [], filters: [] };
-    for (const ex of ["trail", "filters"]) for (let need = 0; need < 1 << KEYS.length; need++) only[ex].push(summarize(runFiltersOnly(X, opts, need, ex), opts.risk || 1));
     // share of candles on which each filter agrees (long)
     const M = masks(X, opts.sides || "long"), from = Math.max(210, X.c.findIndex((x) => x.t >= (opts.startT || 0)));
     const on = KEYS.map((f, b) => { let a = 0, n = 0; for (let k = from; k < X.c.length; k++) { n++; if (M.L[k] & (1 << b)) a++; } return n ? a / n : 0; });
-    return { combos, pass, base, trades: lastTrades, hasVol: X.hasVol, ctx: X, only, on };
+    return { combos, pass, base, hasVol: X.hasVol, ctx: X, only, on, top, tested, evalMask };
   }
 
   const api = { FILTERS, KEYS, study, checks, context, runDonchian, runFiltersOnly, replayFilters, masks, oscRating, oscLabel, summarize, maskOf, TF_SEC };
@@ -3759,19 +3840,21 @@ async function tbtRun(idx, quiet) {
     const ts = res.trades.filter((t) => t.sys === k);
     per[k] = { ...TrendBacktest.stats(ts), eq: TrendBacktest.equity(ts, o.risk) };
   }
-  show(0.99, `${s0.name}: testing the six filters (all combinations, with and without Donchian)…`);
+  show(0.99, `${s0.name}: testing the ${DonchianFilters.KEYS.length} filters (every combination of up to 4, with and without Donchian) — this can take a minute…`);
   await btSleep(20);
   let filt = null;
   try {
-    const F = DonchianFilters.study(data, { tf: o.tf, feePct: o.feePct, fundingPct: o.fundingPct, sides: o.sides, startT: data.startT, risk: o.risk });
+    const F = DonchianFilters.study(data, { tf: o.tf, feePct: o.feePct, fundingPct: o.fundingPct, sides: o.sides, startT: data.startT, risk: o.risk, extra: [dfMask(), 2 | 8 | 32] });
     const r3 = (x) => Math.round(x * 1000) / 1000;
-    const pack = (arr) => arr.map((x) => x.n ? [x.n, r3(x.winRate), r3(x.avgR), r3(x.totalR), Math.round(x.ret * 10) / 10, Math.round(x.dd * 10) / 10] : [0]);
-    filt = { pass: F.pass.map(r3), on: F.on.map(r3), hasVol: F.hasVol, risk: o.risk, c: pack(F.combos), o: { trail: pack(F.only.trail), filters: pack(F.only.filters) } };
+    dfCtx.set(tbtKey(s0, o), F);
+    const pack = (obj) => Object.fromEntries(Object.entries(obj).map(([m, x]) => [m, dfPack(x)]));
+    const top = Object.fromEntries(Object.entries(F.top).map(([k, l]) => [k, l.map(([m]) => m)]));
+    filt = { pass: F.pass.map(r3), on: F.on.map(r3), hasVol: F.hasVol, risk: o.risk, c: pack(F.combos), o: { trail: pack(F.only.trail), filters: pack(F.only.filters) }, top, tested: F.tested, nk: DonchianFilters.KEYS.length };
   } catch (e) { filt = { error: e.message }; }
   const days = data["1d"].filter((x) => x.t * 1000 >= o.period.startMs);
   const vol = days.length ? days.reduce((a, x) => a + (x.h - x.l) / x.c, 0) / days.length * 100 : null;
   const out = {
-    mode: "trend", sym: s0.name, opts: o, from: res.from, to: res.to, buyHoldPct: res.buyHoldPct, per, vol, proxy: proxy ? proxy.note : null, filt,
+    mode: "trend", key: tbtKey(s0, o), sym: s0.name, opts: o, from: res.from, to: res.to, buyHoldPct: res.buyHoldPct, per, vol, proxy: proxy ? proxy.note : null, filt,
     trades: res.trades.map((t) => ({ sys: t.sys, dir: t.dir, t: t.t, exitT: t.exitT, entry: t.entry, stop0: t.stop0, exit: t.exit, how: t.how, r: t.r, bars: t.bars, retPct: t.retPct })),
     hold: data[o.tf].filter((x) => x.t >= data.startT).filter((_, i, a) => i % Math.max(1, Math.floor(a.length / 400)) === 0 || i === a.length - 1).map((x) => ({ t: x.t, c: x.c })),
   };
@@ -3857,7 +3940,22 @@ function tbtRender(out) {
   dfRender(out);
 }
 
-// ---- Six indicator filters: "filters only" or "Donchian + filters" ----
+// ---- Indicator filters: "filters only" or "Donchian + filters" ----
+const dfCtx = new Map();     // this session's filter studies, so any other switch combination can be computed on demand
+const dfR3 = (x) => Math.round(x * 1000) / 1000;
+function dfPack(x) { return x && x.n ? [x.n, dfR3(x.winRate), dfR3(x.avgR), dfR3(x.totalR), Math.round(x.ret * 10) / 10, Math.round(x.dd * 10) / 10] : [0]; }
+// results for switch combination m; computed now if this symbol was tested in this session, else null
+function dfEnsure(out, m) {
+  const f = out && out.filt;
+  if (!f || !f.c || f.c[m] != null) return;
+  const F = out.key && dfCtx.get(out.key);
+  if (!F) return;
+  const e = F.evalMask(m);
+  f.c[m] = dfPack(e.c); f.o.trail[m] = dfPack(e.trail); f.o.filters[m] = dfPack(e.filters);
+  save("tvdash.btT." + out.key, out);
+  const all = load("tvdash.btTAll", {});
+  if (all[out.key] && all[out.key].filt) { all[out.key].filt = { c: f.c, o: f.o }; save("tvdash.btTAll", all); }
+}
 function dfMask() { return load("tvdash.dfMask", 0) | 0; }
 function dfMode() { return load("tvdash.dfMode", "only"); }      // "only" | "donchian"
 function dfExit() { return load("tvdash.dfExit", "trail"); }     // "trail" | "filters"
@@ -3871,7 +3969,7 @@ function dfSwRender(out) {
   document.getElementById("dfExitWrap").hidden = mode !== "only";
   document.getElementById("dfExitSel").value = dfExit();
   document.getElementById("dfTitle").innerHTML = mode === "only"
-    ? `Six filters only <small>no Donchian — enter when every switched-on filter agrees; stop 2×ATR</small>`
+    ? `Filters only <small>no Donchian — enter when every switched-on filter agrees; stop 2×ATR</small>`
     : `Donchian + your indicators <small>a breakout is taken only if every switched-on filter agrees</small>`;
   document.getElementById("dfSw").innerHTML = DonchianFilters.KEYS.map((k, b) => {
     const F = DonchianFilters.FILTERS[k], on = !!(m & (1 << b));
@@ -3885,6 +3983,7 @@ function dfSwRender(out) {
 }
 function dfRender(out) {
   dfLast = out;
+  dfEnsure(out, dfMask());
   dfSwRender(out);
   const f = out && out.filt, C = dfCombos(f), mode = dfMode();
   const tbl = document.getElementById("dfTable"), el = document.getElementById("dfBest");
@@ -3917,18 +4016,25 @@ function dfRender(out) {
     rows.push(row(`only ${b + 1}. ${DonchianFilters.FILTERS[k].name}`, dfRow(C[1 << b]), share));
   });
   const names = DonchianFilters.KEYS.filter((k, b) => m & (1 << b)).map((k) => DonchianFilters.FILTERS[k].name);
-  rows.push(row(`<b>Your switches</b>: ${names.length ? names.join(" + ") : "none switched on"}`, dfRow(C[m]), "—", "df-mine"));
+  rows.push(C[m] == null
+    ? `<tr class="df-mine"><td><b>Your switches</b>: ${names.join(" + ")}</td><td>—</td><td colspan="7" class="neutral">tap Run backtest to test this combination</td></tr>`
+    : row(`<b>Your switches</b>: ${names.length ? names.join(" + ") : "none switched on"}`, dfRow(C[m]), "—", "df-mine"));
   tbl.innerHTML = rows.join("");
-  let best = -1;
-  C.forEach((c, i) => { const s = dfRow(c); if (i && s.n >= 60 && (best < 0 || s.avgR > dfRow(C[best]).avgR)) best = i; });
+  const nameOf = (mm) => DonchianFilters.KEYS.filter((k, b) => mm & (1 << b)).map((k) => DonchianFilters.FILTERS[k].name).join(" + ");
+  const tk = mode === "donchian" ? "c" : dfExit();
+  let tops = f.top && f.top[tk] ? f.top[tk].filter((mm) => C[mm] != null) : null;
+  if (!tops) { tops = Object.keys(C).map(Number).filter((i) => i && dfRow(C[i]).n >= 60).sort((p, q) => dfRow(C[q]).avgR - dfRow(C[p]).avgR).slice(0, 5); }
   const bar = mode === "only" ? keepR : dc.avgR + 0.05;
-  if (best > 0 && dfRow(C[best]).avgR > bar) {
-    const s = dfRow(C[best]), nm = DonchianFilters.KEYS.filter((k, b) => best & (1 << b)).map((k) => DonchianFilters.FILTERS[k].name).join(" + ");
-    el.innerHTML = `Best of all 63 combinations with 60+ trades: <b>${nm}</b> — ${s.n} trades, ${btFmtR(s.avgR)} per trade (plain Donchian ${btFmtR(dc.avgR)}). <a href="#" id="dfUseBest">Use these switches</a>. Caution: the best of 63 tries always looks good on the data it was picked from — confirm it on another period and coin before trusting it.`;
-    document.getElementById("dfUseBest").onclick = (e) => { e.preventDefault(); save("tvdash.dfMask", best); dfRender(dfLast); tbtRenderAll(); };
+  const good = tops.filter((mm) => dfRow(C[mm]).avgR > bar);
+  const tried = f.tested ? `${f.tested.toLocaleString()} combinations of up to 4 filters` : "all 63 combinations";
+  if (good.length) {
+    el.innerHTML = `Best of ${tried} with 60+ trades (plain Donchian ${btFmtR(dc.avgR)} per trade):<ol class="df-top">` +
+      good.map((mm) => { const s = dfRow(C[mm]); return `<li><b>${nameOf(mm)}</b> — ${s.n} trades, ${btFmtR(s.avgR)} per trade, win ${(s.winRate * 100).toFixed(0)}% <a href="#" data-m="${mm}">Use</a></li>`; }).join("") +
+      `</ol>Caution: the best of many tries always looks good on the data it was picked from — confirm it on another period and coin before trusting it.`;
+    el.querySelectorAll("a[data-m]").forEach((a) => a.onclick = (e) => { e.preventDefault(); save("tvdash.dfMask", +a.dataset.m); dfRender(dfLast); tbtRenderAll(); });
   } else el.innerHTML = mode === "only"
-    ? `No filter combination with 60+ trades reached +0.15R per trade here — on this data the filters alone don't make a tradable system.`
-    : `No combination with 60+ trades beat plain Donchian by more than 0.05R per trade here.`;
+    ? `No filter combination with 60+ trades reached +0.15R per trade here (${tried} tested) — on this data the filters alone don't make a tradable system.`
+    : `No combination with 60+ trades beat plain Donchian by more than 0.05R per trade here (${tried} tested).`;
 }
 document.getElementById("dfModeOnly").onclick = () => { save("tvdash.dfMode", "only"); dfRender(dfLast); tbtRenderAll(); };
 document.getElementById("dfModeDc").onclick = () => { save("tvdash.dfMode", "donchian"); dfRender(dfLast); tbtRenderAll(); };
@@ -3941,7 +4047,7 @@ function tbtRenderAll() {
     const r = all[tbtKey(s, o)];
     if (!r) return `<tr><td><b>${s.name}</b></td><td colspan="5" class="neutral">not tested with these settings</td></tr>`;
     const cell = (x) => x && x.n ? `<b class="${x.ret >= 0 ? "bull" : "bear"}" style="background:none;border:0">${x.ret >= 0 ? "+" : ""}${x.ret.toFixed(0)}%</b> <span class="neutral" style="font-size:11px">${x.n} · ${btFmtR(x.avgR)} · DD ${x.dd.toFixed(0)}%</span>` : `<span class="neutral">—</span>`;
-    return `<tr><td><b>${s.name}</b>${r.proxy ? ` <span class="neutral" style="font-size:11px">(PAXG)</span>` : ""}<div class="neutral" style="font-size:11px">buy &amp; hold ${r.hold >= 0 ? "+" : ""}${r.hold.toFixed(0)}% · risk ${r.risk}%</div></td>${Object.keys(TrendBacktest.SYSTEMS).map((k) => `<td>${cell(r.per[k])}</td>${k === "donchian" ? `<td>${(() => { const C = r.filt && (dfMode() === "donchian" ? r.filt.c : r.filt.o && r.filt.o[dfExit()]); if (!C) return `<span class="neutral" style="font-size:11px">re-run to test</span>`; if (!dfMask()) return `<span class="neutral" style="font-size:11px">switch filters on</span>`; return cell(dfRow(C[dfMask()])) + `<div class="neutral" style="font-size:11px">${dfMode() === "donchian" ? "Donchian + filters" : "filters only"}</div>`; })()}</td>` : ""}`).join("")}</tr>`;
+    return `<tr><td><b>${s.name}</b>${r.proxy ? ` <span class="neutral" style="font-size:11px">(PAXG)</span>` : ""}<div class="neutral" style="font-size:11px">buy &amp; hold ${r.hold >= 0 ? "+" : ""}${r.hold.toFixed(0)}% · risk ${r.risk}%</div></td>${Object.keys(TrendBacktest.SYSTEMS).map((k) => `<td>${cell(r.per[k])}</td>${k === "donchian" ? `<td>${(() => { const C = r.filt && (dfMode() === "donchian" ? r.filt.c : r.filt.o && r.filt.o[dfExit()]); if (!C) return `<span class="neutral" style="font-size:11px">re-run to test</span>`; if (!dfMask()) return `<span class="neutral" style="font-size:11px">switch filters on</span>`; if (C[dfMask()] == null) return `<span class="neutral" style="font-size:11px">re-run to test</span>`; return cell(dfRow(C[dfMask()])) + `<div class="neutral" style="font-size:11px">${dfMode() === "donchian" ? "Donchian + filters" : "filters only"}</div>`; })()}</td>` : ""}`).join("")}</tr>`;
   }).join("");
 }
 
