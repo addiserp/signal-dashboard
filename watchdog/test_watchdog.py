@@ -65,6 +65,13 @@ class T(unittest.TestCase):
         w = W.Watchdog(cfg, obs, n, yt=lambda _: (None, None), net=lambda: True, clock=lambda: 0, sleep=lambda s: None)
         for _ in range(6): w.step()
         self.assertEqual(obs.actions, [])
+    def test_channel_page_lags_but_video_live(self):
+        w, obs, n, tick = make(["live"] + ["offline"] * 6)
+        w.yt_video = lambda vid: "live"
+        tick(7); self.assertEqual(obs.actions, [])
+        w.yt_video = lambda vid: "offline"
+        w2, obs2, n2, tick2 = make(["live"] + ["offline"] * 3); w2.yt_video = lambda vid: "offline"
+        tick2(4); self.assertEqual(obs2.actions, ["restart_stream"])
     def test_parse_pages(self):
         live = '<link rel="canonical" href="https://www.youtube.com/watch?v=JtWHMOn-n-c">..."isLiveNow":true...'
         up = '<link rel="canonical" href="https://www.youtube.com/watch?v=AAAAAAAAAAA">"isUpcoming":true'

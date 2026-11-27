@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=OBS live
+Comment=Starts OBS streaming at login, once the internet is up
+Exec=/bin/sh -c "for i in $(seq 60); do curl -s -m 5 -o /dev/null https://www.youtube.com && break; sleep 5; done; sleep 10; exec obs --startstreaming --disable-shutdown-check --minimize-to-tray"
+Terminal=false
+X-GNOME-Autostart-enabled=true

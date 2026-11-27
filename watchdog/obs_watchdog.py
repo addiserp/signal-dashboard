@@ -107,6 +107,19 @@ def youtube_state(channel, timeout=15):
         return None, None
 
 
+def youtube_video_state(vid, timeout=15):
+    """Is this one video still live? Used to double-check before trusting an 'offline' channel page."""
+    try:
+        r = requests.get("https://www.youtube.com/watch?v=" + vid,
+                         headers={"User-Agent": UA, "Accept-Language": "en-US,en;q=0.9"},
+                         cookies={"CONSENT": "YES+cb", "SOCS": "CAI"}, timeout=timeout)
+        if r.status_code >= 400:
+            return None
+        return parse_live_page(r.text)[0]
+    except requests.RequestException:
+        return None
+
+
 def internet_ok(timeout=8):
     for u in ("https://www.google.com/generate_204", "https://cloudflare.com/cdn-cgi/trace"):
         try:
@@ -252,7 +265,8 @@ class Counters:
 
 
 class Watchdog:
-    def __init__(self, cfg, obs, notifier, yt=youtube_state, net=internet_ok, clock=time.time, sleep=time.sleep):
+    def __init__(self, cfg, obs, notifier, yt=youtube_state, net=internet_ok, clock=time.time, sleep=time.sleep,
+                 yt_video=None):
         self.cfg = cfg
         self.obs, self.n = obs, notifier
         self.yt, self.net, self.clock, self.sleep = yt, net, clock, sleep
@@ -266,6 +280,8 @@ class Watchdog:
         self.quiet_until = 0.0
         self.last_bytes = None
         self.was_live = None
+        self.yt_video = yt_video      # checks the last live video directly (main() passes youtube_video_state)
+        self.last_vid = None
 
     def _grace(self, why):
         self.quiet_until = self.clock() + self.grace
@@ -349,6 +365,13 @@ class Watchdog:
             return seen
         if yt_state is None:
             return seen + " · YouTube not reachable, not counting"
+        if yt_state == "live" and vid:
+            self.last_vid = vid
+        if yt_state in ("offline", "upcoming") and self.last_vid and self.yt_video:
+            # the channel page can lag or change; if the last live video still says live, the stream is fine
+            if self.yt_video(self.last_vid) == "live":
+                log.info("Channel page says %s, but video %s is still live — no action", yt_state, self.last_vid)
+                yt_state, vid = "live", self.last_vid
         if yt_state == "live":
             if self.was_live is False:
                 self.n.send(f"YouTube is live again ✅ ({vid or 'channel live'}).")
@@ -448,7 +471,7 @@ def main():
         return 0
 
     signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
-    Watchdog(cfg, obs, n).run(cfg.getint("check", "interval_sec"))
+    Watchdog(cfg, obs, n, yt_video=youtube_video_state).run(cfg.getint("check", "interval_sec"))
 
 
 if __name__ == "__main__":
