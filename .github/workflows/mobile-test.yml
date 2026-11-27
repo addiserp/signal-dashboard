@@ -1,5 +1,9 @@
 name: Mobile view test
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        default: mobile.mjs
 permissions:
   contents: write
 jobs:
@@ -12,7 +16,7 @@ jobs:
         with:
           node-version: "20"
       - run: npm i --no-save playwright@1.48.2
-      - run: node research/mobile.mjs
+      - run: node research/${{ github.event.inputs.script || 'mobile.mjs' }}
       - name: Save screenshots to the "mobile-snaps" branch
         run: |
           mkdir -p /tmp/out && cp snaps/* /tmp/out/
