@@ -588,7 +588,7 @@
       <label class="tf-lbl bt-trend" hidden>Direction <select id="btSide"><option value="long" selected>Long only</option><option value="both">Long + short</option></select></label>
       <label class="tf-lbl bt-trend" hidden>Fees <select id="btFee"><option value="0.05" selected>Taker 0.05%</option><option value="0.02">Maker 0.02%</option><option value="0">None</option></select></label>
       <label class="chk bt-trend" hidden><input type="checkbox" id="btFund" checked> Funding 0.01% / 8h</label>
-      <label class="tf-lbl bt-trend" hidden>Risk per trade <select id="btRisk"><option value="0.5">0.5%</option><option value="1" selected>1%</option><option value="2">2%</option><option value="3">3%</option><option value="4">4% — aggressive</option><option value="5">5% — aggressive</option><option value="6">6% — aggressive</option><option value="7">7% — aggressive</option><option value="8">8% — aggressive</option><option value="9">9% — aggressive</option><option value="10">10% — aggressive</option></select></label>
+      <label class="tf-lbl bt-trend" hidden>Risk per trade <select id="btRisk"><option value="0.5">0.5%</option><option value="1" selected>1%</option><option value="2">2%</option><option value="3">3%</option><option value="4">4% — aggressive</option></select></label>
       <button id="btCoinCheck" class="primary" type="button" title="Trend following · last 5 years · 4H · long only · real fees and funding · every symbol">✅ Check Donchian 4H on all coins</button>
       <button id="btRun" class="primary">Run backtest</button>
       <button id="btRunAll">Test all symbols</button>
@@ -3758,6 +3758,7 @@ function btCustomVis() { document.getElementById("btCustom").hidden = document.g
   const el = document.getElementById(id);
   const v = load("tvdash." + id, null);
   if (v !== null) { if (el.type === "checkbox") el.checked = v; else el.value = v; }
+  if (id === "btRisk" && !el.value) el.value = "4";
   el.onchange = () => { save("tvdash." + id, el.type === "checkbox" ? el.checked : el.value); btModeVis(); btCustomVis(); btShowSaved(); };
 });
 
