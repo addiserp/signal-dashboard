@@ -42,7 +42,7 @@ const per = (tr) => ["2019-21", "2022-23", "2024-now"].map((lab, i) => { const a
 const VW = NEED | B.vwap;
 const VARS = [["live rule (TL+Vol+Osc + 50-day)", NEED], ["live rule + VWAP from high", VW]];
 const tot = { [NEED]: { L: [], S: [] }, [VW]: { L: [], S: [] } };
-for (const sym of (process.env.SYMS || "BTCUSDT,ETHUSDT,ZECUSDT,SOLUSDT,BNBUSDT,XRPUSDT,ADAUSDT,PAXGUSDT").split(",")) {
+for (const sym of process.env.NULLONLY ? [] : (process.env.SYMS || "BTCUSDT,ETHUSDT,ZECUSDT,SOLUSDT,BNBUSDT,XRPUSDT,ADAUSDT,PAXGUSDT").split(",")) {
   const c4 = (await klines(sym, "4h", Date.UTC(2019, 0, 1))).filter((x) => x.t + 14400 <= now);
   const d1 = (await klines(sym, "1d", Date.UTC(2018, 0, 1))).filter((x) => x.t + 86400 <= now);
   if (c4.length < 500) { console.log(sym, "not enough data"); continue; }
@@ -62,16 +62,16 @@ for (const sym of (process.env.SYMS || "BTCUSDT,ETHUSDT,ZECUSDT,SOLUSDT,BNBUSDT,
 }
 console.log("\n=== All crypto together (gold left out) ===");
 for (const [name, need] of VARS) console.log(`  ${name}\n    BUYS  ${fmt(summ(tot[need].L))}   (${per(tot[need].L)})\n    SELLS ${fmt(summ(tot[need].S))}   (${per(tot[need].S)})`);
-function rw(n, seed) {
-  let s = seed; const r = () => { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648; };
+function rw(n, seed, sub = 48) {   // candles from a fine price path (real highs/lows), good random generator
+  let a = seed >>> 0; const r = () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   const g = () => Math.sqrt(-2 * Math.log(r() + 1e-12)) * Math.cos(2 * Math.PI * r());
-  const out = []; let p = 30000, t = T(2019);
-  for (let i = 0; i < n; i++) { const o = p; p = p * Math.exp(0.018 * g()); out.push({ t, o, h: Math.max(o, p) * (1 + Math.abs(g()) * 0.006), l: Math.min(o, p) * (1 - Math.abs(g()) * 0.006), c: p, v: 1000 * Math.exp(0.5 * g()) }); t += 14400; }
+  const out = []; let p = 30000, t = T(2019); const sd = 0.018 / Math.sqrt(sub);
+  for (let i = 0; i < n; i++) { const o = p; let h = p, l = p; for (let j = 0; j < sub; j++) { p *= Math.exp(sd * g()); h = Math.max(h, p); l = Math.min(l, p); } out.push({ t, o, h, l, c: p, v: 1000 * Math.exp(0.5 * g()) }); t += 14400; }
   return out;
 }
 console.log("\n=== Random-walk null test (16 runs × 6,000 4H candles, no real trends) ===");
 const nul = { [NEED]: [], [VW]: [] };
-for (let k = 0; k < 16; k++) {
+for (let k = 0; k < 32; k++) {
   const c4 = rw(6000, 7 + k * 101), d1 = [];
   for (let i = 0; i + 6 <= c4.length; i += 6) { const g = c4.slice(i, i + 6); d1.push({ t: g[0].t, o: g[0].o, h: Math.max(...g.map((x) => x.h)), l: Math.min(...g.map((x) => x.l)), c: g[5].c, v: g.reduce((a, x) => a + x.v, 0) }); }
   const X = F.context({ "4h": c4, "1d": d1 }, "4h"), s50 = trendSide(d1, 50);

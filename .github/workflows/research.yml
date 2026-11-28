@@ -20,4 +20,5 @@ jobs:
       - name: Research
         env:
           SYM: ${{ github.event.inputs.symbol || 'PAXGUSDT' }}
+          NULLONLY: ${{ github.event.inputs.symbol == 'NULLONLY' && '1' || '' }}
         run: node research/${{ github.event.inputs.script || 'gold.mjs' }}
